@@ -1,0 +1,197 @@
+# ============================================================
+# Roomify - Root .gitignore
+# Covers:
+#   - Android / Kotlin / Gradle
+#   - ASP.NET Core / .NET
+#   - Admin Web (ASP.NET Core or Node/React)
+#   - IDEs, OS files, logs, secrets
+# ============================================================
+
+# ------------------------------------------------------------
+# GENERAL
+# ------------------------------------------------------------
+
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+*.bak
+
+*.log
+logs/
+log/
+
+.env
+.env.*
+!.env.example
+*.secret
+*.secrets
+
+*.pfx
+*.p12
+*.pem
+*.key
+*.crt
+*.cer
+
+# ------------------------------------------------------------
+# IDE / EDITOR
+# ------------------------------------------------------------
+
+.idea/
+**/.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+.vscode/
+
+# ------------------------------------------------------------
+# ANDROID / KOTLIN / GRADLE
+# ------------------------------------------------------------
+
+.gradle/
+**/.gradle/
+**/build/
+
+local.properties
+**/local.properties
+
+captures/
+.externalNativeBuild/
+.cxx/
+**/.cxx/
+**/.externalNativeBuild/
+
+*.apk
+*.ap_
+*.aab
+
+.navigation/
+
+google-services.json
+**/google-services.json
+
+*.jks
+*.keystore
+
+proguard/
+mapping.txt
+seeds.txt
+usage.txt
+
+.kotlin/
+
+# ------------------------------------------------------------
+# .NET / ASP.NET CORE
+# ------------------------------------------------------------
+
+**/bin/
+**/obj/
+
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+Generated\ Files/
+_ReSharper*/
+*.DotSettings.user
+
+TestResults/
+coverage/
+coverage.*
+*.coverage
+*.coveragexml
+
+publish/
+**/publish/
+
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.Local.json
+secrets.json
+
+*.mdf
+*.ldf
+*.ndf
+
+# ------------------------------------------------------------
+# ADMIN WEB - NODE / REACT / VITE / NEXT (if used later)
+# ------------------------------------------------------------
+
+node_modules/
+
+.npm/
+.yarn/
+.pnpm-store/
+
+dist/
+**/dist/
+.next/
+.nuxt/
+.output/
+.vite/
+.cache/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ------------------------------------------------------------
+# CLOUDINARY / FIREBASE / JWT / API LOCAL CONFIG
+# ------------------------------------------------------------
+
+firebase-adminsdk*.json
+serviceAccount*.json
+jwtsettings.local.json
+cloudinary.local.json
+
+# ------------------------------------------------------------
+# MISC
+# ------------------------------------------------------------
+
+*.zip
+*.rar
+*.7z
+*.xlsx
+
+backup/
+backups/
+
+uploads/
+wwwroot/uploads/
+
+# ------------------------------------------------------------
+# IMPORTANT FILES THAT SHOULD STAY TRACKED
+# ------------------------------------------------------------
+
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+!package-lock.json
+!yarn.lock
+!pnpm-lock.yaml
+
+!.env.example
+
+# Keep SQL scripts such as RoomifyDB.sql in Git
+!*.sql
