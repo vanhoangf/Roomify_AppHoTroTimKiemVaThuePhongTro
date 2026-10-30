@@ -24,9 +24,7 @@
   <ItemGroup>
     <Folder Include="Data\" />
     <Folder Include="Entities\" />
-    <Folder Include="DTOs\" />
     <Folder Include="Helpers\" />
-    <Folder Include="Middleware\" />
     <Folder Include="Options\" />
     <Folder Include="Services\Interfaces\" />
     <Folder Include="Services\Implementations\" />
