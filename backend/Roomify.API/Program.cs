@@ -1,14 +1,30 @@
+using Microsoft.EntityFrameworkCore;
+using Roomify.API.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// 1. SERVICES
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// 2. DATABASE
+
+var connectionString = builder.Configuration
+    .GetConnectionString("RoomifyDb")
+    ?? throw new InvalidOperationException(
+        "Connection string 'RoomifyDb' was not found."
+    );
+
+builder.Services.AddDbContext<RoomifyDbContext>(options =>
+    options.UseSqlServer(connectionString));
+
+// 3. BUILD APP
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// 4. HTTP PIPELINE
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();

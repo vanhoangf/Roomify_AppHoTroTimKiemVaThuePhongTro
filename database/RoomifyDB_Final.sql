@@ -415,7 +415,7 @@ CREATE INDEX IX_RoomImages_RoomID ON RoomImages(RoomID, SortOrder);
 
 -- Moi phong chi co toi da mot anh dai dien.
 CREATE UNIQUE INDEX UX_RoomImages_OnePrimaryPerRoom
-ON RoomImages(RoomID)
+ON RoomImages(RoomID, IsPrimary)
 WHERE IsPrimary = 1;
 
 -- PublicId cua Cloudinary neu co thi nen duy nhat de xoa/quan ly anh chinh xac.
