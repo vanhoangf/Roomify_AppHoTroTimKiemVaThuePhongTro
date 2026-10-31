@@ -11,4 +11,8 @@ public interface IAuthService
     Task<AuthUserResponse> RegisterLandlordAsync(
         RegisterLandlordRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<LoginResponse> LoginAsync(
+    LoginRequest request,
+    CancellationToken cancellationToken = default);
 }

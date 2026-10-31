@@ -13,13 +13,16 @@ public class AuthService : IAuthService
 {
     private readonly RoomifyDbContext _dbContext;
     private readonly IPasswordHasher<User> _passwordHasher;
+    private readonly IJwtTokenService _jwtTokenService;
 
     public AuthService(
-        RoomifyDbContext dbContext,
-        IPasswordHasher<User> passwordHasher)
+    RoomifyDbContext dbContext,
+    IPasswordHasher<User> passwordHasher,
+    IJwtTokenService jwtTokenService)
     {
         _dbContext = dbContext;
         _passwordHasher = passwordHasher;
+        _jwtTokenService = jwtTokenService;
     }
 
     public async Task<AuthUserResponse> RegisterStudentAsync(
@@ -248,6 +251,99 @@ public class AuthService : IAuthService
 
             throw;
         }
+    }
+
+    public async Task<LoginResponse> LoginAsync(
+    LoginRequest request,
+    CancellationToken cancellationToken = default)
+    {
+        var email =
+            request.Email.Trim().ToLowerInvariant();
+
+        var user = await _dbContext.Users
+            .Include(x => x.Role)
+            .SingleOrDefaultAsync(
+                x => x.Email == email,
+                cancellationToken);
+
+        if (user is null)
+        {
+            throw new UnauthorizedException(
+                "INVALID_CREDENTIALS",
+                "Email hoặc mật khẩu không chính xác.");
+        }
+
+        var passwordResult =
+            _passwordHasher.VerifyHashedPassword(
+                user,
+                user.PasswordHash,
+                request.Password);
+
+        if (passwordResult ==
+            PasswordVerificationResult.Failed)
+        {
+            throw new UnauthorizedException(
+                "INVALID_CREDENTIALS",
+                "Email hoặc mật khẩu không chính xác.");
+        }
+
+        // Chỉ tiết lộ trạng thái LOCKED sau khi password đúng
+        if (user.Status == "LOCKED")
+        {
+            throw new ForbiddenException(
+                "ACCOUNT_LOCKED",
+                "Tài khoản đã bị khóa.");
+        }
+
+        if (user.Status != "ACTIVE")
+        {
+            throw new ForbiddenException(
+                "ACCOUNT_NOT_ACTIVE",
+                "Tài khoản hiện không hoạt động.");
+        }
+
+        // Nếu PasswordHasher báo hash cũ cần nâng cấp
+        if (passwordResult ==
+            PasswordVerificationResult.SuccessRehashNeeded)
+        {
+            user.PasswordHash =
+                _passwordHasher.HashPassword(
+                    user,
+                    request.Password);
+        }
+
+        user.LastLoginAt = DateTime.UtcNow;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(
+            cancellationToken);
+
+        if (user.Role is null)
+        {
+            throw new InvalidOperationException(
+                "Tài khoản chưa được gán vai trò.");
+        }
+
+        var (token, expiresAt) =
+            _jwtTokenService.GenerateAccessToken(
+                user,
+                user.Role.RoleCode);
+
+        return new LoginResponse
+        {
+            AccessToken = token,
+            ExpiresAt = expiresAt,
+
+            User = new AuthUserResponse
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                FullName = user.FullName,
+                Role = user.Role.RoleCode,
+                Status = user.Status,
+                CreatedAt = user.CreatedAt
+            }
+        };
     }
 
     private async Task ValidateCommonUserDataAsync(
