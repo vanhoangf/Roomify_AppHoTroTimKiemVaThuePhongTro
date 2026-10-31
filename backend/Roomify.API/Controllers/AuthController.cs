@@ -60,6 +60,34 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("refresh")]
+    public async Task<IActionResult> RefreshToken(
+    [FromBody] RefreshTokenRequest request,
+    CancellationToken cancellationToken)
+    {
+        var result =
+            await _authService.RefreshTokenAsync(
+                request,
+                cancellationToken);
+
+        return Ok(result);
+    }
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(
+    [FromBody] LogoutRequest request,
+    CancellationToken cancellationToken)
+    {
+        await _authService.LogoutAsync(
+            request,
+            cancellationToken);
+
+        return Ok(new
+        {
+            message = "Đăng xuất thành công."
+        });
+    }
+
     [Authorize]
     [HttpGet("me")]
     public IActionResult Me()
