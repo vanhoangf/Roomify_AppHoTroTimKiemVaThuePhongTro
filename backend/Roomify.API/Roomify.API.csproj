@@ -26,8 +26,6 @@
     <Folder Include="Entities\" />
     <Folder Include="Helpers\" />
     <Folder Include="Options\" />
-    <Folder Include="Services\Interfaces\" />
-    <Folder Include="Services\Implementations\" />
   </ItemGroup>
 
 </Project>

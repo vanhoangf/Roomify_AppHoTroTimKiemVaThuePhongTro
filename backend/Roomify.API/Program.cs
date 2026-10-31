@@ -3,6 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Roomify.API.Data;
 using Roomify.API.DTOs.Common;
 using Roomify.API.Middleware;
+using Microsoft.AspNetCore.Identity;
+using Roomify.API.Entities;
+using Roomify.API.Services.Implementations;
+using Roomify.API.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +57,14 @@ builder.Services
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+builder.Services.AddScoped<
+    IPasswordHasher<User>,
+    PasswordHasher<User>>();
+
+builder.Services.AddScoped<
+    IAuthService,
+    AuthService>();
 
 // 2. DATABASE
 
