@@ -119,6 +119,9 @@ builder.Services.AddScoped<
     ICatalogService,
     CatalogService>();
 
+builder.Services.AddScoped<
+    ILandlordPropertyService,
+    LandlordPropertyService>();
 // 7. AUTHENTICATION - JWT BEARER
 
 builder.Services
