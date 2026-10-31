@@ -115,6 +115,10 @@ builder.Services.AddScoped<
     IUserService,
     UserService>();
 
+builder.Services.AddScoped<
+    ICatalogService,
+    CatalogService>();
+
 // 7. AUTHENTICATION - JWT BEARER
 
 builder.Services
