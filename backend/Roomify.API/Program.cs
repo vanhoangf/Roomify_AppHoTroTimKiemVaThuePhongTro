@@ -1,11 +1,8 @@
-using System.Text;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-
 using Roomify.API.Data;
 using Roomify.API.DTOs.Common;
 using Roomify.API.Entities;
@@ -13,13 +10,19 @@ using Roomify.API.Middleware;
 using Roomify.API.Options;
 using Roomify.API.Services.Implementations;
 using Roomify.API.Services.Interfaces;
+using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. CONTROLLERS + VALIDATION
 
 builder.Services
-    .AddControllers()
+    .AddControllers().AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.UnmappedMemberHandling =
+            JsonUnmappedMemberHandling.Disallow;
+    })
     .ConfigureApiBehaviorOptions(options =>
     {
         options.InvalidModelStateResponseFactory = context =>
@@ -107,6 +110,10 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     IJwtTokenService,
     JwtTokenService>();
+
+builder.Services.AddScoped<
+    IUserService,
+    UserService>();
 
 // 7. AUTHENTICATION - JWT BEARER
 
