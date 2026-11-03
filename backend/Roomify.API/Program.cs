@@ -12,10 +12,12 @@ using Roomify.API.Services.Implementations;
 using Roomify.API.Services.Interfaces;
 using System.Text;
 using System.Text.Json.Serialization;
+using CloudinaryDotNet;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. CONTROLLERS + VALIDATION
+//CONTROLLERS + VALIDATION
 
 builder.Services
     .AddControllers().AddJsonOptions(options =>
@@ -53,17 +55,17 @@ builder.Services
         };
     });
 
-// 2. OPENAPI
+//OPENAPI
 
 builder.Services.AddOpenApi();
 
-// 3. GLOBAL EXCEPTION HANDLING
+//GLOBAL EXCEPTION HANDLING
 
 builder.Services.AddProblemDetails();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
-// 4. DATABASE
+//DATABASE
 
 var connectionString =
     builder.Configuration.GetConnectionString("RoomifyDb")
@@ -74,7 +76,7 @@ var connectionString =
 builder.Services.AddDbContext<RoomifyDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// 5. JWT OPTIONS
+//JWT OPTIONS
 
 builder.Services.Configure<JwtOptions>(
     builder.Configuration.GetSection("Jwt"));
@@ -97,7 +99,37 @@ var jwtAudience =
         "JWT Audience was not found."
     );
 
-// 6. APPLICATION SERVICES
+//CLOUDINARY OPTIONS
+
+builder.Services.Configure<CloudinaryOptions>(
+    builder.Configuration.GetSection("Cloudinary"));
+
+builder.Services.AddSingleton(sp =>
+{
+    var options = sp.GetRequiredService<
+        IOptions<CloudinaryOptions>>().Value;
+
+    if (string.IsNullOrWhiteSpace(options.CloudName) ||
+        string.IsNullOrWhiteSpace(options.ApiKey) ||
+        string.IsNullOrWhiteSpace(options.ApiSecret))
+    {
+        throw new InvalidOperationException(
+            "Cloudinary configuration is missing.");
+    }
+
+    var account = new Account(
+        options.CloudName,
+        options.ApiKey,
+        options.ApiSecret);
+
+    var cloudinary = new Cloudinary(account);
+
+    cloudinary.Api.Secure = true;
+
+    return cloudinary;
+});
+
+//APPLICATION SERVICES
 
 builder.Services.AddScoped<
     IPasswordHasher<User>,
@@ -122,7 +154,15 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     ILandlordPropertyService,
     LandlordPropertyService>();
-// 7. AUTHENTICATION - JWT BEARER
+
+builder.Services.AddScoped<
+    IImageStorageService,
+    CloudinaryImageStorageService>();
+
+builder.Services.AddScoped<
+    IRoomImageService,
+    RoomImageService>();
+//AUTHENTICATION - JWT BEARER
 
 builder.Services
     .AddAuthentication(
@@ -227,15 +267,15 @@ builder.Services
         };
     });
 
-// 8. AUTHORIZATION
+//AUTHORIZATION
 
 builder.Services.AddAuthorization();
 
-// 9. BUILD APPLICATION
+//BUILD APPLICATION
 
 var app = builder.Build();
 
-// 10. HTTP PIPELINE
+//HTTP PIPELINE
 
 app.UseExceptionHandler();
 
