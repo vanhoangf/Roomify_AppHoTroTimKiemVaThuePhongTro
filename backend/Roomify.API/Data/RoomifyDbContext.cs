@@ -912,6 +912,5 @@ public partial class RoomifyDbContext : DbContext
 
         OnModelCreatingPartial(modelBuilder);
     }
-
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
