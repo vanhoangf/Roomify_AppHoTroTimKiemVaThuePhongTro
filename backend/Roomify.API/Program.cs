@@ -14,8 +14,6 @@ using System.Text;
 using System.Text.Json.Serialization;
 using CloudinaryDotNet;
 using Microsoft.Extensions.Options;
-using Roomify.API.Services.Implementations;
-using Roomify.API.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -176,6 +174,10 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     IViewingAppointmentService,
     ViewingAppointmentService>();
+
+builder.Services.AddScoped<
+    IRentalRequestService, 
+    RentalRequestService>();
 //AUTHENTICATION - JWT BEARER
 
 builder.Services
