@@ -168,6 +168,14 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     IRoomDiscoveryService,
     RoomDiscoveryService>();
+
+builder.Services.AddScoped<
+    ISavedRoomService,
+    SavedRoomService>();
+
+builder.Services.AddScoped<
+    IViewingAppointmentService,
+    ViewingAppointmentService>();
 //AUTHENTICATION - JWT BEARER
 
 builder.Services
