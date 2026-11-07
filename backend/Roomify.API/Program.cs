@@ -181,6 +181,18 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     IRentalContractService, 
     RentalContractService>();
+
+builder.Services.AddScoped<
+    IConversationService, 
+    ConversationService>();
+
+builder.Services.AddScoped<
+    IMessageService, 
+    MessageService>();
+
+builder.Services.AddScoped<
+    INotificationService, 
+    NotificationService>();
 //AUTHENTICATION - JWT BEARER
 
 builder.Services
