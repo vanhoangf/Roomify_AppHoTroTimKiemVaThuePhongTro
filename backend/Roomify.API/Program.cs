@@ -166,6 +166,8 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 
 builder.Services.AddScoped<IReportService, ReportService>();
+
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 //AUTHENTICATION - JWT BEARER
 
 builder.Services
