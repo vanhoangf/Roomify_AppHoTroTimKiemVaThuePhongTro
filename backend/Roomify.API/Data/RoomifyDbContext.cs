@@ -455,6 +455,8 @@ public partial class RoomifyDbContext : DbContext
 
             entity.HasIndex(e => new { e.Status, e.CreatedAt }, "IX_Reports_Status_CreatedAt").IsDescending(false, true);
 
+            entity.HasIndex(e => new { e.ReporterUserId, e.RoomId }, "UX_Reports_Reporter_Room_Open").IsUnique().HasFilter("([Status]='OPEN')");
+
             entity.Property(e => e.ReportId).HasColumnName("ReportID");
             entity.Property(e => e.AdminNote).HasMaxLength(2000);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())", "DF_Reports_CreatedAt");

@@ -131,68 +131,41 @@ builder.Services.AddSingleton(sp =>
 
 //APPLICATION SERVICES
 
-builder.Services.AddScoped<
-    IPasswordHasher<User>,
-    PasswordHasher<User>>();
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
-builder.Services.AddScoped<
-    IAuthService,
-    AuthService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
-builder.Services.AddScoped<
-    IJwtTokenService,
-    JwtTokenService>();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
-builder.Services.AddScoped<
-    IUserService,
-    UserService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
-builder.Services.AddScoped<
-    ICatalogService,
-    CatalogService>();
+builder.Services.AddScoped<ICatalogService, CatalogService>();
 
-builder.Services.AddScoped<
-    ILandlordPropertyService,
-    LandlordPropertyService>();
+builder.Services.AddScoped<ILandlordPropertyService, LandlordPropertyService>();
 
-builder.Services.AddScoped<
-    IImageStorageService,
-    CloudinaryImageStorageService>();
+builder.Services.AddScoped<IImageStorageService, CloudinaryImageStorageService>();
 
-builder.Services.AddScoped<
-    IRoomImageService,
-    RoomImageService>();
+builder.Services.AddScoped<IRoomImageService, RoomImageService>();
 
-builder.Services.AddScoped<
-    IRoomDiscoveryService,
-    RoomDiscoveryService>();
+builder.Services.AddScoped<IRoomDiscoveryService, RoomDiscoveryService>();
 
-builder.Services.AddScoped<
-    ISavedRoomService,
-    SavedRoomService>();
+builder.Services.AddScoped<ISavedRoomService, SavedRoomService>();
 
-builder.Services.AddScoped<
-    IViewingAppointmentService,
-    ViewingAppointmentService>();
+builder.Services.AddScoped<IViewingAppointmentService, ViewingAppointmentService>();
 
-builder.Services.AddScoped<
-    IRentalRequestService, 
-    RentalRequestService>();
-builder.Services.AddScoped<
-    IRentalContractService, 
-    RentalContractService>();
+builder.Services.AddScoped<IRentalRequestService, RentalRequestService>();
 
-builder.Services.AddScoped<
-    IConversationService, 
-    ConversationService>();
+builder.Services.AddScoped<IRentalContractService, RentalContractService>();
 
-builder.Services.AddScoped<
-    IMessageService, 
-    MessageService>();
+builder.Services.AddScoped<IConversationService, ConversationService>();
 
-builder.Services.AddScoped<
-    INotificationService, 
-    NotificationService>();
+builder.Services.AddScoped<IMessageService, MessageService>();
+
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
+builder.Services.AddScoped<IReviewService, ReviewService>();
+
+builder.Services.AddScoped<IReportService, ReportService>();
 //AUTHENTICATION - JWT BEARER
 
 builder.Services
