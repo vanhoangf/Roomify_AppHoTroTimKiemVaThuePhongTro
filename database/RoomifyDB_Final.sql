@@ -1,15 +1,23 @@
--- ============================================================================
--- ROOMIFY - FINAL DATABASE SCHEMA (TWO-TIER LOCATION + STRONGER CONSISTENCY)
+﻿-- ============================================================================
+-- ROOMIFY - DATABASE SCHEMA DONG BO ROOMIFY.API DEN HET BUOC 21
 -- De tai: Ung dung ho tro tim kiem va thue phong tro danh cho sinh vien
 -- DBMS: Microsoft SQL Server 2019+
--- Backend: ASP.NET Core Web API + Entity Framework Core + JWT
+-- Backend: ASP.NET Core Web API + Entity Framework Core Database First + JWT
 -- Mobile: Kotlin Android (STUDENT / LANDLORD)
 -- Admin: Web rieng (ADMIN)
 --
--- Luu y:
+-- PHIEN BAN DONG BO:
+--   - Backend Roomify.API sau khi hoan thanh Payments (Buoc 20)
+--   - Backend Roomify.API sau khi hoan thanh Admin APIs (Buoc 21)
+--   - ViewingAppointments da tich hop ProposedAt + RowVer + PROPOSED
+--   - ViewingAppointmentHistories duoc tao truc tiep trong schema chinh
+--
+-- LUU Y:
 --   @RecreateDatabase = 1 se XOA database RoomifyDB cu va tao lai tu dau.
---   Dung cho giai doan phat trien/do an. Neu database da co du lieu that,
---   hay chuyen sang EF Core Migration hoac script ALTER thay vi DROP DATABASE.
+--   File nay dung de cac thanh vien dung chung mot schema sach khi tich hop
+--   Android Student, Android Landlord va Admin Web.
+--   Neu database da co du lieu that, KHONG dung DROP DATABASE; hay dung script
+--   migration/ALTER rieng.
 -- ============================================================================
 
 USE master;
@@ -495,6 +503,10 @@ CREATE TABLE ViewingAppointments (
     RoomID BIGINT NOT NULL,
     StudentID BIGINT NOT NULL,
     ScheduledAt DATETIME2 NOT NULL,
+
+    -- Thoi gian chu tro de xuat lai khi can thuong luong lich xem phong.
+    ProposedAt DATETIME2(7) NULL,
+
     Note NVARCHAR(1000) NULL,
     Status VARCHAR(20) NOT NULL CONSTRAINT DF_ViewingAppointments_Status DEFAULT 'PENDING',
     LandlordNote NVARCHAR(1000) NULL,
@@ -502,20 +514,69 @@ CREATE TABLE ViewingAppointments (
     CreatedAt DATETIME2 NOT NULL CONSTRAINT DF_ViewingAppointments_CreatedAt DEFAULT SYSUTCDATETIME(),
     UpdatedAt DATETIME2 NOT NULL CONSTRAINT DF_ViewingAppointments_UpdatedAt DEFAULT SYSUTCDATETIME(),
 
+    -- EF Core su dung IsRowVersion() de phat hien cap nhat dong thoi.
+    RowVer ROWVERSION NOT NULL,
+
     CONSTRAINT FK_ViewingAppointments_Rooms FOREIGN KEY (RoomID)
         REFERENCES Rooms(RoomID),
     CONSTRAINT FK_ViewingAppointments_Students FOREIGN KEY (StudentID)
         REFERENCES StudentProfiles(StudentID),
 
     CONSTRAINT CK_ViewingAppointments_Status CHECK (
-        Status IN ('PENDING','CONFIRMED','COMPLETED','CANCELLED','REJECTED')
+        Status IN ('PENDING','PROPOSED','CONFIRMED','COMPLETED','CANCELLED','REJECTED')
+    ),
+
+    -- Trang thai PROPOSED bat buoc co ProposedAt; cac trang thai khac khong luu ProposedAt.
+    CONSTRAINT CK_ViewingAppointments_ProposedAt CHECK (
+        (Status = 'PROPOSED' AND ProposedAt IS NOT NULL)
+        OR
+        (Status <> 'PROPOSED' AND ProposedAt IS NULL)
     )
 );
 GO
 
-CREATE INDEX IX_ViewingAppointments_StudentID ON ViewingAppointments(StudentID, CreatedAt DESC);
-CREATE INDEX IX_ViewingAppointments_RoomID_Status ON ViewingAppointments(RoomID, Status);
-CREATE INDEX IX_ViewingAppointments_ScheduledAt ON ViewingAppointments(ScheduledAt);
+CREATE INDEX IX_ViewingAppointments_StudentID
+ON ViewingAppointments(StudentID, CreatedAt DESC);
+
+CREATE INDEX IX_ViewingAppointments_RoomID_Status
+ON ViewingAppointments(RoomID, Status);
+
+CREATE INDEX IX_ViewingAppointments_ScheduledAt
+ON ViewingAppointments(ScheduledAt);
+GO
+
+-- Lich su xu ly lich hen. Backend truy cap bang _db.Set<ViewingAppointmentHistory>().
+CREATE TABLE ViewingAppointmentHistories (
+    AppointmentHistoryID BIGINT IDENTITY(1,1) PRIMARY KEY,
+    AppointmentID BIGINT NOT NULL,
+    ActorUserID BIGINT NOT NULL,
+
+    Action VARCHAR(30) NOT NULL,
+
+    OldStatus VARCHAR(20) NULL,
+    NewStatus VARCHAR(20) NOT NULL,
+
+    OldScheduledAt DATETIME2(7) NULL,
+    NewScheduledAt DATETIME2(7) NULL,
+
+    Note NVARCHAR(1000) NULL,
+
+    CreatedAt DATETIME2(7) NOT NULL
+        CONSTRAINT DF_ViewingAppointmentHistories_CreatedAt
+        DEFAULT SYSUTCDATETIME(),
+
+    CONSTRAINT FK_ViewingAppointmentHistories_Appointment
+        FOREIGN KEY (AppointmentID)
+        REFERENCES ViewingAppointments(AppointmentID),
+
+    CONSTRAINT FK_ViewingAppointmentHistories_Actor
+        FOREIGN KEY (ActorUserID)
+        REFERENCES Users(UserID)
+);
+GO
+
+CREATE INDEX IX_ViewingAppointmentHistories_Appointment
+ON ViewingAppointmentHistories(AppointmentID, CreatedAt DESC);
 GO
 
 /* ============================================================================
@@ -784,6 +845,12 @@ GO
 CREATE INDEX IX_Reports_RoomID_Status ON Reports(RoomID, Status);
 CREATE INDEX IX_Reports_Status_CreatedAt ON Reports(Status, CreatedAt DESC);
 CREATE INDEX IX_Reports_ReporterUserID ON Reports(ReporterUserID, CreatedAt DESC);
+
+-- Moi user chi duoc co toi da 1 bao cao OPEN cho cung 1 phong tai mot thoi diem.
+-- Sau khi report cu da RESOLVED/REJECTED, user co the tao report moi cho phong do.
+CREATE UNIQUE INDEX UX_Reports_Reporter_Room_Open
+ON Reports(ReporterUserID, RoomID)
+WHERE Status = 'OPEN';
 GO
 
 /* ============================================================================
@@ -872,9 +939,618 @@ GO
    11. FINAL CHECK
    ============================================================================ */
 
-PRINT N'RoomifyDB FINAL schema created successfully.';
-PRINT N'Total tables expected: 27 (Districts removed for two-tier local government model).';
+PRINT N'RoomifyDB schema synced with Roomify.API through Step 21.';
+PRINT N'Total tables expected: 28 (including ViewingAppointmentHistories).';
 PRINT N'Address model: Province/Municipality -> Ward/Commune/Special zone.';
-PRINT N'RentalContracts consistency strengthened with composite Request+Room FK; Student/Landlord are derived.';
-PRINT N'RoomViewHistories is included for student room-view history.';
+PRINT N'RentalContracts use composite Request+Room consistency; Student/Landlord are derived.';
+PRINT N'ViewingAppointments includes PROPOSED workflow, ProposedAt and RowVer.';
+PRINT N'RoomViewHistories and ViewingAppointmentHistories are included.';
+GO
+
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+GO
+
+IF EXISTS (SELECT 1 FROM Users WHERE Email LIKE '%@roomify.demo')
+    THROW 50001, 'Roomify demo data already exists. Do not run this seed twice.', 1;
+GO
+
+BEGIN TRY
+BEGIN TRANSACTION;
+
+-- ============================================================================
+-- 1. MASTER DATA
+-- ============================================================================
+
+IF NOT EXISTS (SELECT 1 FROM Roles WHERE RoleCode='STUDENT')
+    INSERT INTO Roles(RoleCode,RoleName) VALUES('STUDENT',N'Sinh viên');
+IF NOT EXISTS (SELECT 1 FROM Roles WHERE RoleCode='LANDLORD')
+    INSERT INTO Roles(RoleCode,RoleName) VALUES('LANDLORD',N'Chủ trọ');
+IF NOT EXISTS (SELECT 1 FROM Roles WHERE RoleCode='ADMIN')
+    INSERT INTO Roles(RoleCode,RoleName) VALUES('ADMIN',N'Quản trị viên');
+
+DECLARE @Provinces TABLE(Code VARCHAR(20), Name NVARCHAR(150), Type VARCHAR(20));
+INSERT INTO @Provinces VALUES
+('DN',N'TP. Đà Nẵng','MUNICIPALITY'),
+('HCM',N'TP. Hồ Chí Minh','MUNICIPALITY'),
+('HN',N'TP. Hà Nội','MUNICIPALITY'),
+('HP',N'TP. Hải Phòng','MUNICIPALITY'),
+('HUE',N'TP. Huế','MUNICIPALITY'),
+('CT',N'TP. Cần Thơ','MUNICIPALITY'),
+('QN',N'Quảng Ninh','PROVINCE'),
+('TH',N'Thanh Hóa','PROVINCE'),
+('NA',N'Nghệ An','PROVINCE'),
+('KH',N'Khánh Hòa','PROVINCE');
+
+INSERT INTO Provinces(ProvinceCode,ProvinceName,ProvinceType,IsActive)
+SELECT P.Code,P.Name,P.Type,1
+FROM @Provinces P
+WHERE NOT EXISTS (SELECT 1 FROM Provinces X WHERE X.ProvinceName=P.Name);
+
+DECLARE @DaNangID INT=(SELECT ProvinceID FROM Provinces WHERE ProvinceName=N'TP. Đà Nẵng');
+
+DECLARE @Wards TABLE(Code VARCHAR(20), Name NVARCHAR(150));
+INSERT INTO @Wards VALUES
+('DN01',N'Hòa Khánh'),('DN02',N'Hải Châu'),('DN03',N'An Hải'),
+('DN04',N'Ngũ Hành Sơn'),('DN05',N'Hòa Cường'),('DN06',N'Thanh Khê'),
+('DN07',N'Cẩm Lệ'),('DN08',N'Liên Chiểu'),('DN09',N'Sơn Trà'),('DN10',N'Hòa Xuân');
+
+INSERT INTO Wards(ProvinceID,WardCode,WardName,WardType,IsActive)
+SELECT @DaNangID,W.Code,W.Name,'WARD',1
+FROM @Wards W
+WHERE NOT EXISTS (
+    SELECT 1 FROM Wards X WHERE X.ProvinceID=@DaNangID AND X.WardName=W.Name
+);
+
+DECLARE @Universities TABLE(No INT, Name NVARCHAR(255), WardName NVARCHAR(150), AddressLine NVARCHAR(500));
+INSERT INTO @Universities VALUES
+(1,N'Trường Đại học Bách khoa - Đại học Đà Nẵng',N'Hòa Khánh',N'54 Nguyễn Lương Bằng'),
+(2,N'Trường Đại học Sư phạm Kỹ thuật - Đại học Đà Nẵng',N'Thanh Khê',N'48 Cao Thắng'),
+(3,N'Trường Đại học Kinh tế - Đại học Đà Nẵng',N'Ngũ Hành Sơn',N'71 Ngũ Hành Sơn'),
+(4,N'Trường Đại học Sư phạm - Đại học Đà Nẵng',N'Hòa Khánh',N'459 Tôn Đức Thắng'),
+(5,N'Trường Đại học Ngoại ngữ - Đại học Đà Nẵng',N'Cẩm Lệ',N'131 Lương Nhữ Hộc'),
+(6,N'Trường Đại học CNTT & Truyền thông Việt - Hàn',N'Ngũ Hành Sơn',N'470 Trần Đại Nghĩa'),
+(7,N'Đại học Duy Tân',N'Hải Châu',N'254 Nguyễn Văn Linh'),
+(8,N'Đại học Đông Á',N'Hòa Cường',N'33 Xô Viết Nghệ Tĩnh'),
+(9,N'Đại học Kiến trúc Đà Nẵng',N'Hòa Cường',N'566 Núi Thành'),
+(10,N'Đại học FPT Đà Nẵng',N'Hòa Xuân',N'Khu đô thị FPT City');
+
+INSERT INTO Universities(UniversityName,ProvinceID,WardID,AddressLine,Latitude,Longitude,IsActive)
+SELECT U.Name,@DaNangID,W.WardID,U.AddressLine,
+       CAST(16.0000000 + U.No*0.003 AS DECIMAL(10,7)),
+       CAST(108.1400000 + U.No*0.008 AS DECIMAL(10,7)),1
+FROM @Universities U
+JOIN Wards W ON W.ProvinceID=@DaNangID AND W.WardName=U.WardName
+WHERE NOT EXISTS (SELECT 1 FROM Universities X WHERE X.UniversityName=U.Name);
+
+DECLARE @PropertyTypes TABLE(Name NVARCHAR(100));
+INSERT INTO @PropertyTypes VALUES
+(N'Nhà trọ / Phòng trọ'),(N'Căn hộ chung cư'),(N'Chung cư mini'),
+(N'Ký túc xá'),(N'Nhà nguyên căn'),(N'Căn hộ dịch vụ'),
+(N'Homestay sinh viên'),(N'Sleepbox'),(N'Nhà ở xã hội sinh viên'),
+(N'Nhà nguyên căn chia phòng');
+
+INSERT INTO PropertyTypes(TypeName,IsActive)
+SELECT P.Name,1 FROM @PropertyTypes P
+WHERE NOT EXISTS (SELECT 1 FROM PropertyTypes X WHERE X.TypeName=P.Name);
+
+DECLARE @Amenities TABLE(Name NVARCHAR(100));
+INSERT INTO @Amenities VALUES
+(N'Điều hòa'),(N'Bình nóng lạnh'),(N'Máy giặt'),(N'Tủ lạnh'),(N'Giường'),
+(N'Tủ quần áo'),(N'Chỗ để xe'),(N'Bảo vệ 24/7'),(N'Camera an ninh'),(N'Wi-Fi');
+
+INSERT INTO Amenities(AmenityName,IsActive)
+SELECT A.Name,1 FROM @Amenities A
+WHERE NOT EXISTS (SELECT 1 FROM Amenities X WHERE X.AmenityName=A.Name);
+
+-- ============================================================================
+-- 2. USERS: 10 ADMIN + 10 STUDENT + 10 LANDLORD
+-- ============================================================================
+
+DECLARE @PasswordHash VARCHAR(500)='AQAAAAIAAYagAAAAEBhXXciCg7o7VScwX0urZslJYStStP3sA2DPdPJFwiJim1HICmqj1R5HwL1qkFSW6g==';
+DECLARE @i INT=1;
+
+WHILE @i<=10
+BEGIN
+    INSERT INTO Users(RoleID,Email,PasswordHash,FullName,Phone,AvatarURL,
+                      Status,EmailVerified,LastLoginAt,CreatedAt,UpdatedAt)
+    VALUES(
+        (SELECT RoleID FROM Roles WHERE RoleCode='ADMIN'),
+        CONCAT('admin',FORMAT(@i,'00'),'@roomify.demo'),
+        @PasswordHash,
+        CONCAT(N'Quản trị viên Demo ',FORMAT(@i,'00')),
+        CONCAT('09000000',FORMAT(@i,'00')),
+        CONCAT(N'https://cdn.roomify.demo/avatars/admin',FORMAT(@i,'00'),N'.jpg'),
+        'ACTIVE',1,DATEADD(DAY,-@i,SYSUTCDATETIME()),
+        DATEADD(DAY,-120-@i,SYSUTCDATETIME()),SYSUTCDATETIME()
+    );
+    SET @i+=1;
+END;
+
+SET @i=1;
+WHILE @i<=10
+BEGIN
+    INSERT INTO Users(RoleID,Email,PasswordHash,FullName,Phone,AvatarURL,
+                      Status,EmailVerified,LockedReason,LockedAt,LockedByUserID,
+                      LastLoginAt,CreatedAt,UpdatedAt)
+    VALUES(
+        (SELECT RoleID FROM Roles WHERE RoleCode='STUDENT'),
+        CONCAT('student',FORMAT(@i,'00'),'@roomify.demo'),
+        @PasswordHash,
+        CONCAT(N'Sinh viên Demo ',FORMAT(@i,'00')),
+        CONCAT('09110000',FORMAT(@i,'00')),
+        CONCAT(N'https://cdn.roomify.demo/avatars/student',FORMAT(@i,'00'),N'.jpg'),
+        CASE WHEN @i=10 THEN 'LOCKED' ELSE 'ACTIVE' END,
+        CASE WHEN @i<=8 THEN 1 ELSE 0 END,
+        CASE WHEN @i=10 THEN N'Tài khoản demo bị khóa để kiểm thử Admin' ELSE NULL END,
+        CASE WHEN @i=10 THEN DATEADD(DAY,-2,SYSUTCDATETIME()) ELSE NULL END,
+        CASE WHEN @i=10 THEN (SELECT UserID FROM Users WHERE Email='admin01@roomify.demo') ELSE NULL END,
+        DATEADD(DAY,-@i,SYSUTCDATETIME()),
+        DATEADD(DAY,-60-@i,SYSUTCDATETIME()),SYSUTCDATETIME()
+    );
+    SET @i+=1;
+END;
+
+SET @i=1;
+WHILE @i<=10
+BEGIN
+    INSERT INTO Users(RoleID,Email,PasswordHash,FullName,Phone,AvatarURL,
+                      Status,EmailVerified,LockedReason,LockedAt,LockedByUserID,
+                      LastLoginAt,CreatedAt,UpdatedAt)
+    VALUES(
+        (SELECT RoleID FROM Roles WHERE RoleCode='LANDLORD'),
+        CONCAT('landlord',FORMAT(@i,'00'),'@roomify.demo'),
+        @PasswordHash,
+        CONCAT(N'Chủ trọ Demo ',FORMAT(@i,'00')),
+        CONCAT('09820000',FORMAT(@i,'00')),
+        CONCAT(N'https://cdn.roomify.demo/avatars/landlord',FORMAT(@i,'00'),N'.jpg'),
+        CASE WHEN @i=10 THEN 'LOCKED' ELSE 'ACTIVE' END,
+        CASE WHEN @i<=9 THEN 1 ELSE 0 END,
+        CASE WHEN @i=10 THEN N'Tài khoản demo bị khóa để kiểm thử Admin' ELSE NULL END,
+        CASE WHEN @i=10 THEN DATEADD(DAY,-3,SYSUTCDATETIME()) ELSE NULL END,
+        CASE WHEN @i=10 THEN (SELECT UserID FROM Users WHERE Email='admin02@roomify.demo') ELSE NULL END,
+        DATEADD(DAY,-@i,SYSUTCDATETIME()),
+        DATEADD(DAY,-90-@i,SYSUTCDATETIME()),SYSUTCDATETIME()
+    );
+    SET @i+=1;
+END;
+
+-- ============================================================================
+-- 3. REFRESH TOKENS + PASSWORD RESET TOKENS: 10 EACH
+-- ============================================================================
+
+SET @i=1;
+WHILE @i<=10
+BEGIN
+    INSERT INTO RefreshTokens(UserID,TokenHash,ExpiresAt,RevokedAt,CreatedAt)
+    VALUES(
+        (SELECT UserID FROM Users WHERE Email=CONCAT('student',FORMAT(@i,'00'),'@roomify.demo')),
+        CONCAT('DEMO_REFRESH_HASH_',FORMAT(@i,'00')),
+        DATEADD(DAY,30-@i,SYSUTCDATETIME()),
+        CASE WHEN @i>=9 THEN DATEADD(DAY,-1,SYSUTCDATETIME()) ELSE NULL END,
+        DATEADD(DAY,-@i,SYSUTCDATETIME())
+    );
+
+    INSERT INTO PasswordResetTokens(UserID,TokenHash,ExpiresAt,UsedAt,CreatedAt)
+    VALUES(
+        (SELECT UserID FROM Users WHERE Email=CONCAT('student',FORMAT(@i,'00'),'@roomify.demo')),
+        CONCAT('DEMO_RESET_HASH_',FORMAT(@i,'00')),
+        DATEADD(HOUR,24+@i,SYSUTCDATETIME()),
+        CASE WHEN @i<=3 THEN DATEADD(HOUR,-1,SYSUTCDATETIME()) ELSE NULL END,
+        DATEADD(HOUR,-@i,SYSUTCDATETIME())
+    );
+    SET @i+=1;
+END;
+
+-- ============================================================================
+-- 4. STUDENT PROFILES + LANDLORD PROFILES: 10 EACH
+-- ============================================================================
+
+SET @i=1;
+WHILE @i<=10
+BEGIN
+    DECLARE @UniversityID BIGINT=(
+        SELECT UniversityID FROM (
+            SELECT UniversityID,ROW_NUMBER() OVER(ORDER BY UniversityID) AS RN
+            FROM Universities
+        ) X WHERE RN=@i
+    );
+
+    INSERT INTO StudentProfiles(UserID,UniversityID,StudentCode,StudentCardURL,
+                                IsVerified,VerifiedByUserID,VerifiedAt,CreatedAt,UpdatedAt)
+    VALUES(
+        (SELECT UserID FROM Users WHERE Email=CONCAT('student',FORMAT(@i,'00'),'@roomify.demo')),
+        @UniversityID,
+        CONCAT('SV26',FORMAT(@i,'0000')),
+        CONCAT(N'https://cdn.roomify.demo/student-cards/student',FORMAT(@i,'00'),N'.jpg'),
+        CASE WHEN @i<=7 THEN 1 ELSE 0 END,
+        CASE WHEN @i<=7 THEN (SELECT UserID FROM Users WHERE Email='admin01@roomify.demo') ELSE NULL END,
+        CASE WHEN @i<=7 THEN DATEADD(DAY,-20-@i,SYSUTCDATETIME()) ELSE NULL END,
+        DATEADD(DAY,-50-@i,SYSUTCDATETIME()),SYSUTCDATETIME()
+    );
+
+    INSERT INTO LandlordProfiles(UserID,IdentityNumber,IdentityDocumentURL,
+                                 IsVerified,VerifiedByUserID,VerifiedAt,CreatedAt,UpdatedAt)
+    VALUES(
+        (SELECT UserID FROM Users WHERE Email=CONCAT('landlord',FORMAT(@i,'00'),'@roomify.demo')),
+        CONCAT('0482026',FORMAT(@i,'00000')),
+        CONCAT(N'https://cdn.roomify.demo/identity/landlord',FORMAT(@i,'00'),N'.jpg'),
+        CASE WHEN @i<=8 THEN 1 ELSE 0 END,
+        CASE WHEN @i<=8 THEN (SELECT UserID FROM Users WHERE Email='admin02@roomify.demo') ELSE NULL END,
+        CASE WHEN @i<=8 THEN DATEADD(DAY,-25-@i,SYSUTCDATETIME()) ELSE NULL END,
+        DATEADD(DAY,-80-@i,SYSUTCDATETIME()),SYSUTCDATETIME()
+    );
+
+    SET @i+=1;
+END;
+
+-- ============================================================================
+-- 5. PROPERTIES + ROOMS + IMAGES + AMENITIES: 10 EACH
+-- ============================================================================
+
+SET @i=1;
+WHILE @i<=10
+BEGIN
+    DECLARE @WardID INT=(
+        SELECT WardID FROM (
+            SELECT WardID,ROW_NUMBER() OVER(ORDER BY WardID) RN
+            FROM Wards WHERE ProvinceID=@DaNangID
+        ) X WHERE RN=@i
+    );
+    DECLARE @PropertyTypeID INT=(
+        SELECT PropertyTypeID FROM (
+            SELECT PropertyTypeID,ROW_NUMBER() OVER(ORDER BY PropertyTypeID) RN
+            FROM PropertyTypes
+        ) X WHERE RN=@i
+    );
+
+    INSERT INTO Properties(LandlordID,PropertyTypeID,PropertyName,Description,
+                           ProvinceID,WardID,AddressLine,Latitude,Longitude,
+                           Status,CreatedAt,UpdatedAt)
+    VALUES(
+        (SELECT LP.LandlordID FROM LandlordProfiles LP JOIN Users U ON U.UserID=LP.UserID
+         WHERE U.Email=CONCAT('landlord',FORMAT(@i,'00'),'@roomify.demo')),
+        @PropertyTypeID,
+        CONCAT(N'Khu trọ Roomify Demo ',FORMAT(@i,'00')),
+        N'Khu trọ mẫu dùng để kiểm thử ứng dụng Roomify.',
+        @DaNangID,@WardID,
+        CONCAT(@i,N' Đường Roomify Demo'),
+        CAST(16.0100000+@i*0.003 AS DECIMAL(10,7)),
+        CAST(108.1500000+@i*0.006 AS DECIMAL(10,7)),
+        'ACTIVE',DATEADD(DAY,-70-@i,SYSUTCDATETIME()),SYSUTCDATETIME()
+    );
+
+    DECLARE @PropertyID BIGINT=SCOPE_IDENTITY();
+
+    INSERT INTO Rooms(PropertyID,RoomNumber,Title,Description,AreaM2,RentPrice,
+                      DepositAmount,ElectricityPrice,WaterPrice,InternetPrice,
+                      ServiceFee,ParkingFee,MaxOccupants,GenderPreference,AvailableFrom,
+                      ListingStatus,AvailabilityStatus,ViewCount,ReviewedByUserID,
+                      ReviewedAt,PublishedAt,CreatedAt,UpdatedAt)
+    VALUES(
+        @PropertyID,CONCAT(N'P.',FORMAT(@i,'000')),
+        CONCAT(N'Phòng Roomify Demo ',FORMAT(@i,'00')),
+        N'Phòng mẫu đầy đủ dữ liệu phục vụ kiểm thử.',
+        18+@i*2,1500000+@i*200000,1500000+@i*200000,
+        3500,50000,100000,50000,50000,
+        CASE WHEN @i=5 THEN 4 ELSE 2 END,
+        CASE @i%3 WHEN 1 THEN 'ALL' WHEN 2 THEN 'MALE' ELSE 'FEMALE' END,
+        DATEADD(DAY,@i,CAST(SYSUTCDATETIME() AS DATE)),
+        'PUBLISHED',CASE WHEN @i<=5 THEN 'RENTED' ELSE 'AVAILABLE' END,
+        100*@i+48,
+        (SELECT UserID FROM Users WHERE Email='admin01@roomify.demo'),
+        DATEADD(DAY,-15-@i,SYSUTCDATETIME()),
+        DATEADD(DAY,-14-@i,SYSUTCDATETIME()),
+        DATEADD(DAY,-30-@i,SYSUTCDATETIME()),SYSUTCDATETIME()
+    );
+
+    DECLARE @RoomID BIGINT=SCOPE_IDENTITY();
+
+    INSERT INTO RoomImages(RoomID,ImageURL,PublicId,IsPrimary,SortOrder,CreatedAt)
+    VALUES(@RoomID,
+           CONCAT(N'https://cdn.roomify.demo/rooms/room',FORMAT(@i,'00'),N'-primary.jpg'),
+           CONCAT(N'roomify/demo/room',FORMAT(@i,'00'),N'/primary'),
+           1,0,DATEADD(DAY,-20-@i,SYSUTCDATETIME()));
+
+    DECLARE @AmenityID INT=(
+        SELECT AmenityID FROM (
+            SELECT AmenityID,ROW_NUMBER() OVER(ORDER BY AmenityID) RN FROM Amenities
+        ) X WHERE RN=@i
+    );
+    INSERT INTO RoomAmenities(RoomID,AmenityID) VALUES(@RoomID,@AmenityID);
+
+    SET @i+=1;
+END;
+
+-- ============================================================================
+-- 6. SAVED ROOMS / VIEW HISTORY / APPOINTMENTS: 10 EACH
+-- ============================================================================
+
+SET @i=1;
+WHILE @i<=10
+BEGIN
+    DECLARE @StudentID BIGINT=(
+        SELECT SP.StudentID FROM StudentProfiles SP JOIN Users U ON U.UserID=SP.UserID
+        WHERE U.Email=CONCAT('student',FORMAT(@i,'00'),'@roomify.demo')
+    );
+    DECLARE @RoomID2 BIGINT=(
+        SELECT RoomID FROM Rooms WHERE Title=CONCAT(N'Phòng Roomify Demo ',FORMAT(@i,'00'))
+    );
+
+    INSERT INTO SavedRooms(StudentID,RoomID,SavedAt)
+    VALUES(@StudentID,@RoomID2,DATEADD(DAY,-@i,SYSUTCDATETIME()));
+
+    INSERT INTO RoomViewHistories(StudentID,RoomID,FirstViewedAt,LastViewedAt,ViewCount)
+    VALUES(@StudentID,@RoomID2,DATEADD(DAY,-10-@i,SYSUTCDATETIME()),
+           DATEADD(DAY,-@i,SYSUTCDATETIME()),@i+1);
+
+    INSERT INTO ViewingAppointments(RoomID,StudentID,ScheduledAt,Note,Status,
+                                    LandlordNote,RespondedAt,CreatedAt,UpdatedAt)
+    VALUES(@RoomID2,@StudentID,DATEADD(DAY,@i+2,SYSUTCDATETIME()),
+           N'Sinh viên muốn xem phòng.',
+           CASE @i%5 WHEN 1 THEN 'PENDING' WHEN 2 THEN 'CONFIRMED'
+                     WHEN 3 THEN 'COMPLETED' WHEN 4 THEN 'CANCELLED' ELSE 'REJECTED' END,
+           CASE WHEN @i%5=1 THEN NULL ELSE N'Chủ trọ đã phản hồi lịch hẹn.' END,
+           CASE WHEN @i%5=1 THEN NULL ELSE DATEADD(DAY,-@i,SYSUTCDATETIME()) END,
+           DATEADD(DAY,-12-@i,SYSUTCDATETIME()),SYSUTCDATETIME());
+
+    SET @i+=1;
+END;
+
+-- ============================================================================
+-- 7. RENTAL REQUESTS + CONTRACTS + PAYMENTS: 10 EACH
+-- ============================================================================
+
+SET @i=1;
+WHILE @i<=10
+BEGIN
+    DECLARE @StudentID2 BIGINT=(
+        SELECT SP.StudentID FROM StudentProfiles SP JOIN Users U ON U.UserID=SP.UserID
+        WHERE U.Email=CONCAT('student',FORMAT(@i,'00'),'@roomify.demo')
+    );
+    DECLARE @RoomID3 BIGINT=(
+        SELECT RoomID FROM Rooms WHERE Title=CONCAT(N'Phòng Roomify Demo ',FORMAT(@i,'00'))
+    );
+    DECLARE @Rent DECIMAL(18,2)=(SELECT RentPrice FROM Rooms WHERE RoomID=@RoomID3);
+
+    INSERT INTO RentalRequests(RoomID,StudentID,RequestedMoveInDate,DurationMonths,
+                               Note,Status,LandlordNote,RespondedAt,CreatedAt,UpdatedAt)
+    VALUES(@RoomID3,@StudentID2,DATEADD(DAY,-90+@i,CAST(SYSUTCDATETIME() AS DATE)),
+           12,N'Yêu cầu thuê phòng mẫu.','APPROVED',N'Đã duyệt yêu cầu thuê.',
+           DATEADD(DAY,-85+@i,SYSUTCDATETIME()),
+           DATEADD(DAY,-95+@i,SYSUTCDATETIME()),SYSUTCDATETIME());
+
+    DECLARE @RequestID BIGINT=SCOPE_IDENTITY();
+
+    INSERT INTO RentalContracts(RentalRequestID,ContractCode,RoomID,StartDate,EndDate,
+                                MonthlyRent,DepositAmount,Terms,ContractFileURL,Status,
+                                CreatedAt,ActivatedAt,CompletedAt)
+    VALUES(@RequestID,CONCAT('HD-DEMO-',FORMAT(@i,'0000')),@RoomID3,
+           DATEADD(DAY,-80+@i,CAST(SYSUTCDATETIME() AS DATE)),
+           CASE WHEN @i<=5
+                THEN DATEADD(MONTH,12,DATEADD(DAY,-80+@i,CAST(SYSUTCDATETIME() AS DATE)))
+                ELSE DATEADD(DAY,-10-@i,CAST(SYSUTCDATETIME() AS DATE)) END,
+           @Rent,@Rent,N'Hợp đồng mẫu Roomify.',
+           CONCAT(N'https://cdn.roomify.demo/contracts/HD-DEMO-',FORMAT(@i,'0000'),N'.pdf'),
+           CASE WHEN @i<=5 THEN 'ACTIVE' ELSE 'COMPLETED' END,
+           DATEADD(DAY,-82+@i,SYSUTCDATETIME()),
+           DATEADD(DAY,-80+@i,SYSUTCDATETIME()),
+           CASE WHEN @i<=5 THEN NULL ELSE DATEADD(DAY,-10-@i,SYSUTCDATETIME()) END);
+
+    DECLARE @ContractID BIGINT=SCOPE_IDENTITY();
+    DECLARE @LandlordUserID BIGINT=(
+        SELECT U.UserID
+        FROM Rooms R
+        JOIN Properties P ON P.PropertyID=R.PropertyID
+        JOIN LandlordProfiles LP ON LP.LandlordID=P.LandlordID
+        JOIN Users U ON U.UserID=LP.UserID
+        WHERE R.RoomID=@RoomID3
+    );
+
+    INSERT INTO Payments(ContractID,PaymentType,Amount,DueDate,PaymentMethod,Status,
+                         TransactionReference,ProofImageURL,Note,ConfirmedByUserID,
+                         ConfirmedAt,PaidAt,CreatedAt,UpdatedAt)
+    VALUES(@ContractID,
+           CASE @i%4 WHEN 1 THEN 'DEPOSIT' WHEN 2 THEN 'RENT'
+                     WHEN 3 THEN 'UTILITY' ELSE 'OTHER' END,
+           CASE WHEN @i%4 IN (1,2) THEN @Rent WHEN @i%4=3 THEN 350000 ELSE 200000 END,
+           DATEADD(DAY,-@i,CAST(SYSUTCDATETIME() AS DATE)),
+           CASE WHEN @i%3=0 THEN 'CASH' ELSE 'BANK_TRANSFER' END,
+           'PAID',CONCAT('TX-DEMO-',FORMAT(@i,'000000')),
+           CONCAT(N'https://cdn.roomify.demo/payment-proofs/payment',FORMAT(@i,'00'),N'.jpg'),
+           N'Thanh toán mẫu.',@LandlordUserID,
+           DATEADD(DAY,-@i,SYSUTCDATETIME()),
+           DATEADD(DAY,-@i,SYSUTCDATETIME()),
+           DATEADD(DAY,-@i-1,SYSUTCDATETIME()),SYSUTCDATETIME());
+
+    SET @i+=1;
+END;
+
+-- ============================================================================
+-- 8. CONVERSATIONS + MESSAGES: 10 EACH
+-- ============================================================================
+
+SET @i=1;
+WHILE @i<=10
+BEGIN
+    DECLARE @StudentID3 BIGINT=(
+        SELECT SP.StudentID FROM StudentProfiles SP JOIN Users U ON U.UserID=SP.UserID
+        WHERE U.Email=CONCAT('student',FORMAT(@i,'00'),'@roomify.demo')
+    );
+    DECLARE @RoomID4 BIGINT=(
+        SELECT RoomID FROM Rooms WHERE Title=CONCAT(N'Phòng Roomify Demo ',FORMAT(@i,'00'))
+    );
+
+    INSERT INTO Conversations(RoomID,StudentID,LastMessageAt,CreatedAt)
+    VALUES(@RoomID4,@StudentID3,DATEADD(HOUR,-@i,SYSUTCDATETIME()),
+           DATEADD(DAY,-5-@i,SYSUTCDATETIME()));
+
+    DECLARE @ConversationID BIGINT=SCOPE_IDENTITY();
+    DECLARE @SenderUserID BIGINT;
+
+    IF @i%2=1
+        SET @SenderUserID=(SELECT UserID FROM Users WHERE Email=CONCAT('student',FORMAT(@i,'00'),'@roomify.demo'));
+    ELSE
+        SET @SenderUserID=(
+            SELECT U.UserID
+            FROM Rooms R JOIN Properties P ON P.PropertyID=R.PropertyID
+            JOIN LandlordProfiles LP ON LP.LandlordID=P.LandlordID
+            JOIN Users U ON U.UserID=LP.UserID
+            WHERE R.RoomID=@RoomID4
+        );
+
+    INSERT INTO Messages(ConversationID,SenderUserID,Content,MessageType,IsRead,ReadAt,SentAt)
+    VALUES(@ConversationID,@SenderUserID,
+           CONCAT(N'Tin nhắn mẫu Roomify ',FORMAT(@i,'00')),
+           'TEXT',CASE WHEN @i<=7 THEN 1 ELSE 0 END,
+           CASE WHEN @i<=7 THEN DATEADD(MINUTE,-@i,SYSUTCDATETIME()) ELSE NULL END,
+           DATEADD(HOUR,-@i,SYSUTCDATETIME()));
+
+    SET @i+=1;
+END;
+
+-- ============================================================================
+-- 9. REVIEWS + REPORTS: 10 EACH
+-- ============================================================================
+
+SET @i=1;
+WHILE @i<=10
+BEGIN
+    DECLARE @ContractID2 BIGINT=(
+        SELECT ContractID FROM RentalContracts WHERE ContractCode=CONCAT('HD-DEMO-',FORMAT(@i,'0000'))
+    );
+    DECLARE @RoomID5 BIGINT=(
+        SELECT RoomID FROM Rooms WHERE Title=CONCAT(N'Phòng Roomify Demo ',FORMAT(@i,'00'))
+    );
+
+    INSERT INTO Reviews(ContractID,Rating,Comment,Status,ModeratedByUserID,
+                        ModeratedAt,CreatedAt,UpdatedAt)
+    VALUES(@ContractID2,1+((@i+3)%5),
+           CONCAT(N'Đánh giá mẫu Roomify ',FORMAT(@i,'00')),
+           CASE WHEN @i>=9 THEN 'HIDDEN' ELSE 'VISIBLE' END,
+           CASE WHEN @i>=9 THEN (SELECT UserID FROM Users WHERE Email='admin03@roomify.demo') ELSE NULL END,
+           CASE WHEN @i>=9 THEN DATEADD(DAY,-@i,SYSUTCDATETIME()) ELSE NULL END,
+           DATEADD(DAY,-15-@i,SYSUTCDATETIME()),SYSUTCDATETIME());
+
+    INSERT INTO Reports(ReporterUserID,RoomID,Reason,Description,Status,AdminNote,
+                        ResolvedByUserID,ResolvedAt,CreatedAt)
+    VALUES(
+        (SELECT UserID FROM Users WHERE Email=CONCAT('student',FORMAT(@i,'00'),'@roomify.demo')),
+        @RoomID5,
+        CASE @i%5 WHEN 1 THEN N'Thông tin phòng chưa chính xác'
+                  WHEN 2 THEN N'Giá phòng không đúng mô tả'
+                  WHEN 3 THEN N'Hình ảnh không đúng thực tế'
+                  WHEN 4 THEN N'Phòng đã thuê nhưng vẫn hiển thị'
+                  ELSE N'Yêu cầu đặt cọc bất thường' END,
+        CONCAT(N'Mô tả báo cáo mẫu ',FORMAT(@i,'00')),
+        CASE WHEN @i<=4 THEN 'OPEN' WHEN @i<=8 THEN 'RESOLVED' ELSE 'REJECTED' END,
+        CASE WHEN @i<=4 THEN NULL ELSE N'Admin đã kiểm tra báo cáo.' END,
+        CASE WHEN @i<=4 THEN NULL ELSE (SELECT UserID FROM Users WHERE Email='admin04@roomify.demo') END,
+        CASE WHEN @i<=4 THEN NULL ELSE DATEADD(DAY,-@i,SYSUTCDATETIME()) END,
+        DATEADD(DAY,-20+@i,SYSUTCDATETIME())
+    );
+
+    SET @i+=1;
+END;
+
+-- ============================================================================
+-- 10. NOTIFICATIONS + DEVICE TOKENS: 10 EACH
+-- ============================================================================
+
+SET @i=1;
+WHILE @i<=10
+BEGIN
+    DECLARE @UserID BIGINT=(
+        SELECT UserID FROM Users WHERE Email=CONCAT('student',FORMAT(@i,'00'),'@roomify.demo')
+    );
+    DECLARE @RoomID6 BIGINT=(
+        SELECT RoomID FROM Rooms WHERE Title=CONCAT(N'Phòng Roomify Demo ',FORMAT(@i,'00'))
+    );
+
+    INSERT INTO Notifications(UserID,NotificationType,Title,Message,RelatedEntityType,
+                              RelatedEntityID,IsRead,ReadAt,CreatedAt)
+    VALUES(@UserID,'RENTAL',CONCAT(N'Thông báo Roomify ',FORMAT(@i,'00')),
+           N'Đây là thông báo mẫu để kiểm thử.',
+           'ROOM',@RoomID6,
+           CASE WHEN @i<=5 THEN 1 ELSE 0 END,
+           CASE WHEN @i<=5 THEN DATEADD(HOUR,-@i,SYSUTCDATETIME()) ELSE NULL END,
+           DATEADD(HOUR,-@i-2,SYSUTCDATETIME()));
+
+    INSERT INTO UserDeviceTokens(UserID,DeviceToken,Platform,IsActive,LastSeenAt,CreatedAt)
+    VALUES(@UserID,CONCAT('ROOMIFY_DEMO_ANDROID_TOKEN_',FORMAT(@i,'000')),
+           'ANDROID',1,DATEADD(MINUTE,-@i*5,SYSUTCDATETIME()),
+           DATEADD(DAY,-@i,SYSUTCDATETIME()));
+
+    SET @i+=1;
+END;
+
+COMMIT TRANSACTION;
+
+PRINT N'Roomify demo seed completed.';
+PRINT N'Demo password for all seeded users: Roomify@123';
+
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;
+    THROW;
+END CATCH;
+GO
+
+
+/* ============================================================================
+   12. BACKEND SYNC VERIFICATION (ROOMIFY.API THROUGH STEP 21)
+   ============================================================================ */
+
+-- Cac kiem tra nay giup thanh vien phat hien ngay neu schema local bi thieu
+-- cac thanh phan backend hien tai dang su dung.
+
+IF OBJECT_ID('dbo.ViewingAppointmentHistories', 'U') IS NULL
+    THROW 51001, 'Missing table dbo.ViewingAppointmentHistories.', 1;
+
+IF COL_LENGTH('dbo.ViewingAppointments', 'ProposedAt') IS NULL
+    THROW 51002, 'Missing column ViewingAppointments.ProposedAt.', 1;
+
+IF COL_LENGTH('dbo.ViewingAppointments', 'RowVer') IS NULL
+    THROW 51003, 'Missing column ViewingAppointments.RowVer.', 1;
+
+IF COL_LENGTH('dbo.Payments', 'ProofImageURL') IS NULL
+    THROW 51004, 'Missing column Payments.ProofImageURL.', 1;
+
+IF COL_LENGTH('dbo.Users', 'LockedByUserID') IS NULL
+    THROW 51005, 'Missing Admin lock columns on Users.', 1;
+
+IF COL_LENGTH('dbo.Rooms', 'ReviewedByUserID') IS NULL
+    THROW 51006, 'Missing Admin moderation columns on Rooms.', 1;
+
+IF COL_LENGTH('dbo.Reports', 'ResolvedByUserID') IS NULL
+    THROW 51007, 'Missing Admin moderation columns on Reports.', 1;
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.check_constraints
+    WHERE name = 'CK_ViewingAppointments_Status'
+      AND parent_object_id = OBJECT_ID('dbo.ViewingAppointments')
+      AND definition LIKE '%PROPOSED%'
+)
+    THROW 51008, 'ViewingAppointments status constraint is not synced with PROPOSED workflow.', 1;
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = 'UX_RoomImages_OnePrimaryPerRoom'
+      AND object_id = OBJECT_ID('dbo.RoomImages')
+)
+    THROW 51009, 'Missing UX_RoomImages_OnePrimaryPerRoom.', 1;
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = 'UX_Reports_Reporter_Room_Open'
+      AND object_id = OBJECT_ID('dbo.Reports')
+)
+    THROW 51010, 'Missing UX_Reports_Reporter_Room_Open.', 1;
+
+PRINT N'RoomifyDB sync verification PASSED.';
+PRINT N'Demo password for seeded @roomify.demo accounts: Roomify@123';
+PRINT N'Backend baseline: Roomify.API through Step 21 (Payments + Admin APIs).';
 GO
