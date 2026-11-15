@@ -6,6 +6,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.roomify.app.databinding.ActivityMainBinding
+import android.util.Log
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import com.roomify.app.data.local.TokenManager
 
 class MainActivity : AppCompatActivity() {
 
