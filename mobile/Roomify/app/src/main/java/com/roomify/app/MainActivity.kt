@@ -14,6 +14,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        android.util.Log.d(
+            "RoomifyConfig",
+            "API Base URL: ${BuildConfig.BASE_URL}"
+        )
+
         enableEdgeToEdge()
 
         binding = ActivityMainBinding.inflate(layoutInflater)
