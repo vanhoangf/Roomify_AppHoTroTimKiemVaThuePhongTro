@@ -15,51 +15,57 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 
-import com.roomify.app.data.remote.api.HealthApi
+import com.roomify.app.data.local.TokenManager
+import com.roomify.app.data.local.TokenManagerSessionStore
+import com.roomify.app.data.local.UserSession
+import com.roomify.app.data.remote.api.AuthApi
 import com.roomify.app.data.remote.common.ApiResult
-import com.roomify.app.data.remote.common.safeApiCall
 import com.roomify.app.data.remote.network.RetrofitClient
+import com.roomify.app.data.repository.AuthRepository
 import com.roomify.app.databinding.ActivityMainBinding
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
+    private lateinit var tokenManager: TokenManager
+    private lateinit var authRepository: AuthRepository
+
+    private var hasSession = false
+    private var isBusy = false
+
+    private var pendingNetworkAction: (() -> Unit)? = null
+
     companion object {
-        private const val TAG = "RoomifyNetwork"
+        private const val TAG = "RoomifyAuth"
     }
 
     // ============================================================
-    // 1. XỬ LÝ KẾT QUẢ YÊU CẦU QUYỀN MẠNG CỤC BỘ
+    // 1. LOCAL NETWORK PERMISSION - ANDROID 17
     // ============================================================
 
-    private val localNetworkPermissionLauncher =
+    private val permissionLauncher =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
-        ) { isGranted ->
+        ) { granted ->
 
-            if (isGranted) {
+            val action = pendingNetworkAction
+            pendingNetworkAction = null
 
-                Log.d(
-                    TAG,
-                    "ACCESS_LOCAL_NETWORK granted"
-                )
-
-                testHealthApi()
-
+            if (granted) {
+                Log.d(TAG, "ACCESS_LOCAL_NETWORK granted")
+                action?.invoke()
             } else {
-
-                Log.e(
-                    TAG,
-                    "ACCESS_LOCAL_NETWORK denied"
-                )
+                binding.tvStatus.text =
+                    "Chưa được cấp quyền truy cập mạng cục bộ."
             }
         }
 
     // ============================================================
-    // 2. KHỞI TẠO ACTIVITY
+    // 2. ON CREATE
     // ============================================================
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,139 +76,376 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Giữ nguyên xử lý WindowInsets
         ViewCompat.setOnApplyWindowInsetsListener(
             binding.root
         ) { view, insets ->
 
-            val systemBars = insets.getInsets(
+            val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars()
             )
 
             view.setPadding(
-                systemBars.left,
-                systemBars.top,
-                systemBars.right,
-                systemBars.bottom
+                bars.left,
+                bars.top,
+                bars.right,
+                bars.bottom
             )
 
             insets
         }
 
-        // Chỉ kiểm tra API trong bản Debug
-        if (BuildConfig.DEBUG) {
+        // Khởi tạo networking
+        RetrofitClient.initialize(applicationContext)
 
-            checkLocalNetworkPermissionThenTest()
+        // TokenManager dùng chung DataStore
+        tokenManager = TokenManager(applicationContext)
 
+        // Kết nối AuthRepository
+        authRepository = AuthRepository(
+            authApi = RetrofitClient.createService(
+                AuthApi::class.java
+            ),
+            sessionStore = TokenManagerSessionStore(
+                tokenManager
+            )
+        )
+
+        // Nút đăng nhập
+        binding.btnLogin.setOnClickListener {
+            withLocalNetworkPermission {
+                login()
+            }
+        }
+
+        // Nút xem session local
+        binding.btnSession.setOnClickListener {
+            checkSession()
+        }
+
+        // Nút kiểm tra JWT
+        binding.btnMe.setOnClickListener {
+            withLocalNetworkPermission {
+                getMe()
+            }
+        }
+
+        updateButtons()
+        loadStoredSession()
+    }
+
+    // ============================================================
+    // 3. CHECK LOCAL NETWORK PERMISSION
+    // ============================================================
+
+    private fun withLocalNetworkPermission(
+        action: () -> Unit
+    ) {
+
+        val needsPermission =
+            BuildConfig.DEBUG &&
+                    Build.VERSION.SDK_INT >= 37 &&
+                    ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_LOCAL_NETWORK
+                    ) != PackageManager.PERMISSION_GRANTED
+
+        if (needsPermission) {
+
+            pendingNetworkAction = action
+
+            permissionLauncher.launch(
+                Manifest.permission.ACCESS_LOCAL_NETWORK
+            )
+
+        } else {
+            action()
         }
     }
 
     // ============================================================
-    // 3. KIỂM TRA QUYỀN TRUY CẬP MẠNG CỤC BỘ
+    // 4. LOGIN
     // ============================================================
 
-    private fun checkLocalNetworkPermissionThenTest() {
+    private fun login() {
 
-        // Android 17 - API 37 trở lên
-        if (Build.VERSION.SDK_INT >= 37) {
+        val email = binding.edtEmail.text
+            .toString()
+            .trim()
 
-            val permissionStatus =
-                ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_LOCAL_NETWORK
+        val password = binding.edtPassword.text
+            .toString()
+
+        if (email.isBlank() || password.isBlank()) {
+            binding.tvStatus.text =
+                "Vui lòng nhập Email và mật khẩu."
+            return
+        }
+
+        setBusy(true)
+
+        binding.tvStatus.text = "Đang đăng nhập..."
+
+        lifecycleScope.launch {
+
+            try {
+
+                val result = authRepository.login(
+                    email = email,
+                    password = password
                 )
 
-            if (
-                permissionStatus !=
-                PackageManager.PERMISSION_GRANTED
-            ) {
+                when (result) {
+
+                    is ApiResult.Success -> {
+
+                        // Xác nhận DataStore đã lưu session
+                        val session = tokenManager.getSession()
+
+                        renderSession(session)
+
+                        binding.edtPassword.text?.clear()
+
+                        binding.tvStatus.text =
+                            "Đăng nhập thành công! HTTP ${result.statusCode}"
+
+                        Log.d(
+                            TAG,
+                            "LOGIN SUCCESS | " +
+                                    "saved=${session.hasStoredSession} | " +
+                                    "role=${session.role}"
+                        )
+                    }
+
+                    is ApiResult.Error -> {
+
+                        binding.tvStatus.text =
+                            "Đăng nhập thất bại: " +
+                                    result.exception.message
+
+                        Log.e(
+                            TAG,
+                            "LOGIN ERROR | " +
+                                    "HTTP=${result.exception.httpStatus} | " +
+                                    "code=${result.exception.errorCode}"
+                        )
+                    }
+
+                    ApiResult.Loading -> Unit
+                }
+
+            } catch (e: CancellationException) {
+                throw e
+
+            } catch (e: Exception) {
+
+                binding.tvStatus.text =
+                    "Lỗi khi đăng nhập: ${e.message}"
+
+                Log.e(TAG, "Login unexpected error", e)
+
+            } finally {
+                setBusy(false)
+            }
+        }
+    }
+
+    // ============================================================
+    // 5. READ STORED SESSION
+    // ============================================================
+
+    private fun loadStoredSession() {
+
+        lifecycleScope.launch {
+
+            try {
+
+                val session = tokenManager.getSession()
+
+                renderSession(session)
+
+                binding.tvStatus.text =
+                    if (session.hasStoredSession) {
+                        "Đã tìm thấy session đã lưu."
+                    } else {
+                        "Chưa có session đăng nhập."
+                    }
+
+            } catch (e: CancellationException) {
+                throw e
+
+            } catch (e: Exception) {
+                binding.tvStatus.text =
+                    "Không thể đọc session: ${e.message}"
+            }
+        }
+    }
+
+    private fun checkSession() {
+
+        lifecycleScope.launch {
+
+            try {
+
+                val session = tokenManager.getSession()
+
+                renderSession(session)
+
+                binding.tvStatus.text =
+                    if (session.hasStoredSession) {
+                        "Session đã được lưu trong DataStore."
+                    } else {
+                        "Chưa có session trong DataStore."
+                    }
 
                 Log.d(
                     TAG,
-                    "Requesting ACCESS_LOCAL_NETWORK"
+                    "SESSION | stored=${session.hasStoredSession} | " +
+                            "role=${session.role}"
                 )
 
-                localNetworkPermissionLauncher.launch(
-                    Manifest.permission.ACCESS_LOCAL_NETWORK
-                )
+            } catch (e: CancellationException) {
+                throw e
 
-                return
+            } catch (e: Exception) {
+
+                binding.tvStatus.text =
+                    "Lỗi đọc session: ${e.message}"
             }
-
-            Log.d(
-                TAG,
-                "ACCESS_LOCAL_NETWORK already granted"
-            )
         }
-
-        // Có quyền hoặc chạy phiên bản Android cũ hơn
-        testHealthApi()
     }
 
     // ============================================================
-    // 4. TEST RETROFIT VỚI ROOMIFY.API
+    // 6. GET CURRENT USER WITH JWT
     // ============================================================
 
-    private fun testHealthApi() {
+    private fun getMe() {
 
-        Log.d(
-            TAG,
-            "BASE_URL = ${BuildConfig.BASE_URL}"
-        )
+        setBusy(true)
 
-        // Khởi tạo RetrofitClient
-        RetrofitClient.initialize(applicationContext)
+        binding.tvStatus.text =
+            "Đang gọi GET /api/auth/me..."
 
-        // Tạo HealthApi
-        val healthApi = RetrofitClient.createService(
-            HealthApi::class.java
-        )
-
-        // Gọi API bằng Coroutine
         lifecycleScope.launch {
 
-            Log.d(
-                TAG,
-                "Calling GET /api/health"
-            )
+            try {
 
-            val result = safeApiCall {
-                healthApi.getHealth()
-            }
+                val result = authRepository.getMe()
 
-            when (result) {
+                when (result) {
 
-                is ApiResult.Success -> {
+                    is ApiResult.Success -> {
 
-                    Log.d(
-                        TAG,
-                        "HTTP Status: ${result.statusCode}"
-                    )
+                        val user = result.data
 
-                    Log.d(
-                        TAG,
-                        "API Status: ${result.data?.status}"
-                    )
+                        if (user == null) {
 
-                    Log.d(
-                        TAG,
-                        "Database: ${result.data?.database}"
-                    )
+                            binding.tvStatus.text =
+                                "API trả thành công nhưng không có dữ liệu."
+
+                        } else {
+
+                            binding.tvStatus.text =
+                                "GET /api/auth/me thành công! " +
+                                        "HTTP ${result.statusCode}"
+
+                            binding.tvUser.text = """
+                                User ID: ${user.userId}
+                                Họ tên: ${user.fullName}
+                                Email: ${user.email}
+                                Role: ${user.role}
+                            """.trimIndent()
+
+                            Log.d(
+                                TAG,
+                                "GET ME SUCCESS | " +
+                                        "HTTP=${result.statusCode} | " +
+                                        "role=${user.role}"
+                            )
+                        }
+                    }
+
+                    is ApiResult.Error -> {
+
+                        binding.tvStatus.text =
+                            "GET /auth/me thất bại: " +
+                                    result.exception.message
+
+                        Log.e(
+                            TAG,
+                            "GET ME ERROR | " +
+                                    "HTTP=${result.exception.httpStatus} | " +
+                                    "code=${result.exception.errorCode}"
+                        )
+                    }
+
+                    ApiResult.Loading -> Unit
                 }
 
-                is ApiResult.Error -> {
+                // Kiểm tra lại session sau request
+                val session = tokenManager.getSession()
+                hasSession = session.hasStoredSession
 
-                    Log.e(
-                        TAG,
-                        "HTTP: ${result.exception.httpStatus}, " +
-                                "Error: ${result.exception.errorCode}, " +
-                                "Message: ${result.exception.message}",
-                        result.exception
-                    )
-                }
+            } catch (e: CancellationException) {
+                throw e
 
-                ApiResult.Loading -> Unit
+            } catch (e: Exception) {
+
+                binding.tvStatus.text =
+                    "Lỗi gọi API: ${e.message}"
+
+                Log.e(TAG, "GetMe unexpected error", e)
+
+            } finally {
+                setBusy(false)
             }
         }
+    }
+
+    // ============================================================
+    // 7. DISPLAY SESSION INFORMATION
+    // ============================================================
+
+    private fun renderSession(session: UserSession) {
+
+        hasSession = session.hasStoredSession
+
+        if (session.hasStoredSession) {
+
+            binding.tvUser.text = """
+                User ID: ${session.userId}
+                Họ tên: ${session.fullName}
+                Email: ${session.email}
+                Role: ${session.role}
+                Status: ${session.status}
+                Access Token: Đã lưu
+                Refresh Token: Đã lưu
+            """.trimIndent()
+
+        } else {
+
+            binding.tvUser.text =
+                "Chưa có thông tin đăng nhập."
+        }
+
+        updateButtons()
+    }
+
+    // ============================================================
+    // 8. BUTTON STATE
+    // ============================================================
+
+    private fun setBusy(value: Boolean) {
+        isBusy = value
+        updateButtons()
+    }
+
+    private fun updateButtons() {
+
+        binding.btnLogin.isEnabled = !isBusy
+
+        binding.btnSession.isEnabled = !isBusy
+
+        binding.btnMe.isEnabled =
+            !isBusy && hasSession
     }
 }

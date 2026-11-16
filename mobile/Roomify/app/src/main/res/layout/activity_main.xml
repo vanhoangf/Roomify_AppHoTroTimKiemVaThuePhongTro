@@ -1,19 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:fillViewport="true">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:orientation="vertical"
+        android:padding="24dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- TITLE -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ROOMIFY"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginTop="32dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Kiểm thử đăng nhập với Roomify.API"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="32dp" />
+
+        <!-- EMAIL -->
+
+        <EditText
+            android:id="@+id/edtEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Email"
+            android:inputType="textEmailAddress"
+            android:autofillHints="emailAddress"
+            android:singleLine="true" />
+
+        <!-- PASSWORD -->
+
+        <EditText
+            android:id="@+id/edtPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Mật khẩu"
+            android:inputType="textPassword"
+            android:autofillHints="password"
+            android:singleLine="true"
+            android:layout_marginTop="12dp" />
+
+        <!-- LOGIN -->
+
+        <Button
+            android:id="@+id/btnLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ĐĂNG NHẬP"
+            android:layout_marginTop="24dp" />
+
+        <!-- CHECK SESSION -->
+
+        <Button
+            android:id="@+id/btnSession"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="KIỂM TRA SESSION"
+            android:layout_marginTop="12dp" />
+
+        <!-- GET ME -->
+
+        <Button
+            android:id="@+id/btnMe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="GỌI API /AUTH/ME"
+            android:layout_marginTop="12dp" />
+
+        <!-- STATUS -->
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Chưa đăng nhập"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp" />
+
+        <!-- USER INFORMATION -->
+
+        <TextView
+            android:id="@+id/tvUser"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Chưa có thông tin tài khoản"
+            android:textSize="15sp"
+            android:layout_marginTop="12dp" />
+
+    </LinearLayout>
+
+</ScrollView>
