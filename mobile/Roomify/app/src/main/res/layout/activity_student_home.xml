@@ -1,0 +1,51 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ROOMIFY"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:gravity="center" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TRANG CHỦ SINH VIÊN"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginTop="20dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Bạn đã đăng nhập với vai trò STUDENT."
+        android:textSize="16sp"
+        android:gravity="center"
+        android:layout_marginTop="12dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Các chức năng tìm kiếm và thuê phòng sẽ được phát triển trong giai đoạn tiếp theo."
+        android:textSize="14sp"
+        android:gravity="center"
+        android:layout_marginTop="20dp" />
+
+    <!-- LOGOUT BUTTON -->
+    <Button
+        android:id="@+id/btnLogout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ĐĂNG XUẤT"
+        android:layout_marginTop="32dp" />
+
+
+</LinearLayout>

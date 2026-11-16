@@ -293,4 +293,42 @@ class AuthRepositoryTest {
         assertEquals("STUDENT", user?.role)
         assertEquals("1", user?.userId)
     }
+
+
+    @Test
+    fun logoutSuccessClearsSession() = runBlocking {
+
+        sessionStore.refreshToken = "refresh-123"
+
+        enqueue(
+            200,
+            """{"message":"Đăng xuất thành công."}"""
+        )
+
+        val result = repository.logout()
+
+        // Backend trả HTTP thành công
+        assertTrue(result is ApiResult.Success)
+
+        // Session local đã được xóa
+        assertTrue(sessionStore.cleared)
+
+        assertNull(sessionStore.refreshToken)
+
+        assertNull(sessionStore.session)
+
+        // Request gửi đúng endpoint
+        val request = server.takeRequest()
+
+        assertEquals(
+            "POST",
+            request.method
+        )
+
+        assertEquals(
+            "/api/auth/logout",
+            request.url.encodedPath
+        )
+    }
+
 }

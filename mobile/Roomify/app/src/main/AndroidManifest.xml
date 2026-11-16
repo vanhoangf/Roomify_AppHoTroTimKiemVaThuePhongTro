@@ -21,6 +21,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.student.StudentHomeActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.landlord.LandlordHomeActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
