@@ -29,6 +29,11 @@
             android:name=".ui.landlord.LandlordHomeActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ui.auth.RegisterActivity"
+            android:exported="false" />
+
+
     </application>
 
 </manifest>

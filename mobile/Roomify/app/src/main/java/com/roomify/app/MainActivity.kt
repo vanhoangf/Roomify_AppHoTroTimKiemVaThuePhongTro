@@ -1,12 +1,14 @@
-
 package com.roomify.app
 
+import android.util.Patterns
+import androidx.core.widget.doAfterTextChanged
+import android.content.Intent
+import com.roomify.app.ui.auth.RegisterActivity
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -14,7 +16,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-
 import com.roomify.app.data.local.TokenManager
 import com.roomify.app.data.local.TokenManagerSessionStore
 import com.roomify.app.data.local.UserSession
@@ -23,12 +24,31 @@ import com.roomify.app.data.remote.common.ApiResult
 import com.roomify.app.data.remote.network.RetrofitClient
 import com.roomify.app.data.repository.AuthRepository
 import com.roomify.app.databinding.ActivityMainBinding
-
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
-
 import com.roomify.app.ui.common.RoleRouter
 class MainActivity : AppCompatActivity() {
+
+    private val registerLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+
+            if (result.resultCode == RESULT_OK) {
+
+                val email = result.data
+                    ?.getStringExtra("registered_email")
+
+                if (!email.isNullOrBlank()) {
+
+                    binding.edtEmail.setText(email)
+                    binding.edtPassword.setText("")
+
+                    binding.tvStatus.text =
+                        "Đăng ký thành công. Hãy đăng nhập để tiếp tục."
+                }
+            }
+        }
 
     private suspend fun verifySessionAndRoute() {
 
@@ -139,6 +159,32 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
+
+        binding.edtEmail.doAfterTextChanged {
+            binding.tilLoginEmail.error = null
+            binding.tvStatus.text = ""
+        }
+
+        binding.edtPassword.doAfterTextChanged {
+            binding.tilLoginPassword.error = null
+            binding.tvStatus.text = ""
+        }
+
+
+
+        binding.tvRegister.setOnClickListener {
+
+            val intent = Intent(
+                this,
+                RegisterActivity::class.java
+            )
+
+            registerLauncher.launch(intent)
+        }
+
+
+
         ViewCompat.setOnApplyWindowInsetsListener(
             binding.root
         ) { view, insets ->
@@ -175,6 +221,37 @@ class MainActivity : AppCompatActivity() {
 
         // Nút đăng nhập
         binding.btnLogin.setOnClickListener {
+
+            val email = binding.edtEmail.text
+                ?.toString()?.trim().orEmpty()
+
+            val password = binding.edtPassword.text
+                ?.toString().orEmpty()
+
+            binding.tilLoginEmail.error = null
+            binding.tilLoginPassword.error = null
+
+            if (
+                email.isBlank() ||
+                !Patterns.EMAIL_ADDRESS.matcher(email).matches()
+            ) {
+                binding.tilLoginEmail.error =
+                    "Vui lòng nhập email hợp lệ."
+
+                binding.edtEmail.requestFocus()
+                return@setOnClickListener
+            }
+
+            if (password.isBlank()) {
+                binding.tilLoginPassword.error =
+                    "Vui lòng nhập mật khẩu."
+
+                binding.edtPassword.requestFocus()
+                return@setOnClickListener
+            }
+
+// GIỮ NGUYÊN logic gọi AuthRepository phía dưới.
+
             withLocalNetworkPermission {
                 login()
             }
