@@ -1,4 +1,3 @@
-
 package com.roomify.app.data.remote.api
 
 import com.roomify.app.data.remote.dto.common.PagedResponse
@@ -7,6 +6,10 @@ import com.roomify.app.data.remote.dto.rooms.RoomCardResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
+
+import java.math.BigDecimal
+import com.roomify.app.data.remote.dto.rooms.RoomDetailResponse
+import retrofit2.http.Path
 
 interface RoomApi {
 
@@ -31,6 +34,15 @@ interface RoomApi {
         @Query("MaxPrice")
         maxPrice: Long? = null,
 
+        @Query("MinArea")
+        minArea: BigDecimal? = null,
+
+        @Query("MaxArea")
+        maxArea: BigDecimal? = null,
+
+        @Query("AmenityIds")
+        amenityIds: List<Int>? = null,
+
         @Query("AvailabilityStatus")
         availabilityStatus: String? = null,
 
@@ -44,4 +56,10 @@ interface RoomApi {
         pageSize: Int = 6
 
     ): Response<PagedResponse<RoomCardResponse>>
+
+    @GET("api/rooms/{roomId}")
+    suspend fun getRoomDetail(
+        @Path("roomId")
+        roomId: Long
+    ): Response<RoomDetailResponse>
 }

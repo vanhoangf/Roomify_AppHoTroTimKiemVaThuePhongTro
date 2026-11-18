@@ -61,6 +61,17 @@ class StudentHomeActivity : AppCompatActivity() {
             openRoomSearch()
         }
 
+        // Nút Bản đồ.
+// Màn hình Map thật sẽ triển khai ở bước riêng.
+        binding.btnRoomMap.setOnClickListener {
+
+            Toast.makeText(
+                this,
+                "Bản đồ phòng trọ sẽ được phát triển ở bước tiếp theo.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
         // Bật tab Tìm phòng.
         binding.bottomNavigation.menu
             .findItem(R.id.navSearch)
@@ -106,7 +117,9 @@ class StudentHomeActivity : AppCompatActivity() {
     private lateinit var roomRepository: RoomRepository
 
     private val roomAdapter by lazy {
-        StudentRoomAdapter()
+        StudentRoomAdapter(
+            horizontal = true
+        )
     }
 
     private var isLoadingRooms = false
@@ -123,14 +136,20 @@ class StudentHomeActivity : AppCompatActivity() {
 
         roomRepository = RoomRepository(roomApi)
 
-        // RecyclerView
         binding.rvRooms.apply {
-            layoutManager = LinearLayoutManager(
-                this@StudentHomeActivity
-            )
 
-            adapter = roomAdapter
-            isNestedScrollingEnabled = false
+            layoutManager =
+                LinearLayoutManager(
+                    this@StudentHomeActivity,
+                    LinearLayoutManager.HORIZONTAL,
+                    false
+                )
+
+            adapter =
+                roomAdapter
+
+            isNestedScrollingEnabled =
+                false
         }
 
 
@@ -302,6 +321,20 @@ class StudentHomeActivity : AppCompatActivity() {
             insets
         }
 
+
+        // Root đã xử lý systemBars.bottom. Không để Material
+        // BottomNavigationView tự cộng thêm inset lần thứ hai.
+        ViewCompat.setOnApplyWindowInsetsListener(
+            binding.bottomNavigation
+        ) { view, insets ->
+            view.setPadding(
+                view.paddingLeft,
+                view.paddingTop,
+                view.paddingRight,
+                0
+            )
+            insets
+        }
 
         // NÚT ĐĂNG XUẤT
         binding.btnLogout.setOnClickListener {

@@ -10,40 +10,45 @@
     android:focusable="true"
     android:focusableInTouchMode="true">
 
+
     <!-- HEADER -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="64dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingStart="12dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
+        android:paddingEnd="12dp"
         android:background="@color/surface_white">
 
-        <com.google.android.material.button.MaterialButton
+        <!-- ICON QUAY LAI -->
+        <ImageButton
             android:id="@+id/btnBack"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
+            android:layout_width="48dp"
             android:layout_height="48dp"
-            android:text="‹ Quay lại"
-            android:textColor="@color/primary_blue"
-            android:textAllCaps="false" />
+            android:padding="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_arrow_back"
+            android:scaleType="centerInside"
+            android:contentDescription="Quay lại trang chủ" />
 
+        <!-- TIEU DE O CHINH GIUA -->
         <TextView
             style="@style/TextAppearance.Roomify.Section"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="Tìm phòng" />
+            android:text="Tìm phòng"
+            android:textColor="@color/text_primary" />
 
+        <!-- CAN BANG CHIEU RONG -->
         <Space
-            android:layout_width="88dp"
+            android:layout_width="48dp"
             android:layout_height="1dp" />
 
     </LinearLayout>
+
 
     <!-- SEARCH AREA -->
     <LinearLayout
@@ -109,69 +114,119 @@
         </LinearLayout>
 
         <!-- RESULT COUNT -->
-        <TextView
-            android:id="@+id/tvResultCount"
-            style="@style/TextAppearance.Roomify.Secondary"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Đang tải danh sách phòng..." />
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvResultCount"
+                style="@style/TextAppearance.Roomify.Secondary"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Đang tải danh sách phòng..." />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnFilter"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:minHeight="44dp"
+                android:text="Bộ lọc"
+                android:textAllCaps="false" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
     <!-- LOADING -->
-    <ProgressBar
-        android:id="@+id/progressSearch"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="20dp"
-        android:visibility="gone" />
-
-    <!-- EMPTY / ERROR -->
-    <LinearLayout
-        android:id="@+id/stateContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginTop="20dp"
-        android:background="@color/surface_white"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="24dp"
-        android:visibility="gone">
-
-        <TextView
-            android:id="@+id/tvStateMessage"
-            style="@style/TextAppearance.Roomify.Body"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Không có kết quả phù hợp." />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnRetry"
-            style="@style/Widget.Roomify.Button.Primary"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Thử lại"
-            android:visibility="gone" />
-
-    </LinearLayout>
-
-    <!-- ROOM RESULTS -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvSearchRooms"
+    <!-- CONTENT AREA -->
+    <FrameLayout
+        android:id="@+id/searchContentContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="16dp"
-        android:clipToPadding="false"
-        android:visibility="gone" />
+        android:layout_weight="1">
+
+        <!-- ROOM RESULTS -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvSearchRooms"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="16dp"
+            android:clipToPadding="false"
+            android:visibility="gone" />
+
+        <!-- LOADING -->
+        <ProgressBar
+            android:id="@+id/progressSearch"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+        <!-- EMPTY / ERROR -->
+        <LinearLayout
+            android:id="@+id/stateContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="20dp"
+            android:background="@color/surface_white"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvStateMessage"
+                style="@style/TextAppearance.Roomify.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Không có kết quả phù hợp." />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRetry"
+                style="@style/Widget.Roomify.Button.Primary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Thử lại"
+                android:textAllCaps="false"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="68dp"
+        android:background="@color/surface_white"
+        android:elevation="6dp"
+
+        app:menu="@menu/menu_student_bottom"
+        app:labelVisibilityMode="labeled"
+
+        app:itemIconSize="22dp"
+        app:itemIconTint="@color/student_nav_tint"
+        app:itemTextColor="@color/student_nav_tint"
+
+        app:itemTextAppearanceActive="@style/TextAppearance.Roomify.NavActive"
+        app:itemTextAppearanceInactive="@style/TextAppearance.Roomify.NavInactive"
+        app:itemActiveIndicatorStyle="@style/Widget.Roomify.StudentNav.ActiveIndicator"
+
+        app:itemPaddingTop="2dp"
+        app:itemPaddingBottom="2dp" />
 
 </LinearLayout>

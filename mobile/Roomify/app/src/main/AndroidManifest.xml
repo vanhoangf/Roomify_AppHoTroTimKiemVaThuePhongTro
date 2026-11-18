@@ -37,7 +37,10 @@
             android:name=".ui.student.RoomSearchActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
-
+        <activity
+            android:name=".ui.student.RoomFilterActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
 
     </application>
 

@@ -7,34 +7,48 @@
     android:layout_height="match_parent"
     android:background="@color/surface_bg">
 
+
     <!-- THANH HEADER -->
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/homeToolbar"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="64dp"
         android:background="@color/surface_white"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
         android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
+        android:paddingEnd="12dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- LOGO KHONG CO TEN -->
         <ImageView
-            android:layout_width="116dp"
-            android:layout_height="52dp"
-            android:src="@drawable/roomify_logo_name"
+            android:id="@+id/imgHeaderLogo"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/roomify_logo"
             android:scaleType="fitCenter"
-            android:contentDescription="Roomify" />
+            android:contentDescription="Logo Roomify"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
+        <!-- TEN UNG DUNG O CHINH GIUA -->
+        <TextView
+            android:id="@+id/tvHeaderTitle"
+            style="@style/TextAppearance.Roomify.Section"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Roomify"
+            android:textColor="@color/primary_blue"
+            android:textSize="20sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
+        <!-- ICON THONG BAO -->
         <ImageButton
             android:id="@+id/btnNotifications"
             android:layout_width="48dp"
@@ -44,18 +58,27 @@
             android:tint="@color/text_muted"
             android:contentDescription="Thông báo"
             android:enabled="false"
-            android:alpha="0.5" />
+            android:alpha="0.5"
+            app:layout_constraintEnd_toStartOf="@id/btnLogout"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
-        <com.google.android.material.button.MaterialButton
+        <!-- ICON DANG XUAT -->
+        <ImageButton
             android:id="@+id/btnLogout"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
+            android:layout_width="48dp"
             android:layout_height="48dp"
-            android:text="Đăng xuất"
-            android:textColor="@color/primary_blue"
-            android:textSize="13sp" />
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_logout"
+            android:scaleType="centerInside"
+            android:padding="12dp"
+            android:contentDescription="Đăng xuất"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 
     <!-- NOI DUNG CO THE CUON -->
     <androidx.core.widget.NestedScrollView
@@ -145,8 +168,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <TextView
                     style="@style/TextAppearance.Roomify.Section"
@@ -155,25 +178,45 @@
                     android:layout_weight="1"
                     android:text="Phòng mới đăng" />
 
+                <!-- MAP -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRoomMap"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="44dp"
+                    android:minHeight="44dp"
+                    android:text="Bản đồ"
+                    android:textAllCaps="false"
+                    android:textColor="@color/primary_blue"
+                    app:icon="@drawable/ic_map"
+                    app:iconGravity="textStart"
+                    app:iconSize="18dp"
+                    app:iconTint="@color/primary_blue" />
+
+                <!-- SEE ALL -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSeeAllRooms"
                     style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="wrap_content"
-                    android:layout_height="48dp"
+                    android:layout_height="44dp"
+                    android:minHeight="44dp"
                     android:text="Xem tất cả"
+                    android:textAllCaps="false"
                     android:textColor="@color/primary_blue"
                     android:enabled="false"
-                    android:visibility="gone"/>
+                    android:visibility="gone" />
 
+                <!-- MANUAL REFRESH:
+                     giữ ID vì Kotlin đang sử dụng,
+                     nhưng không hiện trên UI nữa.
+                     Home đã có auto refresh 15 giây. -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnRefreshRooms"
                     style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="wrap_content"
-                    android:layout_height="48dp"
+                    android:layout_height="44dp"
                     android:text="Làm mới"
-                    android:textColor="@color/primary_blue"
-                    android:textAllCaps="false" />
-
+                    android:visibility="gone" />
 
             </LinearLayout>
 
@@ -200,7 +243,7 @@
 
 
 
-            <!-- DANH SACH PHONG -->
+            <!-- DANH SACH PHONG - CUON NGANG -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvRooms"
                 android:layout_width="match_parent"
@@ -208,6 +251,9 @@
                 android:layout_marginTop="12dp"
                 android:clipToPadding="false"
                 android:nestedScrollingEnabled="false"
+                android:overScrollMode="never"
+                android:paddingEnd="12dp"
+                android:scrollbars="none"
                 android:visibility="gone" />
 
             <!-- EMPTY / ERROR STATE -->
@@ -288,20 +334,32 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- BOTTOM NAVIGATION -->
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:minHeight="68dp"
         android:background="@color/surface_white"
-        android:elevation="8dp"
+        android:elevation="6dp"
+
         app:menu="@menu/menu_student_bottom"
+        app:labelVisibilityMode="labeled"
+
+        app:itemIconSize="22dp"
         app:itemIconTint="@color/student_nav_tint"
         app:itemTextColor="@color/student_nav_tint"
-        app:itemIconSize="22dp"
-        app:labelVisibilityMode="labeled"
+
+        app:itemTextAppearanceActive="@style/TextAppearance.Roomify.NavActive"
+        app:itemTextAppearanceInactive="@style/TextAppearance.Roomify.NavInactive"
+        app:itemActiveIndicatorStyle="@style/Widget.Roomify.StudentNav.ActiveIndicator"
+
+        app:itemPaddingTop="2dp"
+        app:itemPaddingBottom="2dp"
+
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
