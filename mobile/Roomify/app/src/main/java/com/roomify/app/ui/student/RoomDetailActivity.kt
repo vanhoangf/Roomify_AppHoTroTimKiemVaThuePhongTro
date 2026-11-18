@@ -217,7 +217,52 @@ class RoomDetailActivity :
             intent
         )
     }
+    private fun openRentalRequest() {
+
+        val room =
+            currentRoom
+                ?: return
+
+        if (
+            !room.availabilityStatus.equals(
+                "AVAILABLE",
+                ignoreCase = true
+            )
+        ) {
+            return
+        }
+
+        val intent =
+            android.content.Intent(
+                this,
+                RentalRequestActivity::class.java
+            )
+
+        intent.putExtra(
+            RentalRequestActivity.EXTRA_ROOM_ID,
+            room.roomId
+        )
+
+        intent.putExtra(
+            RentalRequestActivity.EXTRA_ROOM_TITLE,
+            room.title
+        )
+
+        intent.putExtra(
+            RentalRequestActivity.EXTRA_PROPERTY_NAME,
+            room.propertyName
+        )
+
+        startActivity(
+            intent
+        )
+    }
     private fun setupListeners() {
+        binding.btnRentalRequest
+            .setOnClickListener {
+
+                openRentalRequest()
+            }
         binding.btnViewingAppointment
             .setOnClickListener {
 
@@ -323,6 +368,7 @@ class RoomDetailActivity :
     ) {
         currentRoom =
             room
+
 
         binding.progressDetail
             .isVisible = false
@@ -556,7 +602,10 @@ class RoomDetailActivity :
 
         binding.btnRentalRequest
             .isEnabled =
-            false
+            room.availabilityStatus.equals(
+                "AVAILABLE",
+                ignoreCase = true
+            )
     }
 
     // ========================================================

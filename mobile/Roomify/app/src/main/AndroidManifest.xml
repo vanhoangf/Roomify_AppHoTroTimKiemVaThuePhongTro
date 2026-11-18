@@ -54,6 +54,13 @@
         <activity
             android:name=".ui.student.MyAppointmentsActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.student.RentalRequestActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.student.MyRentalRequestsActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
