@@ -11,7 +11,8 @@
         android:id="@+id/navSearch"
         android:icon="@android:drawable/ic_menu_search"
         android:title="Tìm phòng"
-        android:enabled="false" />
+        android:enabled="true" />
+
 
     <item
         android:id="@+id/navSaved"

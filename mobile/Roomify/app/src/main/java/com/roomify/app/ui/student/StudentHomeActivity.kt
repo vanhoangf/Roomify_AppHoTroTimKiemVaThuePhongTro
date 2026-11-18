@@ -27,8 +27,64 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.delay
 
+import android.content.Intent
+import androidx.core.view.isVisible
+import com.roomify.app.R
+
 class StudentHomeActivity : AppCompatActivity() {
 
+
+    private fun openRoomSearch() {
+
+        val intent = Intent(
+            this,
+            RoomSearchActivity::class.java
+        )
+
+        startActivity(intent)
+    }
+
+    private fun setupRoomSearchNavigation() {
+
+        // Thanh tìm kiếm trên Student Home.
+        binding.cardSearch.isEnabled = true
+
+        binding.cardSearch.setOnClickListener {
+            openRoomSearch()
+        }
+
+        // Nút Xem tất cả.
+        binding.btnSeeAllRooms.isVisible = true
+        binding.btnSeeAllRooms.isEnabled = true
+
+        binding.btnSeeAllRooms.setOnClickListener {
+            openRoomSearch()
+        }
+
+        // Bật tab Tìm phòng.
+        binding.bottomNavigation.menu
+            .findItem(R.id.navSearch)
+            ?.isEnabled = true
+
+        binding.bottomNavigation.setOnItemSelectedListener {
+                item ->
+
+            when (item.itemId) {
+
+                R.id.navHome -> true
+
+                R.id.navSearch -> {
+                    openRoomSearch()
+
+                    // Giữ tab Trang chủ được chọn vì
+                    // Search là một Activity riêng.
+                    false
+                }
+
+                else -> false
+            }
+        }
+    }
 
     private fun startAutoRefreshRooms() {
 
@@ -225,6 +281,7 @@ class StudentHomeActivity : AppCompatActivity() {
 
         setContentView(binding.root)
         setupRoomsSection()
+        setupRoomSearchNavigation()
         startAutoRefreshRooms()
 
         ViewCompat.setOnApplyWindowInsetsListener(
