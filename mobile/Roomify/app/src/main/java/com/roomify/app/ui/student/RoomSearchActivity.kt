@@ -43,7 +43,15 @@ class RoomSearchActivity :
             RoomRepository
 
     private val roomAdapter by lazy {
-        StudentRoomAdapter()
+
+        StudentRoomAdapter(
+            onRoomClick = { room ->
+
+                openRoomDetail(
+                    room.roomId
+                )
+            }
+        )
     }
 
     private var searchJob: Job? = null
@@ -240,7 +248,25 @@ class RoomSearchActivity :
             setHasFixedSize(false)
         }
     }
+    private fun openRoomDetail(
+        roomId: Long
+    ) {
 
+        val intent =
+            Intent(
+                this,
+                RoomDetailActivity::class.java
+            )
+
+        intent.putExtra(
+            RoomDetailActivity.EXTRA_ROOM_ID,
+            roomId
+        )
+
+        startActivity(
+            intent
+        )
+    }
     // ========================================================
     // LISTENERS
     // ========================================================

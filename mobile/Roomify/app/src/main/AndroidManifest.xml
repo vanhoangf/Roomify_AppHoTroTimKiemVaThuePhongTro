@@ -41,7 +41,19 @@
             android:name=".ui.student.RoomFilterActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
-
+        <activity
+            android:name=".ui.student.RoomDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.student.RoomGalleryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.student.ViewingAppointmentActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.student.MyAppointmentsActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

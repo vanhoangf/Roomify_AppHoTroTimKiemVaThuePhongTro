@@ -17,7 +17,9 @@ import java.text.NumberFormat
 import java.util.Locale
 
 class StudentRoomAdapter(
-    private val horizontal: Boolean = false
+    private val horizontal: Boolean = false,
+    private val onRoomClick:
+        (RoomCardResponse) -> Unit = {}
 ) : ListAdapter<
         RoomCardResponse,
         StudentRoomAdapter.RoomViewHolder
@@ -177,6 +179,12 @@ class StudentRoomAdapter(
                 .into(
                     binding.ivRoom
                 )
+            binding.root.setOnClickListener {
+
+                onRoomClick(
+                    room
+                )
+            }
         }
     }
 

@@ -43,6 +43,25 @@ class StudentHomeActivity : AppCompatActivity() {
 
         startActivity(intent)
     }
+    private fun openRoomDetail(
+        roomId: Long
+    ) {
+
+        val intent =
+            Intent(
+                this,
+                RoomDetailActivity::class.java
+            )
+
+        intent.putExtra(
+            RoomDetailActivity.EXTRA_ROOM_ID,
+            roomId
+        )
+
+        startActivity(
+            intent
+        )
+    }
 
     private fun setupRoomSearchNavigation() {
 
@@ -117,8 +136,15 @@ class StudentHomeActivity : AppCompatActivity() {
     private lateinit var roomRepository: RoomRepository
 
     private val roomAdapter by lazy {
+
         StudentRoomAdapter(
-            horizontal = true
+            horizontal = true,
+            onRoomClick = { room ->
+
+                openRoomDetail(
+                    room.roomId
+                )
+            }
         )
     }
 
