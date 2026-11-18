@@ -29,6 +29,11 @@ import java.text.NumberFormat
 import java.util.Locale
 import android.content.Intent
 import android.widget.Toast
+import com.roomify.app.data.remote.api.SavedRoomApi
+import com.roomify.app.data.repository.SavedRoomRepository
+import com.roomify.app.data.remote.api.MessagingApi
+import com.roomify.app.data.repository.MessagingRepository
+import android.content.res.ColorStateList
 
 class RoomDetailActivity :
     AppCompatActivity() {
@@ -38,6 +43,44 @@ class RoomDetailActivity :
         const val EXTRA_ROOM_ID =
             "extra_room_id"
     }
+
+    private fun showSavedState(
+        isSaved: Boolean
+    ) {
+
+        binding.btnSaveRoom.apply {
+
+            text = ""
+
+            contentDescription =
+                if (isSaved) {
+                    "Bỏ lưu phòng"
+                } else {
+                    "Lưu phòng"
+                }
+
+            setIconResource(
+                if (isSaved) {
+                    R.drawable.ic_favorite_filled
+                } else {
+                    R.drawable.ic_favorite_border
+                }
+            )
+
+            iconTint =
+                ColorStateList.valueOf(
+                    ContextCompat.getColor(
+                        this@RoomDetailActivity,
+                        if (isSaved) {
+                            R.color.status_error
+                        } else {
+                            R.color.primary_blue
+                        }
+                    )
+                )
+        }
+    }
+
     // ========================================================
 // OPEN IMAGE GALLERY
 // ========================================================
@@ -86,6 +129,15 @@ class RoomDetailActivity :
 
     private lateinit var roomRepository:
             RoomRepository
+
+    private lateinit var savedRoomRepository:
+            SavedRoomRepository
+
+    private var isRoomSaved =
+        false
+
+    private var isSavingRoom =
+        false
 
     private var roomId =
         -1L
@@ -153,7 +205,15 @@ class RoomDetailActivity :
     // REPOSITORY
     // ========================================================
 
+    private lateinit var messagingRepository:
+            MessagingRepository
     private fun setupRepository() {
+        messagingRepository =
+            MessagingRepository(
+                RetrofitClient.createService(
+                    MessagingApi::class.java
+                )
+            )
 
         RetrofitClient.initialize(
             applicationContext
@@ -167,6 +227,13 @@ class RoomDetailActivity :
         roomRepository =
             RoomRepository(
                 api
+            )
+
+        savedRoomRepository =
+            SavedRoomRepository(
+                RetrofitClient.createService(
+                    SavedRoomApi::class.java
+                )
             )
     }
 
@@ -257,7 +324,81 @@ class RoomDetailActivity :
             intent
         )
     }
+    private fun openConversation() {
+
+        val room =
+            currentRoom
+                ?: return
+
+        binding.btnMessage.isEnabled =
+            false
+
+        lifecycleScope.launch {
+
+            try {
+
+                when (
+                    val result =
+                        messagingRepository
+                            .getOrCreateConversation(
+                                room.roomId
+                            )
+                ) {
+
+                    is ApiResult.Success -> {
+
+                        val conversation =
+                            result.data
+                                ?: return@launch
+
+                        startActivity(
+                            Intent(
+                                this@RoomDetailActivity,
+                                ChatActivity::class.java
+                            ).apply {
+
+                                putExtra(
+                                    ChatActivity.EXTRA_CONVERSATION_ID,
+                                    conversation.conversationId
+                                )
+                            }
+                        )
+                    }
+
+                    is ApiResult.Error -> {
+
+                        Toast.makeText(
+                            this@RoomDetailActivity,
+                            result.exception.message,
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+
+                    ApiResult.Loading ->
+                        Unit
+                }
+
+            } finally {
+
+                binding.btnMessage.isEnabled =
+                    true
+            }
+        }
+    }
     private fun setupListeners() {
+        binding.btnMessage
+            .setOnClickListener {
+
+                openConversation()
+            }
+
+        binding.btnSaveRoom
+            .setOnClickListener {
+
+                toggleSavedRoom()
+            }
+
+
         binding.btnRentalRequest
             .setOnClickListener {
 
@@ -363,6 +504,156 @@ class RoomDetailActivity :
     // SHOW ROOM
     // ========================================================
 
+    private fun checkSavedState() {
+
+        lifecycleScope.launch {
+
+            when (
+                val result =
+                    savedRoomRepository
+                        .getSavedRooms()
+            ) {
+
+                is ApiResult.Success -> {
+
+                    isRoomSaved =
+                        result.data
+                            .orEmpty()
+                            .any {
+
+                                it.roomId ==
+                                        roomId
+                            }
+
+                    updateSaveButton()
+                }
+
+                is ApiResult.Error -> {
+
+                    isRoomSaved =
+                        false
+
+                    updateSaveButton()
+                }
+
+                ApiResult.Loading ->
+                    Unit
+            }
+        }
+    }
+
+    private fun toggleSavedRoom() {
+
+        if (isSavingRoom) {
+            return
+        }
+
+        val room =
+            currentRoom
+                ?: return
+
+        isSavingRoom =
+            true
+
+        binding.btnSaveRoom
+            .isEnabled =
+            false
+
+        lifecycleScope.launch {
+
+            try {
+
+                if (isRoomSaved) {
+
+                    when (
+                        val result =
+                            savedRoomRepository
+                                .deleteSavedRoom(
+                                    room.roomId
+                                )
+                    ) {
+
+                        is ApiResult.Success -> {
+
+                            isRoomSaved =
+                                false
+
+                            Toast.makeText(
+                                this@RoomDetailActivity,
+                                "Đã bỏ lưu phòng.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+
+                        is ApiResult.Error -> {
+
+                            Toast.makeText(
+                                this@RoomDetailActivity,
+                                result.exception.message,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+
+                        ApiResult.Loading ->
+                            Unit
+                    }
+
+                } else {
+
+                    when (
+                        val result =
+                            savedRoomRepository
+                                .saveRoom(
+                                    room.roomId
+                                )
+                    ) {
+
+                        is ApiResult.Success -> {
+
+                            isRoomSaved =
+                                true
+
+                            Toast.makeText(
+                                this@RoomDetailActivity,
+                                "Đã lưu phòng.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+
+                        is ApiResult.Error -> {
+
+                            Toast.makeText(
+                                this@RoomDetailActivity,
+                                result.exception.message,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+
+                        ApiResult.Loading ->
+                            Unit
+                    }
+                }
+
+            } finally {
+
+                isSavingRoom =
+                    false
+
+                updateSaveButton()
+            }
+        }
+    }
+
+    private fun updateSaveButton() {
+
+        binding.btnSaveRoom
+            .isEnabled =
+            !isSavingRoom
+
+        showSavedState(
+            isRoomSaved
+        )
+    }
     private fun showRoom(
         room: RoomDetailResponse
     ) {
@@ -591,7 +882,7 @@ class RoomDetailActivity :
             false
 
         binding.btnMessage.isEnabled =
-            false
+            true
 
         binding.btnViewingAppointment
             .isEnabled =
@@ -606,6 +897,7 @@ class RoomDetailActivity :
                 "AVAILABLE",
                 ignoreCase = true
             )
+        checkSavedState()
     }
 
     // ========================================================

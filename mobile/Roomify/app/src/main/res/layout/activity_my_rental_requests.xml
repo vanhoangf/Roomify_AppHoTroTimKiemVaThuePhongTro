@@ -46,6 +46,14 @@
         android:padding="20dp"
         android:text="Đang tải yêu cầu thuê..." />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnMyContracts"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:text="Hợp đồng của tôi"
+        android:textAllCaps="false" />
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"

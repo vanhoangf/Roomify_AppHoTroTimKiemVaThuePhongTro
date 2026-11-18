@@ -14,6 +14,7 @@ android {
     }
 
     defaultConfig {
+
         applicationId = "com.roomify.app"
         minSdk = 24
         targetSdk = 37
@@ -54,6 +55,9 @@ android {
 }
 
 dependencies {
+    implementation(
+        "org.maplibre.gl:android-sdk-opengl:13.7.1"
+    )
 
     // ============================================================
     // ANDROIDX / UI

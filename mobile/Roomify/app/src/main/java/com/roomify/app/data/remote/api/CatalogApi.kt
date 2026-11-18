@@ -3,11 +3,13 @@ package com.roomify.app.data.remote.api
 import com.roomify.app.data.remote.dto.catalog.AmenityResponse
 import com.roomify.app.data.remote.dto.catalog.PropertyTypeResponse
 import com.roomify.app.data.remote.dto.catalog.ProvinceResponse
+import com.roomify.app.data.remote.dto.catalog.UniversityResponse
 import com.roomify.app.data.remote.dto.catalog.WardResponse
 
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface CatalogApi {
 
@@ -20,6 +22,12 @@ interface CatalogApi {
         @Path("provinceId")
         provinceId: Int
     ): Response<List<WardResponse>>
+
+    @GET("api/catalog/universities")
+    suspend fun getUniversities(
+        @Query("keyword")
+        keyword: String? = null
+    ): Response<List<UniversityResponse>>
 
     @GET("api/catalog/property-types")
     suspend fun getPropertyTypes():

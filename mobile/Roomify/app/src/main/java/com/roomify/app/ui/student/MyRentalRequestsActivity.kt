@@ -1,5 +1,6 @@
 package com.roomify.app.ui.student
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 
@@ -119,6 +120,16 @@ class MyRentalRequestsActivity :
     }
 
     private fun setupListeners() {
+        binding.btnMyContracts
+            .setOnClickListener {
+
+                startActivity(
+                    Intent(
+                        this,
+                        MyContractsActivity::class.java
+                    )
+                )
+            }
 
         binding.btnBack
             .setOnClickListener {

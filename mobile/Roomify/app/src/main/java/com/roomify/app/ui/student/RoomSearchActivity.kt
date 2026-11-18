@@ -173,41 +173,38 @@ class RoomSearchActivity :
 
     private fun applyWindowInsets() {
 
-        val root =
+        ViewCompat.setOnApplyWindowInsetsListener(
             binding.roomSearchRoot
+        ) { view, insets ->
 
-        val left =
-            root.paddingLeft
-
-        val top =
-            root.paddingTop
-
-        val right =
-            root.paddingRight
-
-        val bottom =
-            root.paddingBottom
-
-        ViewCompat
-            .setOnApplyWindowInsetsListener(
-                root
-            ) { view, insets ->
-
-                val bars =
-                    insets.getInsets(
-                        WindowInsetsCompat
-                            .Type.systemBars()
-                    )
-
-                view.setPadding(
-                    left + bars.left,
-                    top + bars.top,
-                    right + bars.right,
-                    bottom + bars.bottom
+            val bars =
+                insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
                 )
 
-                insets
-            }
+            view.setPadding(
+                bars.left,
+                bars.top,
+                bars.right,
+                bars.bottom
+            )
+
+            insets
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(
+            binding.bottomNavigation
+        ) { view, insets ->
+
+            view.setPadding(
+                view.paddingLeft,
+                view.paddingTop,
+                view.paddingRight,
+                0
+            )
+
+            insets
+        }
     }
 
     // ========================================================
@@ -272,12 +269,6 @@ class RoomSearchActivity :
     // ========================================================
 
     private fun setupListeners() {
-
-        binding.btnBack
-            .setOnClickListener {
-
-                finish()
-            }
 
         binding.edtKeyword
             .doAfterTextChanged {
@@ -540,27 +531,13 @@ class RoomSearchActivity :
 
     private fun setupBottomNavigation() {
 
-        binding.bottomNavigation
-            .selectedItemId =
-            R.id.navSearch
-
-        binding.bottomNavigation
-            .setOnItemSelectedListener {
-                    item ->
-
-                when (item.itemId) {
-
-                    R.id.navHome -> {
-
-                        finish()
-                        false
-                    }
-
-                    R.id.navSearch -> true
-
-                    else -> false
-                }
-            }
+        StudentBottomNavHelper.setup(
+            activity = this,
+            bottomNavigation =
+                binding.bottomNavigation,
+            selectedItemId =
+                R.id.navSearch
+        )
     }
 
     // ========================================================

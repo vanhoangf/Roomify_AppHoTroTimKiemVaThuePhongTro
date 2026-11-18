@@ -6,6 +6,7 @@ import com.roomify.app.data.remote.common.safeApiCall
 import com.roomify.app.data.remote.dto.catalog.AmenityResponse
 import com.roomify.app.data.remote.dto.catalog.PropertyTypeResponse
 import com.roomify.app.data.remote.dto.catalog.ProvinceResponse
+import com.roomify.app.data.remote.dto.catalog.UniversityResponse
 import com.roomify.app.data.remote.dto.catalog.WardResponse
 
 class CatalogRepository(
@@ -27,7 +28,17 @@ class CatalogRepository(
         require(provinceId > 0)
 
         return safeApiCall {
-            catalogApi.getWards(provinceId)
+            catalogApi.getWards(
+                provinceId
+            )
+        }
+    }
+
+    suspend fun getUniversities():
+            ApiResult<List<UniversityResponse>> {
+
+        return safeApiCall {
+            catalogApi.getUniversities()
         }
     }
 
