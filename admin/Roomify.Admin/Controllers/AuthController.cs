@@ -172,6 +172,8 @@ public class AuthController : Controller
             principal,
             properties);
 
+        await HttpContext.Session.CommitAsync(cancellationToken);
+
         // RETURN URL
         // Chỉ redirect URL nội bộ để tránh open redirect
 

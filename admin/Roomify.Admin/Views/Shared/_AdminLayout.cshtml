@@ -17,6 +17,9 @@
     <link rel="stylesheet"
           href="~/css/admin-layout.css"
           asp-append-version="true" />
+    @await RenderSectionAsync(
+    "Styles",
+    required: false)
 </head>
 
 <body class="admin-body">

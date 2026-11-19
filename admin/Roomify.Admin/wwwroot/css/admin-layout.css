@@ -438,7 +438,7 @@ a.admin-nav-link:hover {
 
 .admin-content {
     min-height: calc( 100vh - var(--admin-header-height) );
-    padding: 20px 24px 32px;
+    padding: 24px;
     background: var(--admin-bg);
 }
 
