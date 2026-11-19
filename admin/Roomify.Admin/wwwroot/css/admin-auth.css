@@ -1,0 +1,457 @@
+﻿:root {
+    --roomify-primary: #004ac6;
+    --roomify-primary-hover: #003b9f;
+    --roomify-bg: #f7f9fc;
+    --roomify-surface: #ffffff;
+    --roomify-text: #10233f;
+    --roomify-muted: #68758a;
+    --roomify-border: #dfe5ee;
+    --roomify-danger: #d92d20;
+    --roomify-danger-bg: #fff4f2;
+    --roomify-success: #16a34a;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    min-height: 100%;
+}
+
+    body.auth-body {
+        margin: 0;
+        font-family: Inter, "Segoe UI", Arial, sans-serif;
+        background: linear-gradient( 180deg, #f9fbff 0%, #f4f7fb 100% );
+        color: var(--roomify-text);
+    }
+
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* =========================================================
+   TOP BAR
+   ========================================================= */
+
+.auth-topbar {
+    padding: 24px 10%;
+}
+
+.auth-topbar-inner {
+    max-width: 1024px;
+    margin: 0 auto;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    font-size: 12px;
+    color: var(--roomify-muted);
+}
+
+.security-note,
+.system-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+    .security-note svg {
+        width: 14px;
+        height: 14px;
+        fill: currentColor;
+    }
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--roomify-success);
+}
+
+
+/* =========================================================
+   MAIN
+   ========================================================= */
+
+.auth-main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 24px 20px 40px;
+}
+
+.login-card {
+    width: min(460px, 100%);
+    background: var(--roomify-surface);
+    border: 1px solid rgba(15, 35, 64, 0.06);
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 20px 50px rgba(20, 45, 85, 0.08), 0 4px 14px rgba(20, 45, 85, 0.04);
+}
+
+
+/* =========================================================
+   BRAND
+   ========================================================= */
+
+.login-brand {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.logo-box {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: #f4f8ff;
+    border: 1px solid #e3ebf8;
+}
+
+    .logo-box img {
+        display: block;
+        max-width: 54px;
+        max-height: 54px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+    }
+
+.login-brand h1 {
+    margin: 0;
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.login-brand p {
+    margin: 4px 0 0;
+    color: var(--roomify-muted);
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field-label {
+    margin: 0;
+    font-size: 14px;
+    line-height: 21px;
+    font-weight: 600;
+}
+
+    .field-label span {
+        color: var(--roomify-danger);
+    }
+
+.password-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.forgot-placeholder {
+    font-size: 12px;
+    color: var(--roomify-muted);
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    pointer-events: none;
+    color: #7b8798;
+}
+
+    .input-icon svg {
+        width: 17px;
+        height: 17px;
+        fill: currentColor;
+    }
+
+.roomify-input {
+    height: 46px;
+    padding-left: 42px;
+    border: 1px solid var(--roomify-border);
+    border-radius: 9px;
+    font-size: 14px;
+    color: var(--roomify-text);
+    box-shadow: none;
+}
+
+.password-input {
+    padding-right: 48px;
+}
+
+.roomify-input::placeholder {
+    color: #98a2b3;
+}
+
+.roomify-input:focus {
+    border-color: var(--roomify-primary);
+    box-shadow: 0 0 0 3px rgba(0, 74, 198, 0.09);
+}
+
+.password-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #667085;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+    .password-toggle:hover {
+        background: #f2f4f7;
+    }
+
+    .password-toggle svg {
+        width: 19px;
+        height: 19px;
+        fill: currentColor;
+    }
+
+.field-helper {
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--roomify-muted);
+}
+
+.field-error {
+    font-size: 12px;
+    color: var(--roomify-danger);
+}
+
+    .field-error:empty {
+        display: none;
+    }
+
+
+/* =========================================================
+   REMEMBER
+   ========================================================= */
+
+.remember-row {
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+}
+
+.remember-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+    .remember-label .form-check-input {
+        margin: 0;
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+
+/* =========================================================
+   ALERT
+   ========================================================= */
+
+.login-alert {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid #f5c2bd;
+    border-radius: 9px;
+    background: var(--roomify-danger-bg);
+    color: #b42318;
+    font-size: 13px;
+    line-height: 18px;
+}
+
+    .login-alert > div {
+        flex: 1;
+        min-width: 0;
+        word-break: normal;
+        overflow-wrap: normal;
+    }
+
+    .login-alert svg {
+        flex: 0 0 16px;
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+    }
+
+
+/* =========================================================
+   BUTTON
+   ========================================================= */
+
+.btn-login {
+    height: 46px;
+    border: none;
+    border-radius: 9px;
+    background: var(--roomify-primary);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+    .btn-login:hover {
+        background: var(--roomify-primary-hover);
+    }
+
+    .btn-login:active {
+        transform: translateY(1px);
+    }
+
+    .btn-login:disabled {
+        opacity: 0.7;
+        cursor: wait;
+    }
+
+    .btn-login svg {
+        width: 14px;
+        height: 14px;
+        fill: currentColor;
+    }
+
+
+/* =========================================================
+   SECURITY
+   ========================================================= */
+
+.security-box {
+    margin-top: 32px;
+    text-align: center;
+}
+
+.security-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 12px;
+    background: #f5f8fc;
+    border: 1px solid #e4eaf2;
+    border-radius: 8px;
+    color: #526176;
+    font-size: 12px;
+}
+
+    .security-badge svg {
+        width: 14px;
+        height: 14px;
+        fill: currentColor;
+    }
+
+.security-box p {
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: var(--roomify-muted);
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.auth-footer {
+    padding: 16px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--roomify-muted);
+}
+
+
+/* =========================================================
+   VALIDATION
+   ========================================================= */
+
+.input-validation-error {
+    border-color: var(--roomify-danger);
+}
+
+    .input-validation-error:focus {
+        border-color: var(--roomify-danger);
+        box-shadow: 0 0 0 3px rgba(217, 45, 32, 0.08);
+    }
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    .auth-topbar {
+        padding: 16px 20px;
+    }
+
+    .auth-topbar-inner {
+        justify-content: center;
+    }
+
+    .system-status {
+        display: none;
+    }
+
+    .auth-main {
+        padding: 10px 16px 30px;
+    }
+
+    .login-card {
+        padding: 28px 22px;
+        border-radius: 14px;
+    }
+
+    .login-brand h1 {
+        font-size: 25px;
+    }
+}
