@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- NAVIGATION: TAB DANG CHON -->
+    <style name="TextAppearance.Roomify.NavActive"
+        parent="TextAppearance.Material3.LabelSmall">
+
+        <item name="fontFamily">@font/plus_jakarta_sans</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:includeFontPadding">false</item>
+
+    </style>
+
+    <!-- NAVIGATION: TAB CHUA CHON -->
+    <style name="TextAppearance.Roomify.NavInactive"
+        parent="TextAppearance.Material3.LabelSmall">
+
+        <item name="fontFamily">@font/plus_jakarta_sans</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:includeFontPadding">false</item>
+
+    </style>
+
+    <!-- Material 3 indicator, referenced via itemActiveIndicatorStyle. -->
+    <style name="Widget.Roomify.StudentNav.ActiveIndicator"
+        parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/student_nav_indicator</item>
+        <item name="android:width">54dp</item>
+        <item name="android:height">28dp</item>
+    </style>
+
+</resources>

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardBackgroundColor="@color/surface_white"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/stroke_border"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- ROOM + STATUS -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvRoomTitle"
+                style="@style/TextAppearance.Roomify.CardTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:maxLines="2"
+                android:text="Tên phòng" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chờ xác nhận"
+                android:textSize="11sp"
+                app:chipBackgroundColor="@color/chip_bg"
+                app:ensureMinTouchTargetSize="false" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvPropertyName"
+            style="@style/TextAppearance.Roomify.Secondary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Tên khu trọ" />
+
+        <!-- SCHEDULE -->
+        <TextView
+            style="@style/TextAppearance.Roomify.Caption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="LỊCH ĐÃ CHỌN" />
+
+        <TextView
+            android:id="@+id/tvScheduledAt"
+            style="@style/TextAppearance.Roomify.CardTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="19/11/2026 • 10:00" />
+
+        <!-- PROPOSED TIME -->
+        <LinearLayout
+            android:id="@+id/proposedContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@color/surface_light"
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:visibility="gone">
+
+            <TextView
+                style="@style/TextAppearance.Roomify.Caption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CHỦ TRỌ ĐỀ XUẤT GIỜ MỚI"
+                android:textColor="@color/primary_blue" />
+
+            <TextView
+                android:id="@+id/tvProposedAt"
+                style="@style/TextAppearance.Roomify.CardTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" />
+
+        </LinearLayout>
+
+        <!-- STUDENT NOTE -->
+        <TextView
+            android:id="@+id/tvNote"
+            style="@style/TextAppearance.Roomify.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:visibility="gone" />
+
+        <!-- LANDLORD NOTE -->
+        <TextView
+            android:id="@+id/tvLandlordNote"
+            style="@style/TextAppearance.Roomify.Secondary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
+
+        <!-- ACTIONS -->
+        <LinearLayout
+            android:id="@+id/actionContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancel"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:text="Hủy lịch"
+                android:textAllCaps="false"
+                android:textColor="@color/status_error" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAcceptProposal"
+                style="@style/Widget.Roomify.Button.Primary"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:layout_marginStart="8dp"
+                android:text="Chấp nhận giờ mới"
+                android:textAllCaps="false"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

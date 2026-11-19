@@ -1,227 +1,372 @@
-
 package com.roomify.app.ui.student
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 
 import androidx.appcompat.app.AppCompatActivity
-
-import com.roomify.app.databinding.ActivityStudentHomeBinding
-import com.roomify.app.ui.common.LogoutHandler
-import com.roomify.app.ui.common.RoleSessionGuard
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 
+import com.roomify.app.R
 import com.roomify.app.data.remote.api.RoomApi
 import com.roomify.app.data.remote.common.ApiResult
 import com.roomify.app.data.remote.network.RetrofitClient
 import com.roomify.app.data.repository.RoomRepository
+import com.roomify.app.databinding.ActivityStudentHomeBinding
+import com.roomify.app.ui.common.LogoutHandler
+import com.roomify.app.ui.common.RoleSessionGuard
 
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-import android.content.Intent
-import androidx.core.view.isVisible
-import com.roomify.app.R
+class StudentHomeActivity :
+    AppCompatActivity() {
 
-class StudentHomeActivity : AppCompatActivity() {
+    private lateinit var binding:
+            ActivityStudentHomeBinding
 
+    private lateinit var roomRepository:
+            RoomRepository
 
-    private fun openRoomSearch() {
-
-        val intent = Intent(
-            this,
-            RoomSearchActivity::class.java
-        )
-
-        startActivity(intent)
-    }
-
-    private fun setupRoomSearchNavigation() {
-
-        // Thanh tìm kiếm trên Student Home.
-        binding.cardSearch.isEnabled = true
-
-        binding.cardSearch.setOnClickListener {
-            openRoomSearch()
-        }
-
-        // Nút Xem tất cả.
-        binding.btnSeeAllRooms.isVisible = true
-        binding.btnSeeAllRooms.isEnabled = true
-
-        binding.btnSeeAllRooms.setOnClickListener {
-            openRoomSearch()
-        }
-
-        // Bật tab Tìm phòng.
-        binding.bottomNavigation.menu
-            .findItem(R.id.navSearch)
-            ?.isEnabled = true
-
-        binding.bottomNavigation.setOnItemSelectedListener {
-                item ->
-
-            when (item.itemId) {
-
-                R.id.navHome -> true
-
-                R.id.navSearch -> {
-                    openRoomSearch()
-
-                    // Giữ tab Trang chủ được chọn vì
-                    // Search là một Activity riêng.
-                    false
-                }
-
-                else -> false
-            }
-        }
-    }
-
-    private fun startAutoRefreshRooms() {
-
-        lifecycleScope.launch {
-
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-
-                while (true) {
-
-                    // Kiểm tra lại API sau mỗi 15 giây
-                    delay(15_000L)
-
-                    loadNewestRooms(showSpinner = false)
-                }
-            }
-        }
-    }
-
-    private lateinit var roomRepository: RoomRepository
+    private var isLoadingRooms =
+        false
 
     private val roomAdapter by lazy {
-        StudentRoomAdapter()
+
+        StudentRoomAdapter(
+            horizontal = true,
+            onRoomClick = { room ->
+
+                openRoomDetail(
+                    room.roomId
+                )
+            }
+        )
     }
 
-    private var isLoadingRooms = false
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
+        super.onCreate(savedInstanceState)
 
-
-    private fun setupRoomsSection() {
-
-        // Dùng lại RetrofitClient từ Android Core
-        RetrofitClient.initialize(applicationContext)
-
-        val roomApi = RetrofitClient.createService(
-            RoomApi::class.java
-        )
-
-        roomRepository = RoomRepository(roomApi)
-
-        // RecyclerView
-        binding.rvRooms.apply {
-            layoutManager = LinearLayoutManager(
-                this@StudentHomeActivity
+        binding =
+            ActivityStudentHomeBinding.inflate(
+                layoutInflater
             )
 
-            adapter = roomAdapter
-            isNestedScrollingEnabled = false
+        setContentView(
+            binding.root
+        )
+
+        setupInsets()
+        setupRooms()
+        setupNavigation()
+        setupActions()
+        startAutoRefreshRooms()
+    }
+
+    // =========================================================
+    // INSETS
+    // =========================================================
+
+    private fun setupInsets() {
+
+        ViewCompat.setOnApplyWindowInsetsListener(
+            binding.studentHomeRoot
+        ) { view, insets ->
+
+            val bars =
+                insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                )
+
+            view.setPadding(
+                bars.left,
+                bars.top,
+                bars.right,
+                bars.bottom
+            )
+
+            insets
         }
 
+        ViewCompat.setOnApplyWindowInsetsListener(
+            binding.bottomNavigation
+        ) { view, insets ->
 
-        binding.btnRetryRooms.setOnClickListener {
-            loadNewestRooms()
+            view.setPadding(
+                view.paddingLeft,
+                view.paddingTop,
+                view.paddingRight,
+                0
+            )
+
+            insets
+        }
+    }
+
+    // =========================================================
+    // ROOM SECTION
+    // =========================================================
+
+    private fun setupRooms() {
+
+        RetrofitClient.initialize(
+            applicationContext
+        )
+
+        roomRepository =
+            RoomRepository(
+                RetrofitClient.createService(
+                    RoomApi::class.java
+                )
+            )
+
+        binding.rvRooms.apply {
+
+            layoutManager =
+                LinearLayoutManager(
+                    this@StudentHomeActivity,
+                    LinearLayoutManager.HORIZONTAL,
+                    false
+                )
+
+            adapter =
+                roomAdapter
+
+            isNestedScrollingEnabled =
+                false
         }
 
-        binding.btnRefreshRooms.setOnClickListener {
-            loadNewestRooms()
-        }
+        binding.btnRetryRooms
+            .setOnClickListener {
 
+                loadNewestRooms()
+            }
 
-        // Tải dữ liệu ngay khi mở trang chủ
+        binding.btnRefreshRooms
+            .setOnClickListener {
+
+                loadNewestRooms()
+            }
+
         loadNewestRooms()
     }
 
+    // =========================================================
+    // NAVIGATION
+    // =========================================================
 
+    private fun setupNavigation() {
+
+        StudentBottomNavHelper.setup(
+            activity = this,
+            bottomNavigation =
+                binding.bottomNavigation,
+            selectedItemId =
+                R.id.navHome
+        )
+
+        binding.cardSearch
+            .setOnClickListener {
+
+                openRoomSearch()
+            }
+
+        binding.btnSeeAllRooms
+            .setOnClickListener {
+
+                openRoomSearch()
+            }
+
+        binding.btnRoomMap
+            .setOnClickListener {
+
+                startActivity(
+                    Intent(
+                        this,
+                        RoomMapActivity::class.java
+                    )
+                )
+            }
+
+        binding.btnNotifications
+            .setOnClickListener {
+
+                startActivity(
+                    Intent(
+                        this,
+                        NotificationsActivity::class.java
+                    )
+                )
+            }
+    }
+
+    // =========================================================
+    // ACTIONS
+    // =========================================================
+
+    private fun setupActions() {
+
+        binding.btnLogout
+            .setOnClickListener {
+
+                LogoutHandler.logout(
+                    activity = this,
+                    logoutButton =
+                        binding.btnLogout
+                )
+            }
+    }
+
+    // =========================================================
+    // OPEN SCREENS
+    // =========================================================
+
+    private fun openRoomSearch() {
+
+        startActivity(
+            Intent(
+                this,
+                RoomSearchActivity::class.java
+            )
+        )
+    }
+
+    private fun openRoomDetail(
+        roomId: Long
+    ) {
+
+        startActivity(
+            Intent(
+                this,
+                RoomDetailActivity::class.java
+            ).apply {
+
+                putExtra(
+                    RoomDetailActivity.EXTRA_ROOM_ID,
+                    roomId
+                )
+            }
+        )
+    }
+
+    // =========================================================
+    // LOAD ROOMS
+    // =========================================================
 
     private fun loadNewestRooms(
         showSpinner: Boolean = true
     ) {
 
-        if (isLoadingRooms) return
+        if (isLoadingRooms) {
+            return
+        }
 
-        isLoadingRooms = true
+        isLoadingRooms =
+            true
 
         val hasOldRooms =
-            roomAdapter.currentList.isNotEmpty()
+            roomAdapter.currentList
+                .isNotEmpty()
 
-        binding.btnRefreshRooms.isEnabled = false
-        binding.btnRetryRooms.isEnabled = false
+        binding.btnRefreshRooms.isEnabled =
+            false
 
-        // Chỉ hiện loading lớn khi chưa có dữ liệu cũ.
-        if (showSpinner && !hasOldRooms) {
-            binding.progressRooms.isVisible = true
-            binding.cardRoomEmpty.isVisible = false
+        binding.btnRetryRooms.isEnabled =
+            false
+
+        if (
+            showSpinner &&
+            !hasOldRooms
+        ) {
+
+            binding.progressRooms.isVisible =
+                true
+
+            binding.cardRoomEmpty.isVisible =
+                false
         }
 
         lifecycleScope.launch {
 
             try {
 
-                val result = roomRepository.getNewestRooms(
-                    page = 1,
-                    pageSize = 6
-                )
-
-                when (result) {
+                when (
+                    val result =
+                        roomRepository.getNewestRooms(
+                            page = 1,
+                            pageSize = 6
+                        )
+                ) {
 
                     is ApiResult.Success -> {
 
-                        val rooms = result.data
-                            ?.items
-                            .orEmpty()
+                        val rooms =
+                            result.data
+                                ?.items
+                                .orEmpty()
 
-                        roomAdapter.submitList(rooms)
+                        roomAdapter.submitList(
+                            rooms
+                        )
 
-                        // Kết nối đã hoạt động trở lại.
-                        binding.tvConnectionWarning.isVisible = false
-                        binding.btnRetryRooms.isVisible = false
+                        binding.tvConnectionWarning
+                            .isVisible =
+                            false
+
+                        binding.btnRetryRooms
+                            .isVisible =
+                            false
 
                         if (rooms.isEmpty()) {
 
-                            binding.rvRooms.isVisible = false
-                            binding.cardRoomEmpty.isVisible = true
+                            binding.rvRooms.isVisible =
+                                false
+
+                            binding.cardRoomEmpty.isVisible =
+                                true
 
                             binding.tvRoomState.text =
                                 "Hiện chưa có phòng được đăng công khai."
 
                         } else {
 
-                            binding.rvRooms.isVisible = true
-                            binding.cardRoomEmpty.isVisible = false
+                            binding.rvRooms.isVisible =
+                                true
+
+                            binding.cardRoomEmpty.isVisible =
+                                false
                         }
                     }
 
                     is ApiResult.Error -> {
 
                         showRoomsError(
-                            "Không thể kết nối Roomify.API. " +
-                                    "Vui lòng thử lại."
+                            "Không thể kết nối Roomify.API. Vui lòng thử lại."
                         )
                     }
 
-                    ApiResult.Loading -> Unit
+                    ApiResult.Loading ->
+                        Unit
                 }
 
-            } catch (e: CancellationException) {
-                throw e
+            } catch (
+                exception: CancellationException
+            ) {
 
-            } catch (_: Exception) {
+                throw exception
+
+            } catch (
+                exception: Exception
+            ) {
 
                 showRoomsError(
                     "Đã xảy ra lỗi khi tải danh sách phòng."
@@ -229,89 +374,91 @@ class StudentHomeActivity : AppCompatActivity() {
 
             } finally {
 
-                isLoadingRooms = false
+                isLoadingRooms =
+                    false
 
-                binding.progressRooms.isVisible = false
-                binding.btnRefreshRooms.isEnabled = true
-                binding.btnRetryRooms.isEnabled = true
+                binding.progressRooms.isVisible =
+                    false
+
+                binding.btnRefreshRooms.isEnabled =
+                    true
+
+                binding.btnRetryRooms.isEnabled =
+                    true
             }
         }
     }
 
-
-
-    private fun showRoomsError(message: String) {
+    private fun showRoomsError(
+        message: String
+    ) {
 
         val hasOldRooms =
-            roomAdapter.currentList.isNotEmpty()
+            roomAdapter.currentList
+                .isNotEmpty()
 
         if (hasOldRooms) {
 
-            // Giữ các phòng đã tải trước đó.
-            binding.rvRooms.isVisible = true
-            binding.cardRoomEmpty.isVisible = false
+            binding.rvRooms.isVisible =
+                true
+
+            binding.cardRoomEmpty.isVisible =
+                false
 
             binding.tvConnectionWarning.text =
                 "$message\nĐang hiển thị dữ liệu đã tải trước đó."
 
-            binding.tvConnectionWarning.isVisible = true
+            binding.tvConnectionWarning.isVisible =
+                true
 
         } else {
 
-            // Chưa từng tải được phòng.
-            binding.rvRooms.isVisible = false
-            binding.tvConnectionWarning.isVisible = false
+            binding.rvRooms.isVisible =
+                false
 
-            binding.cardRoomEmpty.isVisible = true
-            binding.tvRoomState.text = message
-            binding.btnRetryRooms.isVisible = true
+            binding.tvConnectionWarning.isVisible =
+                false
+
+            binding.cardRoomEmpty.isVisible =
+                true
+
+            binding.tvRoomState.text =
+                message
+
+            binding.btnRetryRooms.isVisible =
+                true
         }
     }
 
+    // =========================================================
+    // AUTO REFRESH
+    // =========================================================
 
+    private fun startAutoRefreshRooms() {
 
-    private lateinit var binding: ActivityStudentHomeBinding
+        lifecycleScope.launch {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+            repeatOnLifecycle(
+                Lifecycle.State.STARTED
+            ) {
 
-        binding = ActivityStudentHomeBinding.inflate(
-            layoutInflater
-        )
+                while (true) {
 
-        setContentView(binding.root)
-        setupRoomsSection()
-        setupRoomSearchNavigation()
-        startAutoRefreshRooms()
+                    delay(
+                        15_000L
+                    )
 
-        ViewCompat.setOnApplyWindowInsetsListener(
-            binding.studentHomeRoot
-        ) { view, insets ->
-
-            val systemBars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars()
-            )
-
-            view.setPadding(
-                systemBars.left,
-                systemBars.top,
-                systemBars.right,
-                systemBars.bottom
-            )
-
-            insets
-        }
-
-
-        // NÚT ĐĂNG XUẤT
-        binding.btnLogout.setOnClickListener {
-
-            LogoutHandler.logout(
-                activity = this,
-                logoutButton = binding.btnLogout
-            )
+                    loadNewestRooms(
+                        showSpinner = false
+                    )
+                }
+            }
         }
     }
+
+    // =========================================================
+    // SESSION
+    // =========================================================
 
     override fun onStart() {
         super.onStart()

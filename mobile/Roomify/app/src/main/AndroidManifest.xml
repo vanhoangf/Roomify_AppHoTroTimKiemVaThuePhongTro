@@ -38,6 +38,87 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".ui.student.RoomFilterActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.student.RoomDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.RoomGalleryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.ViewingAppointmentActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.student.MyAppointmentsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.RentalRequestActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.student.MyRentalRequestsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.MyContractsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.ContractDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.MyPaymentsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.PaymentDetailActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.student.SavedRoomsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.ConversationsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.ChatActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.student.NotificationsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.StudentAccountActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.EditStudentProfileActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.student.CreateReviewActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.student.RoomMapActivity"
+            android:exported="false" />
 
     </application>
 

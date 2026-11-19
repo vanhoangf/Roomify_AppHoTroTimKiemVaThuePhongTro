@@ -1,4 +1,3 @@
-
 package com.roomify.app.ui.student
 
 import android.view.LayoutInflater
@@ -17,11 +16,14 @@ import com.roomify.app.databinding.ItemStudentRoomBinding
 import java.text.NumberFormat
 import java.util.Locale
 
-class StudentRoomAdapter :
-    ListAdapter<
-            RoomCardResponse,
-            StudentRoomAdapter.RoomViewHolder
-            >(ROOM_DIFF) {
+class StudentRoomAdapter(
+    private val horizontal: Boolean = false,
+    private val onRoomClick:
+        (RoomCardResponse) -> Unit = {}
+) : ListAdapter<
+        RoomCardResponse,
+        StudentRoomAdapter.RoomViewHolder
+        >(ROOM_DIFF) {
 
     private val currencyFormatter =
         NumberFormat.getCurrencyInstance(
@@ -29,86 +31,160 @@ class StudentRoomAdapter :
         )
 
     inner class RoomViewHolder(
-        private val binding: ItemStudentRoomBinding
-    ) : RecyclerView.ViewHolder(binding.root) {
+        private val binding:
+        ItemStudentRoomBinding
+    ) : RecyclerView.ViewHolder(
+        binding.root
+    ) {
 
-        fun bind(room: RoomCardResponse) {
+        fun bind(
+            room: RoomCardResponse
+        ) {
 
+            // =============================
             // TITLE
-            binding.tvRoomTitle.text = room.title
+            // =============================
 
+            binding.tvRoomTitle.text =
+                room.title
+
+            // =============================
             // PRICE
-            binding.tvRoomPrice.text =
-                "${currencyFormatter.format(room.rentPrice)}/tháng"
+            // =============================
 
+            binding.tvRoomPrice.text =
+                "${currencyFormatter.format(
+                    room.rentPrice
+                )}/tháng"
+
+            // =============================
             // AREA
-            val area = room.areaM2
-                .stripTrailingZeros()
-                .toPlainString()
+            // =============================
+
+            val area =
+                room.areaM2
+                    .stripTrailingZeros()
+                    .toPlainString()
 
             binding.tvRoomArea.text =
                 "Diện tích: $area m²"
 
+            // =============================
             // OCCUPANTS
+            // =============================
+
             binding.tvRoomOccupants.text =
                 "Tối đa ${room.maxOccupants} người"
 
+            // =============================
             // ADDRESS
-            val address = listOf(
-                room.addressLine,
-                room.wardName,
-                room.provinceName
-            )
-                .filter { it.isNotBlank() }
-                .joinToString(", ")
+            // =============================
+
+            val address =
+                listOf(
+                    room.addressLine,
+                    room.wardName,
+                    room.provinceName
+                )
+                    .filter {
+                        it.isNotBlank()
+                    }
+                    .joinToString(", ")
 
             binding.tvRoomAddress.text =
                 address.ifBlank {
                     "Địa chỉ đang cập nhật"
                 }
 
-            // AVAILABILITY STATUS
-            val status = room.availabilityStatus
-                .uppercase(Locale.ROOT)
+            // =============================
+            // STATUS
+            // =============================
 
-            val statusText = when (status) {
-                "AVAILABLE" -> "Còn trống"
-                "RESERVED" -> "Đã giữ chỗ"
-                "RENTED" -> "Đã cho thuê"
-                else -> "Đang cập nhật"
-            }
+            val status =
+                room.availabilityStatus
+                    .uppercase(
+                        Locale.ROOT
+                    )
 
-            val statusColor = when (status) {
-                "AVAILABLE" -> R.color.status_success
-                "RENTED" -> R.color.status_error
-                else -> R.color.text_muted
-            }
+            val statusText =
+                when (status) {
 
-            binding.tvRoomStatus.text = statusText
+                    "AVAILABLE" ->
+                        "Còn trống"
 
-            binding.tvRoomStatus.setTextColor(
-                ContextCompat.getColor(
-                    binding.root.context,
-                    statusColor
-                )
-            )
+                    "RESERVED" ->
+                        "Đã giữ chỗ"
 
-            // CLOUDINARY IMAGE
-            val imageUrl = room.thumbnailUrl
-                ?.trim()
-                ?.takeIf {
-                    it.startsWith("https://")
+                    "RENTED" ->
+                        "Đã cho thuê"
+
+                    else ->
+                        "Đang cập nhật"
                 }
 
-            binding.ivRoom.contentDescription =
+            val statusColor =
+                when (status) {
+
+                    "AVAILABLE" ->
+                        R.color.status_success
+
+                    "RENTED" ->
+                        R.color.status_error
+
+                    else ->
+                        R.color.text_muted
+                }
+
+            binding.tvRoomStatus.text =
+                statusText
+
+            binding.tvRoomStatus
+                .setTextColor(
+                    ContextCompat.getColor(
+                        binding.root.context,
+                        statusColor
+                    )
+                )
+
+            // =============================
+            // IMAGE
+            // =============================
+
+            val imageUrl =
+                room.thumbnailUrl
+                    ?.trim()
+                    ?.takeIf {
+                        it.startsWith(
+                            "https://"
+                        )
+                    }
+
+            binding.ivRoom
+                .contentDescription =
                 "Ảnh phòng ${room.title}"
 
-            Glide.with(binding.ivRoom)
+            Glide.with(
+                binding.ivRoom
+            )
                 .load(imageUrl)
-                .placeholder(R.drawable.room_image_placeholder)
-                .error(R.drawable.room_image_placeholder)
+                .placeholder(
+                    R.drawable
+                        .room_image_placeholder
+                )
+                .error(
+                    R.drawable
+                        .room_image_placeholder
+                )
                 .centerCrop()
-                .into(binding.ivRoom)
+                .into(
+                    binding.ivRoom
+                )
+            binding.root.setOnClickListener {
+
+                onRoomClick(
+                    room
+                )
+            }
         }
     }
 
@@ -117,39 +193,86 @@ class StudentRoomAdapter :
         viewType: Int
     ): RoomViewHolder {
 
-        val binding = ItemStudentRoomBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
+        val binding =
+            ItemStudentRoomBinding.inflate(
+                LayoutInflater.from(
+                    parent.context
+                ),
+                parent,
+                false
+            )
 
-        return RoomViewHolder(binding)
+        // =====================================
+        // HOME: CARD NGANG 288dp
+        // SEARCH: GIỮ MATCH_PARENT
+        // =====================================
+
+        if (horizontal) {
+
+            val density =
+                parent.resources
+                    .displayMetrics
+                    .density
+
+            val cardWidth =
+                (288 * density)
+                    .toInt()
+
+            val cardSpacing =
+                (12 * density)
+                    .toInt()
+
+            binding.root.layoutParams =
+                RecyclerView.LayoutParams(
+                    cardWidth,
+                    ViewGroup.LayoutParams
+                        .WRAP_CONTENT
+                ).apply {
+
+                    marginEnd =
+                        cardSpacing
+                }
+        }
+
+        return RoomViewHolder(
+            binding
+        )
     }
 
     override fun onBindViewHolder(
         holder: RoomViewHolder,
         position: Int
     ) {
-        holder.bind(getItem(position))
+
+        holder.bind(
+            getItem(position)
+        )
     }
 
     companion object {
 
         private val ROOM_DIFF =
-            object : DiffUtil.ItemCallback<RoomCardResponse>() {
+            object :
+                DiffUtil.ItemCallback<
+                        RoomCardResponse
+                        >() {
 
                 override fun areItemsTheSame(
                     oldItem: RoomCardResponse,
                     newItem: RoomCardResponse
                 ): Boolean {
-                    return oldItem.roomId == newItem.roomId
+
+                    return oldItem.roomId ==
+                            newItem.roomId
                 }
 
                 override fun areContentsTheSame(
                     oldItem: RoomCardResponse,
                     newItem: RoomCardResponse
                 ): Boolean {
-                    return oldItem == newItem
+
+                    return oldItem ==
+                            newItem
                 }
             }
     }
