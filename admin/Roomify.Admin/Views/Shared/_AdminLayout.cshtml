@@ -1,0 +1,55 @@
+﻿@{
+    var pageTitle = ViewData["Title"]?.ToString() ?? "Roomify Admin";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>@pageTitle - Roomify Admin</title>
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/admin-layout.css"
+          asp-append-version="true" />
+</head>
+
+<body class="admin-body">
+
+    <div class="admin-shell">
+
+        @await Html.PartialAsync("_AdminSidebar")
+
+        <div class="admin-workspace">
+
+            @await Html.PartialAsync("_AdminHeader")
+
+            <main class="admin-content">
+                @RenderBody()
+            </main>
+
+        </div>
+
+    </div>
+
+    <div class="sidebar-overlay"
+         id="sidebarOverlay"></div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/js/admin-layout.js"
+            asp-append-version="true"></script>
+
+    @await RenderSectionAsync(
+        "Scripts",
+        required: false)
+
+</body>
+</html>
