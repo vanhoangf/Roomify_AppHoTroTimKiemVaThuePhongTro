@@ -107,6 +107,19 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".ui.landlord.payment.LandlordPaymentsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.landlord.payment.LandlordPaymentDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.landlord.payment.LandlordCreatePaymentActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- AUTH -->
         <activity
             android:name=".ui.auth.RegisterActivity"

@@ -21,6 +21,8 @@ import com.roomify.app.data.remote.network.RetrofitClient
 import com.roomify.app.data.repository.LandlordRentalContractRepository
 import com.roomify.app.databinding.ActivityLandlordContractDetailBinding
 import com.roomify.app.ui.common.RoleSessionGuard
+import com.roomify.app.ui.landlord.payment.LandlordCreatePaymentActivity
+import com.roomify.app.ui.landlord.payment.LandlordPaymentsActivity
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -136,6 +138,35 @@ class LandlordContractDetailActivity :
     }
 
     private fun setupActions() {
+
+        binding.btnCreatePayment
+            .setOnClickListener {
+
+                startActivity(
+                    Intent(
+                        this,
+                        LandlordCreatePaymentActivity::class.java
+                    ).apply {
+
+                        putExtra(
+                            LandlordCreatePaymentActivity
+                                .EXTRA_CONTRACT_ID,
+                            contractId
+                        )
+                    }
+                )
+            }
+
+        binding.btnViewPayments
+            .setOnClickListener {
+
+                startActivity(
+                    Intent(
+                        this,
+                        LandlordPaymentsActivity::class.java
+                    )
+                )
+            }
 
         binding.btnBack
             .setOnClickListener {
@@ -355,15 +386,20 @@ class LandlordContractDetailActivity :
         )
 
         binding.actionContainer.isVisible =
-            status == "PENDING" ||
-                    status == "ACTIVE"
+            true
+
+        binding.btnViewPayments.isVisible =
+            true
+
+        binding.btnCreatePayment.isVisible =
+            status == "ACTIVE"
+
+        binding.btnComplete.isVisible =
+            status == "ACTIVE"
 
         binding.btnCancel.isVisible =
             status == "PENDING" ||
                     status == "ACTIVE"
-
-        binding.btnComplete.isVisible =
-            status == "ACTIVE"
     }
 
     private fun confirmComplete() {
@@ -571,6 +607,12 @@ class LandlordContractDetailActivity :
             !loading
 
         binding.btnCancel.isEnabled =
+            !loading
+
+        binding.btnCreatePayment.isEnabled =
+            !loading
+
+        binding.btnViewPayments.isEnabled =
             !loading
     }
 
