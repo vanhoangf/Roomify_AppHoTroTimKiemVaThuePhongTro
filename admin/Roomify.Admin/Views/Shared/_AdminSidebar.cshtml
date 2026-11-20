@@ -2,6 +2,20 @@
     var currentController =
         ViewContext.RouteData.Values["controller"]?.ToString()
         ?? string.Empty;
+
+    var currentListingStatus =
+        Context.Request.Query["listingStatus"]
+            .ToString();
+
+    var isRoomsPage =
+        currentController == "Rooms";
+
+    var isPendingReviewPage =
+        isRoomsPage &&
+        string.Equals(
+            currentListingStatus,
+            "PENDING",
+            StringComparison.OrdinalIgnoreCase);
 }
 
 <aside class="admin-sidebar"
@@ -60,27 +74,28 @@
 
 
         <!-- Rooms -->
-        <span class="admin-nav-link is-disabled">
-
+        <a asp-controller="Rooms"
+           asp-action="Index"
+           class="admin-nav-link @(isRoomsPage && !isPendingReviewPage ? "active" : "")">
             <svg viewBox="0 0 24 24"
                  aria-hidden="true">
                 <path d="M4 3h16v18H4V3Zm2 2v14h12V5H6Zm2 2h8v5H8V7Zm0 7h3v3H8v-3Zm5 0h3v3h-3v-3Z" />
             </svg>
-
             <span>Phòng trọ</span>
-        </span>
+        </a>
 
 
         <!-- Room approval -->
-        <span class="admin-nav-link is-disabled">
-
+        <a asp-controller="Rooms"
+           asp-action="Index"
+           asp-route-listingStatus="PENDING"
+           class="admin-nav-link @(isPendingReviewPage ? "active" : "")">
             <svg viewBox="0 0 24 24"
                  aria-hidden="true">
                 <path d="M6 2h9l5 5v15H6V2Zm2 2v16h10V8h-4V4H8Zm2 7h6v2h-6v-2Zm0 4h6v2h-6v-2Zm-1-7 1.4-1.4 1.1 1.1 2.6-2.6L15.5 6.5 11.5 10.5 9 8Z" />
             </svg>
-
             <span>Duyệt tin</span>
-        </span>
+        </a>
 
 
         <!-- Reports -->

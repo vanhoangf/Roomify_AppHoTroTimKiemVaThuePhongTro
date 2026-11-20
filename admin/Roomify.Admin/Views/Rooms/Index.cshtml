@@ -1,0 +1,983 @@
+﻿@model Roomify.Admin.Models.Rooms.AdminRoomsViewModel
+
+@{
+    ViewData["Title"] = "Phòng trọ";
+
+    var rooms = Model.Rooms;
+
+    var startPage =
+        rooms is null
+            ? 1
+            : Math.Max(
+                1,
+                rooms.Page - 2);
+
+    var endPage =
+        rooms is null
+            ? 1
+            : Math.Min(
+                rooms.TotalPages,
+                rooms.Page + 2);
+
+
+    string ListingStatusText(string status)
+    {
+        return status.ToUpperInvariant() switch
+        {
+            "DRAFT" =>
+                "Bản nháp",
+
+            "PENDING" =>
+                "Chờ duyệt",
+
+            "PUBLISHED" =>
+                "Đã đăng",
+
+            "REJECTED" =>
+                "Từ chối",
+
+            "HIDDEN" =>
+                "Đã ẩn",
+
+            _ =>
+                status
+        };
+    }
+
+
+    string AvailabilityText(string status)
+    {
+        return status.ToUpperInvariant() switch
+        {
+            "AVAILABLE" =>
+                "Còn trống",
+
+            "RESERVED" =>
+                "Đã giữ chỗ",
+
+            "RENTED" =>
+                "Đã thuê",
+
+            "UNAVAILABLE" =>
+                "Không khả dụng",
+
+            _ =>
+                status
+        };
+    }
+}
+
+@section Styles {
+    <link rel="stylesheet"
+          href="~/css/admin-rooms.css"
+          asp-append-version="true" />
+}
+
+
+<div class="rooms-page">
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <section class="rooms-heading">
+
+        <div>
+
+            <div class="rooms-breadcrumb">
+
+                Trang chủ
+
+                <span>›</span>
+
+                Phòng trọ
+
+                <span>›</span>
+
+                <strong>
+                    @(
+                        Model.ListingStatus == "PENDING"
+                            ? "Duyệt tin"
+                            : "Tất cả phòng"
+                    )
+                </strong>
+
+            </div>
+
+
+            <h1>
+                @(
+                    Model.ListingStatus == "PENDING"
+                        ? "Duyệt tin phòng"
+                        : "Quản lý phòng trọ"
+                )
+            </h1>
+
+            <p>
+                @(
+                    Model.ListingStatus == "PENDING"
+                        ? "Kiểm tra và xử lý các tin phòng đang chờ xét duyệt."
+                        : "Theo dõi tin phòng, trạng thái kiểm duyệt và thông tin chủ trọ."
+                )
+            </p>
+
+        </div>
+
+
+        <div class="rooms-heading-actions">
+
+            <button type="button"
+                    class="rooms-secondary-button"
+                    disabled
+                    title="Backend chưa hỗ trợ xuất danh sách phòng">
+
+                <svg viewBox="0 0 24 24">
+                    <path d="M11 3h2v9l3-3 1.4 1.4L12 15.8l-5.4-5.4L8 9l3 3V3ZM5 18h14v2H5v-2Z" />
+                </svg>
+
+                Xuất dữ liệu
+
+            </button>
+
+        </div>
+
+    </section>
+
+    <!-- =====================================================
+     QUICK STATUS FILTER
+     ===================================================== -->
+
+    <nav class="rooms-status-tabs">
+
+        <a asp-controller="Rooms"
+           asp-action="Index"
+           asp-route-search="@Model.Search"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(
+           string.IsNullOrWhiteSpace(Model.ListingStatus)
+               ? "active"
+               : "")">
+            Tất cả
+        </a>
+
+
+        <a asp-controller="Rooms"
+           asp-action="Index"
+           asp-route-listingStatus="PENDING"
+           asp-route-search="@Model.Search"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(
+           Model.ListingStatus == "PENDING"
+               ? "active pending"
+               : "")">
+            Chờ duyệt
+            @if (Model.Dashboard is not null &&
+                 Model.Dashboard.PendingRooms > 0)
+            {
+                <span class="status-tab-count">
+                    @Model.Dashboard.PendingRooms
+                </span>
+            }
+        </a>
+
+
+        <a asp-controller="Rooms"
+           asp-action="Index"
+           asp-route-listingStatus="PUBLISHED"
+           asp-route-search="@Model.Search"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(
+           Model.ListingStatus == "PUBLISHED"
+               ? "active"
+               : "")">
+            Đã đăng
+        </a>
+
+
+        <a asp-controller="Rooms"
+           asp-action="Index"
+           asp-route-listingStatus="REJECTED"
+           asp-route-search="@Model.Search"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(
+           Model.ListingStatus == "REJECTED"
+               ? "active"
+               : "")">
+            Từ chối
+        </a>
+
+
+        <a asp-controller="Rooms"
+           asp-action="Index"
+           asp-route-listingStatus="DRAFT"
+           asp-route-search="@Model.Search"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(
+           Model.ListingStatus == "DRAFT"
+               ? "active"
+               : "")">
+            Bản nháp
+        </a>
+
+        <a asp-controller="Rooms"
+           asp-action="Index"
+           asp-route-listingStatus="HIDDEN"
+           asp-route-search="@Model.Search"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(
+           Model.ListingStatus == "HIDDEN"
+               ? "active"
+               : "")">
+            Đã ẩn
+        </a>
+    </nav>
+    <!-- =====================================================
+         KPI
+         ===================================================== -->
+
+    <section class="rooms-kpi-grid">
+
+        <!-- TOTAL -->
+
+        <article class="rooms-kpi-card">
+
+            <div class="rooms-kpi-top">
+
+                <span>
+                    Tổng phòng
+                </span>
+
+
+                <div class="rooms-kpi-icon blue">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 21V3h18v18H3Zm2-2h14V5H5v14Zm2-2v-5h4v5H7Zm6 0V7h4v10h-4Z" />
+                    </svg>
+
+                </div>
+
+            </div>
+
+
+            <strong>
+                @(Model.Dashboard?.TotalRooms.ToString("N0") ?? "—")
+            </strong>
+
+
+            @if (Model.Dashboard is not null)
+            {
+                <div class="rooms-kpi-footer neutral">
+
+                    @Model.Dashboard.TotalProperties.ToString("N0")
+                    khu trọ
+
+                </div>
+            }
+
+        </article>
+
+
+        <!-- PENDING -->
+
+        <article class="rooms-kpi-card">
+
+            <div class="rooms-kpi-top">
+
+                <span>
+                    Chờ duyệt
+                </span>
+
+
+                <div class="rooms-kpi-icon orange">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm1-13h-2v6l5 3 1-1.7-4-2.3V7Z" />
+                    </svg>
+
+                </div>
+
+            </div>
+
+
+            <strong>
+                @(Model.Dashboard?.PendingRooms.ToString("N0") ?? "—")
+            </strong>
+
+
+            @if (Model.Dashboard is not null)
+            {
+                <div class="rooms-kpi-inline">
+
+                    <span class="percentage orange">
+                        @Model.PendingPercentage%
+                    </span>
+
+                    <span>
+                        cần kiểm duyệt
+                    </span>
+
+                </div>
+            }
+
+        </article>
+
+
+        <!-- PUBLISHED -->
+
+        <article class="rooms-kpi-card">
+
+            <div class="rooms-kpi-top">
+
+                <span>
+                    Đã đăng
+                </span>
+
+
+                <div class="rooms-kpi-icon green">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="m9 16.2-3.5-3.5L4.1 14.1 9 19l11-11-1.4-1.4L9 16.2Z" />
+                    </svg>
+
+                </div>
+
+            </div>
+
+
+            <strong>
+                @(Model.Dashboard?.PublishedRooms.ToString("N0") ?? "—")
+            </strong>
+
+
+            @if (Model.Dashboard is not null)
+            {
+                <div class="rooms-kpi-inline">
+
+                    <span class="percentage green">
+                        @Model.PublishedPercentage%
+                    </span>
+
+                    <span>
+                        đang công khai
+                    </span>
+
+                </div>
+            }
+
+        </article>
+
+
+        <!-- REJECTED -->
+
+        <article class="rooms-kpi-card">
+
+            <div class="rooms-kpi-top">
+
+                <span>
+                    Đã từ chối
+                </span>
+
+
+                <div class="rooms-kpi-icon red">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="m7.4 6 10.6 10.6-1.4 1.4L6 7.4 7.4 6Zm9.2 0L18 7.4 7.4 18 6 16.6 16.6 6Z" />
+                    </svg>
+
+                </div>
+
+            </div>
+
+
+            <strong>
+                @(Model.Dashboard?.RejectedRooms.ToString("N0") ?? "—")
+            </strong>
+
+
+            @if (Model.Dashboard is not null)
+            {
+                <div class="rooms-kpi-inline">
+
+                    <span class="percentage red">
+                        @Model.RejectedPercentage%
+                    </span>
+
+                    <span>
+                        tổng tin phòng
+                    </span>
+
+                </div>
+            }
+
+        </article>
+
+    </section>
+
+
+    <!-- =====================================================
+         FILTER
+         ===================================================== -->
+
+    <section class="rooms-filter-card">
+
+        <form asp-controller="Rooms"
+              asp-action="Index"
+              method="get">
+
+            <div class="rooms-filter-main">
+
+                <div class="rooms-search">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="M10.5 4a6.5 6.5 0 1 0 4.1 11.5L20 20.9l1.4-1.4-5.4-5.4A6.5 6.5 0 0 0 10.5 4Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z" />
+                    </svg>
+
+                    <input type="text"
+                           name="search"
+                           value="@Model.Search"
+                           placeholder="Tìm tên phòng, khu trọ, chủ trọ, email..." />
+
+                </div>
+
+
+                <select name="listingStatus"
+                        class="rooms-filter-select">
+
+                    <option value="">
+                        Trạng thái tin: Tất cả
+                    </option>
+
+                    <option value="DRAFT"
+                            selected="@(Model.ListingStatus == "DRAFT")">
+                        Bản nháp
+                    </option>
+
+                    <option value="PENDING"
+                            selected="@(Model.ListingStatus == "PENDING")">
+                        Chờ duyệt
+                    </option>
+
+                    <option value="PUBLISHED"
+                            selected="@(Model.ListingStatus == "PUBLISHED")">
+                        Đã đăng
+                    </option>
+
+                    <option value="REJECTED"
+                            selected="@(Model.ListingStatus == "REJECTED")">
+                        Từ chối
+                    </option>
+
+                    <option value="HIDDEN"
+                            selected="@(Model.ListingStatus == "HIDDEN")">
+                        Đã ẩn
+                    </option>
+
+                </select>
+
+
+                <input type="hidden"
+                       name="pageSize"
+                       value="@Model.PageSize" />
+
+
+                <button type="submit"
+                        class="rooms-filter-button">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 5h18l-7 8v6l-4-2v-4L3 5Z" />
+                    </svg>
+
+                    Lọc
+
+                </button>
+
+
+                <a asp-controller="Rooms"
+                   asp-action="Index"
+                   class="rooms-reset-button">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 5V2L8 6l4 4V7a5 5 0 1 1-4.6 7H5.3A7 7 0 1 0 12 5Z" />
+                    </svg>
+
+                    Đặt lại
+
+                </a>
+
+            </div>
+
+
+            <div class="rooms-filter-bottom">
+
+                <div>
+
+                    Tìm thấy:
+
+                    <strong>
+                        @(rooms?.TotalCount.ToString("N0") ?? "0")
+                        kết quả
+                    </strong>
+
+                </div>
+
+
+                @if (!string.IsNullOrWhiteSpace(
+                    Model.ListingStatus))
+                {
+                    <span class="rooms-active-filter">
+
+                        @ListingStatusText(
+                            Model.ListingStatus)
+
+                    </span>
+                }
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- =====================================================
+         ERROR
+         ===================================================== -->
+    @if (Model.HasError)
+    {
+        <section class="rooms-state">
+
+            <div class="rooms-state-icon error">
+                !
+            </div>
+
+            <h2>
+                Không thể tải danh sách phòng
+            </h2>
+
+            <p>
+                @Model.ErrorMessage
+            </p>
+
+            <a asp-controller="Rooms"
+               asp-action="Index"
+               class="rooms-retry">
+
+                Thử lại
+
+            </a>
+
+        </section>
+    }
+    else if (Model.IsEmpty)
+    {
+        <!-- =================================================
+             EMPTY
+             ================================================= -->
+
+        <section class="rooms-state">
+
+            <div class="rooms-state-icon">
+                0
+            </div>
+
+            <h2>
+                Không tìm thấy phòng
+            </h2>
+
+            <p>
+                Thử thay đổi từ khóa hoặc trạng thái tin.
+            </p>
+
+            <a asp-controller="Rooms"
+               asp-action="Index"
+               class="rooms-retry">
+
+                Xóa bộ lọc
+
+            </a>
+
+        </section>
+    }
+    else if (rooms is not null)
+    {
+        <!-- =================================================
+             TABLE
+             ================================================= -->
+
+        <section class="rooms-table-card">
+
+            <div class="rooms-table-wrapper">
+
+                <table class="rooms-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                PHÒNG
+                            </th>
+
+                            <th>
+                                CHỦ TRỌ
+                            </th>
+
+                            <th>
+                                GIÁ THUÊ
+                            </th>
+
+                            <th>
+                                DIỆN TÍCH
+                            </th>
+
+                            <th>
+                                TRẠNG THÁI TIN
+                            </th>
+
+                            <th>
+                                KHẢ DỤNG
+                            </th>
+
+                            <th>
+                                NGÀY TẠO
+                            </th>
+
+                            <th class="room-action-column">
+                                THAO TÁC
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @foreach (var room in rooms.Items)
+                        {
+                            <tr class="@(room.ListingStatus == "PENDING" ? "pending-review-row" : "")">
+
+                                <!-- ROOM -->
+
+                                <td>
+
+                                    <div class="room-main-cell">
+
+                                        <div class="room-icon">
+
+                                            <svg viewBox="0 0 24 24">
+                                                <path d="M3 21V3h18v18H3Zm2-2h14V5H5v14Zm2-2v-5h4v5H7Zm6 0V7h4v10h-4Z" />
+                                            </svg>
+
+                                        </div>
+
+
+                                        <div class="room-main-info">
+
+                                            <strong title="@room.Title">
+                                                @room.Title
+                                            </strong>
+
+                                            <span>
+                                                @room.PropertyName
+                                            </span>
+
+                                            @if (!string.IsNullOrWhiteSpace(
+                                                room.RoomNumber))
+                                            {
+                                                <small>
+                                                    Phòng @room.RoomNumber
+                                                </small>
+                                            }
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- LANDLORD -->
+
+                                <td>
+
+                                    <div class="room-landlord">
+
+                                        <strong>
+                                            @room.LandlordName
+                                        </strong>
+
+                                        <span>
+                                            @room.LandlordEmail
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- PRICE -->
+
+                                <td class="room-price">
+
+                                    @room.RentPrice.ToString("N0") ₫
+
+                                    <span>
+                                        / tháng
+                                    </span>
+
+                                </td>
+
+
+                                <!-- AREA -->
+
+                                <td class="room-area">
+
+                                    @room.AreaM2.ToString("0.##") m²
+
+                                </td>
+
+
+                                <!-- LISTING STATUS -->
+
+                                <td>
+
+                                    <div class="listing-status-cell">
+
+                                        <span class="
+                                            listing-status
+                                            listing-@room.ListingStatus.ToLowerInvariant()">
+
+                                            @ListingStatusText(
+                                                room.ListingStatus)
+
+                                        </span>
+
+
+                                        @if (room.ListingStatus == "PENDING")
+                                        {
+                                            <span class="review-needed-label">
+                                                Cần xử lý
+                                            </span>
+                                        }
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- AVAILABILITY -->
+
+                                <td>
+
+                                    <span class="
+                                        availability-status
+                                        availability-@room.AvailabilityStatus.ToLowerInvariant()">
+
+                                        <i></i>
+
+                                        @AvailabilityText(
+                                            room.AvailabilityStatus)
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- CREATED -->
+
+                                <td class="room-date">
+
+                                    @(room.CreatedAt
+                                        .ToLocalTime()
+                                        .ToString("dd/MM/yyyy"))
+
+                                </td>
+
+
+                                <!-- ACTION -->
+
+                                <td class="room-action-column">
+
+                                    <div class="dropdown">
+
+                                        <button type="button"
+                                                class="room-action-button"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                                title="Thao tác">
+                                            ⋮
+                                        </button>
+
+                                        <div class="dropdown-menu dropdown-menu-end room-action-menu">
+                                            <a asp-controller="Rooms"
+                                               asp-action="Details"
+                                               asp-route-id="@room.RoomId"
+                                               asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")"
+                                               class="dropdown-item">
+
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M12 5C7 5 3 8.1 1.5 12 3 15.9 7 19 12 19s9-3.1 10.5-7C21 8.1 17 5 12 5Zm0 12c-3.7 0-6.8-2.1-8.2-5C5.2 9.1 8.3 7 12 7s6.8 2.1 8.2 5c-1.4 2.9-4.5 5-8.2 5Zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" />
+                                                </svg>
+                                                Xem chi tiết
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- =============================================
+                 FOOTER
+                 ============================================= -->
+
+            <div class="rooms-table-footer">
+
+                <div class="rooms-page-size">
+
+                    <span>
+                        Hiển thị
+                    </span>
+
+
+                    <form asp-controller="Rooms"
+                          asp-action="Index"
+                          method="get">
+
+                        <input type="hidden"
+                               name="search"
+                               value="@Model.Search" />
+
+                        <input type="hidden"
+                               name="listingStatus"
+                               value="@Model.ListingStatus" />
+
+
+                        <select name="pageSize"
+                                onchange="this.form.submit()">
+
+                            <option value="10"
+                                    selected="@(Model.PageSize == 10)">
+                                10
+                            </option>
+
+                            <option value="20"
+                                    selected="@(Model.PageSize == 20)">
+                                20
+                            </option>
+
+                            <option value="50"
+                                    selected="@(Model.PageSize == 50)">
+                                50
+                            </option>
+
+                        </select>
+
+                    </form>
+
+
+                    <span>
+                        bản ghi mỗi trang
+                    </span>
+
+                </div>
+
+
+                <div class="rooms-result-info">
+
+                    Hiển thị
+
+                    <strong>
+                        @(
+                            rooms.TotalCount == 0
+                                ? 0
+                                : ((rooms.Page - 1)
+                                   * rooms.PageSize) + 1
+                        )
+                        -
+                        @Math.Min(
+                            rooms.Page * rooms.PageSize,
+                            rooms.TotalCount)
+                    </strong>
+
+                    trong tổng số
+
+                    <strong>
+                        @rooms.TotalCount.ToString("N0")
+                    </strong>
+
+                    phòng
+
+                </div>
+
+
+                @if (rooms.TotalPages > 1)
+                {
+                    <nav class="rooms-pagination">
+
+                        @if (rooms.HasPreviousPage)
+                        {
+                            <a asp-controller="Rooms"
+                               asp-action="Index"
+                               asp-route-page="@(rooms.Page - 1)"
+                               asp-route-pageSize="@Model.PageSize"
+                               asp-route-search="@Model.Search"
+                               asp-route-listingStatus="@Model.ListingStatus">
+
+                                ‹
+
+                            </a>
+                        }
+
+
+                        @for (
+                            var pageNumber = startPage;
+                            pageNumber <= endPage;
+                            pageNumber++)
+                        {
+                            <a asp-controller="Rooms"
+                               asp-action="Index"
+                               asp-route-page="@pageNumber"
+                               asp-route-pageSize="@Model.PageSize"
+                               asp-route-search="@Model.Search"
+                               asp-route-listingStatus="@Model.ListingStatus"
+                               class="@(pageNumber == rooms.Page ? "active" : "")">
+
+                                @pageNumber
+
+                            </a>
+                        }
+
+
+                        @if (rooms.HasNextPage)
+                        {
+                            <a asp-controller="Rooms"
+                               asp-action="Index"
+                               asp-route-page="@(rooms.Page + 1)"
+                               asp-route-pageSize="@Model.PageSize"
+                               asp-route-search="@Model.Search"
+                               asp-route-listingStatus="@Model.ListingStatus">
+
+                                ›
+
+                            </a>
+                        }
+
+                    </nav>
+                }
+
+            </div>
+
+        </section>
+    }
+
+</div>

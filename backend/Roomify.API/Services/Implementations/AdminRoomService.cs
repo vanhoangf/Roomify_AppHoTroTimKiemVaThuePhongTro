@@ -74,7 +74,7 @@ public class AdminRoomService : IAdminRoomService
         var totalCount =
             await query.CountAsync();
 
-        var items = await ProjectResponse(query)
+        var items = await ProjectListResponse(query)
             .OrderByDescending(x => x.CreatedAt)
             .ThenByDescending(x => x.RoomId)
             .Skip((page - 1) * pageSize)
@@ -93,12 +93,14 @@ public class AdminRoomService : IAdminRoomService
     // ============================================================
 
     public async Task<AdminRoomResponse> GetRoomByIdAsync(
-        long roomId)
+    long roomId)
     {
-        var result = await ProjectResponse(
+        var result = await ProjectDetailResponse(
                 _db.Rooms
                     .AsNoTracking()
-                    .Where(x => x.RoomId == roomId))
+                    .AsSplitQuery()
+                    .Where(x =>
+                        x.RoomId == roomId))
             .FirstOrDefaultAsync();
 
         if (result is null)
@@ -221,81 +223,390 @@ public class AdminRoomService : IAdminRoomService
     // PROJECTION
     // ============================================================
 
-    private static IQueryable<AdminRoomResponse> ProjectResponse(
+    private static IQueryable<AdminRoomResponse>
+    ProjectListResponse(
         IQueryable<Room> query)
     {
-        return query.Select(x => new AdminRoomResponse
-        {
-            RoomId = x.RoomId,
+        return query.Select(
+            x => new AdminRoomResponse
+            {
+                RoomId =
+                    x.RoomId,
 
-            PropertyId =
-                x.PropertyId,
+                PropertyId =
+                    x.PropertyId,
 
-            PropertyName =
-                x.Property.PropertyName,
+                PropertyName =
+                    x.Property.PropertyName,
 
-            LandlordId =
-                x.Property.LandlordId,
 
-            LandlordUserId =
-                x.Property.Landlord.UserId,
+                LandlordId =
+                    x.Property.LandlordId,
 
-            LandlordName =
-                x.Property.Landlord.User.FullName,
+                LandlordUserId =
+                    x.Property.Landlord.UserId,
 
-            LandlordEmail =
-                x.Property.Landlord.User.Email,
+                LandlordName =
+                    x.Property.Landlord.User.FullName,
 
-            RoomNumber =
-                x.RoomNumber,
+                LandlordEmail =
+                    x.Property.Landlord.User.Email,
 
-            Title =
-                x.Title,
 
-            Description =
-                x.Description,
+                RoomNumber =
+                    x.RoomNumber,
 
-            AreaM2 =
-                x.AreaM2,
+                Title =
+                    x.Title,
 
-            RentPrice =
-                x.RentPrice,
+                Description =
+                    x.Description,
 
-            ListingStatus =
-                x.ListingStatus,
+                AreaM2 =
+                    x.AreaM2,
 
-            AvailabilityStatus =
-                x.AvailabilityStatus,
+                RentPrice =
+                    x.RentPrice,
 
-            AvailableFrom =
-                x.AvailableFrom,
 
-            ViewCount =
-                x.ViewCount,
+                ListingStatus =
+                    x.ListingStatus,
 
-            ReviewedByUserId =
-                x.ReviewedByUserId,
+                AvailabilityStatus =
+                    x.AvailabilityStatus,
 
-            ReviewedByUserName =
-                x.ReviewedByUser != null
-                    ? x.ReviewedByUser.FullName
-                    : null,
+                AvailableFrom =
+                    x.AvailableFrom,
 
-            ReviewedAt =
-                x.ReviewedAt,
+                ViewCount =
+                    x.ViewCount,
 
-            RejectionReason =
-                x.RejectionReason,
 
-            PublishedAt =
-                x.PublishedAt,
+                ReviewedByUserId =
+                    x.ReviewedByUserId,
 
-            CreatedAt =
-                x.CreatedAt,
+                ReviewedByUserName =
+                    x.ReviewedByUser != null
+                        ? x.ReviewedByUser.FullName
+                        : null,
 
-            UpdatedAt =
-                x.UpdatedAt
-        });
+                ReviewedAt =
+                    x.ReviewedAt,
+
+                RejectionReason =
+                    x.RejectionReason,
+
+                PublishedAt =
+                    x.PublishedAt,
+
+
+                CreatedAt =
+                    x.CreatedAt,
+
+                UpdatedAt =
+                    x.UpdatedAt
+            });
+    }
+
+    private static IQueryable<AdminRoomResponse>
+    ProjectDetailResponse(
+        IQueryable<Room> query)
+    {
+        return query.Select(
+            x => new AdminRoomResponse
+            {
+                // ====================================================
+                // ROOM
+                // ====================================================
+
+                RoomId =
+                    x.RoomId,
+
+                PropertyId =
+                    x.PropertyId,
+
+                RoomNumber =
+                    x.RoomNumber,
+
+                Title =
+                    x.Title,
+
+                Description =
+                    x.Description,
+
+                AreaM2 =
+                    x.AreaM2,
+
+                RentPrice =
+                    x.RentPrice,
+
+                DepositAmount =
+                    x.DepositAmount,
+
+                ElectricityPrice =
+                    x.ElectricityPrice,
+
+                WaterPrice =
+                    x.WaterPrice,
+
+                InternetPrice =
+                    x.InternetPrice,
+
+                ServiceFee =
+                    x.ServiceFee,
+
+                ParkingFee =
+                    x.ParkingFee,
+
+                MaxOccupants =
+                    x.MaxOccupants,
+
+                GenderPreference =
+                    x.GenderPreference,
+
+                AvailableFrom =
+                    x.AvailableFrom,
+
+                ListingStatus =
+                    x.ListingStatus,
+
+                AvailabilityStatus =
+                    x.AvailabilityStatus,
+
+                ViewCount =
+                    x.ViewCount,
+
+
+                // ====================================================
+                // PROPERTY
+                // ====================================================
+
+                PropertyName =
+                    x.Property.PropertyName,
+
+                PropertyDescription =
+                    x.Property.Description,
+
+                PropertyTypeId =
+                    x.Property.PropertyTypeId,
+
+                PropertyTypeName =
+                    x.Property.PropertyType.TypeName,
+
+                PropertyStatus =
+                    x.Property.Status,
+
+
+                // ====================================================
+                // LOCATION
+                // ====================================================
+
+                ProvinceId =
+                    x.Property.ProvinceId,
+
+                ProvinceName =
+                    x.Property.Province.ProvinceName,
+
+                WardId =
+                    x.Property.WardId,
+
+                WardName =
+                    x.Property.Ward.WardName,
+
+                AddressLine =
+                    x.Property.AddressLine,
+
+                Latitude =
+                    x.Property.Latitude,
+
+                Longitude =
+                    x.Property.Longitude,
+
+
+                // ====================================================
+                // LANDLORD
+                // ====================================================
+
+                LandlordId =
+                    x.Property.LandlordId,
+
+                LandlordUserId =
+                    x.Property.Landlord.UserId,
+
+                LandlordName =
+                    x.Property.Landlord.User.FullName,
+
+                LandlordEmail =
+                    x.Property.Landlord.User.Email,
+
+                LandlordPhone =
+                    x.Property.Landlord.User.Phone,
+
+                LandlordIsVerified =
+                    x.Property.Landlord.IsVerified,
+
+
+                // ====================================================
+                // REVIEW
+                // ====================================================
+
+                ReviewedByUserId =
+                    x.ReviewedByUserId,
+
+                ReviewedByUserName =
+                    x.ReviewedByUser != null
+                        ? x.ReviewedByUser.FullName
+                        : null,
+
+                ReviewedAt =
+                    x.ReviewedAt,
+
+                RejectionReason =
+                    x.RejectionReason,
+
+                PublishedAt =
+                    x.PublishedAt,
+
+
+                // ====================================================
+                // INTERACTION
+                // ====================================================
+
+                SavedCount =
+                    x.SavedRooms.Count(),
+
+                TotalReports =
+                    x.Reports.Count(),
+
+                OpenReports =
+                    x.Reports.Count(r =>
+                        r.Status == "OPEN"),
+
+
+                // ====================================================
+                // PROPERTY STATISTICS
+                // ====================================================
+
+                PropertyTotalRooms =
+                    x.Property.Rooms.Count(),
+
+                PropertyAvailableRooms =
+                    x.Property.Rooms.Count(r =>
+                        r.AvailabilityStatus ==
+                        "AVAILABLE"),
+
+                PropertyRentedRooms =
+                    x.Property.Rooms.Count(r =>
+                        r.AvailabilityStatus ==
+                        "RENTED"),
+
+
+                // ====================================================
+                // IMAGES
+                // ====================================================
+
+                Images =
+                    x.RoomImages
+                        .OrderByDescending(i =>
+                            i.IsPrimary)
+                        .ThenBy(i =>
+                            i.SortOrder)
+                        .ThenBy(i =>
+                            i.ImageId)
+                        .Select(i =>
+                            new AdminRoomImageResponse
+                            {
+                                ImageId =
+                                    i.ImageId,
+
+                                ImageUrl =
+                                    i.ImageUrl,
+
+                                IsPrimary =
+                                    i.IsPrimary,
+
+                                SortOrder =
+                                    i.SortOrder
+                            })
+                        .ToList(),
+
+
+                // ====================================================
+                // AMENITIES
+                // ====================================================
+
+                Amenities =
+                    x.Amenities
+                        .Where(a =>
+                            a.IsActive)
+                        .OrderBy(a =>
+                            a.AmenityName)
+                        .Select(a =>
+                            new AdminRoomAmenityResponse
+                            {
+                                AmenityId =
+                                    a.AmenityId,
+
+                                AmenityName =
+                                    a.AmenityName,
+
+                                IconUrl =
+                                    a.IconUrl
+                            })
+                        .ToList(),
+
+
+                // ====================================================
+                // REPORTS
+                // ====================================================
+
+                RecentReports =
+                    x.Reports
+                        .OrderByDescending(r =>
+                            r.CreatedAt)
+                        .ThenByDescending(r =>
+                            r.ReportId)
+                        .Take(5)
+                        .Select(r =>
+                            new AdminRoomReportResponse
+                            {
+                                ReportId =
+                                    r.ReportId,
+
+                                ReporterUserId =
+                                    r.ReporterUserId,
+
+                                ReporterName =
+                                    r.ReporterUser.FullName,
+
+                                ReporterEmail =
+                                    r.ReporterUser.Email,
+
+                                Reason =
+                                    r.Reason,
+
+                                Description =
+                                    r.Description,
+
+                                Status =
+                                    r.Status,
+
+                                CreatedAt =
+                                    r.CreatedAt
+                            })
+                        .ToList(),
+
+
+                // ====================================================
+                // TIME
+                // ====================================================
+
+                CreatedAt =
+                    x.CreatedAt,
+
+                UpdatedAt =
+                    x.UpdatedAt
+            });
     }
 
     // ============================================================
