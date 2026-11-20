@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Roomify.Admin.Infrastructure;
 using Roomify.Admin.Services.Auth;
 using Roomify.Admin.Services.Dashboard;
+using Roomify.Admin.Services.Users;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,7 +98,7 @@ builder.Services
 // SERVICES
 builder.Services.AddScoped<IAdminAuthApiService, AdminAuthApiService>();
 builder.Services.AddScoped<IAdminDashboardApiService, AdminDashboardApiService>();
-
+builder.Services.AddScoped<IAdminUserApiService, AdminUserApiService>();
 // APP
 var app = builder.Build();
 

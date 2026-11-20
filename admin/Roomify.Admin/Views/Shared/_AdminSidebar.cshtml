@@ -45,7 +45,9 @@
 
 
         <!-- Users -->
-        <span class="admin-nav-link is-disabled">
+        <a asp-controller="Users"
+           asp-action="Index"
+           class="admin-nav-link @(currentController == "Users" ? "active" : "")">
 
             <svg viewBox="0 0 24 24"
                  aria-hidden="true">
@@ -53,7 +55,8 @@
             </svg>
 
             <span>Người dùng</span>
-        </span>
+
+        </a>
 
 
         <!-- Rooms -->
