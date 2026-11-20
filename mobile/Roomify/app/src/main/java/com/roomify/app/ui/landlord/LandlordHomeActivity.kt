@@ -15,6 +15,7 @@ import com.roomify.app.databinding.ActivityLandlordHomeBinding
 import com.roomify.app.ui.common.LogoutHandler
 import com.roomify.app.ui.common.RoleSessionGuard
 import com.roomify.app.ui.landlord.property.LandlordPropertiesActivity
+import com.roomify.app.ui.landlord.appointment.LandlordViewingAppointmentsActivity
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -124,6 +125,17 @@ class LandlordHomeActivity : AppCompatActivity() {
                     activity = this,
                     logoutButton =
                         binding.btnLogout
+                )
+            }
+
+        binding.cardAppointments
+            .setOnClickListener {
+
+                startActivity(
+                    Intent(
+                        this,
+                        LandlordViewingAppointmentsActivity::class.java
+                    )
                 )
             }
 

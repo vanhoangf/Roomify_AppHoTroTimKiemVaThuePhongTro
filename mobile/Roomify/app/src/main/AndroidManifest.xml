@@ -76,6 +76,15 @@
         <activity
             android:name=".ui.landlord.room.LandlordRoomImagesActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".ui.landlord.appointment.LandlordViewingAppointmentsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.landlord.appointment.LandlordViewingAppointmentDetailActivity"
+            android:exported="false" />
+
         <!-- AUTH -->
         <activity
             android:name=".ui.auth.RegisterActivity"
