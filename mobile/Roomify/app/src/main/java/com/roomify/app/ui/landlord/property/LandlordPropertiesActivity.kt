@@ -1,8 +1,9 @@
 package com.roomify.app.ui.landlord.property
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
-import android.content.Intent
+
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -17,10 +18,18 @@ import com.roomify.app.data.remote.network.RetrofitClient
 import com.roomify.app.data.repository.LandlordPropertyRepository
 import com.roomify.app.databinding.ActivityLandlordPropertiesBinding
 import com.roomify.app.ui.common.RoleSessionGuard
+import com.roomify.app.ui.landlord.room.LandlordRoomsActivity
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 class LandlordPropertiesActivity : AppCompatActivity() {
+
+    companion object {
+
+        const val EXTRA_SELECT_FOR_ROOMS =
+            "extra_select_for_rooms"
+    }
 
     private lateinit var binding:
             ActivityLandlordPropertiesBinding
@@ -28,26 +37,41 @@ class LandlordPropertiesActivity : AppCompatActivity() {
     private lateinit var repository:
             LandlordPropertyRepository
 
-    private var isLoading = false
+    private var isLoading =
+        false
+
+    /*
+     * false:
+     * Khu trọ -> bấm item -> PropertyDetailActivity
+     *
+     * true:
+     * Phòng trọ -> chọn khu trọ -> LandlordRoomsActivity
+     */
+    private var selectForRooms =
+        false
 
     private val propertyAdapter by lazy {
 
         LandlordPropertyAdapter { property ->
 
-            startActivity(
-                Intent(
-                    this,
-                    PropertyDetailActivity::class.java
-                ).apply {
+            if (selectForRooms) {
 
-                    putExtra(
-                        PropertyDetailActivity.EXTRA_PROPERTY_ID,
-                        property.propertyId
-                    )
-                }
-            )
+                openRooms(
+                    property
+                )
+
+            } else {
+
+                openPropertyDetail(
+                    property
+                )
+            }
         }
     }
+
+    // ========================================================
+    // ON CREATE
+    // ========================================================
 
     override fun onCreate(
         savedInstanceState: Bundle?
@@ -59,14 +83,42 @@ class LandlordPropertiesActivity : AppCompatActivity() {
                 layoutInflater
             )
 
-        setContentView(binding.root)
+        setContentView(
+            binding.root
+        )
+
+        selectForRooms =
+            intent.getBooleanExtra(
+                EXTRA_SELECT_FOR_ROOMS,
+                false
+            )
 
         setupInsets()
         setupRepository()
         setupRecyclerView()
         setupActions()
+        setupScreenMode()
     }
 
+    private fun setupScreenMode() {
+
+        if (selectForRooms) {
+
+            binding.tvPropertiesTitle.text =
+                "Chọn khu trọ"
+
+            binding.tvPropertiesSubtitle.text =
+                "Chọn khu trọ để quản lý danh sách phòng."
+
+        } else {
+
+            binding.tvPropertiesTitle.text =
+                "Khu trọ của bạn"
+
+            binding.tvPropertiesSubtitle.text =
+                "Quản lý các cơ sở cho thuê trên Roomify."
+        }
+    }
     // ========================================================
     // INSETS
     // ========================================================
@@ -127,7 +179,8 @@ class LandlordPropertiesActivity : AppCompatActivity() {
                     this@LandlordPropertiesActivity
                 )
 
-            adapter = propertyAdapter
+            adapter =
+                propertyAdapter
         }
     }
 
@@ -137,15 +190,21 @@ class LandlordPropertiesActivity : AppCompatActivity() {
 
     private fun setupActions() {
 
-        binding.btnBack.setOnClickListener {
-            finish()
-        }
+        // Back
+        binding.btnBack
+            .setOnClickListener {
 
+                finish()
+            }
+
+        // Retry
         binding.btnRetryProperties
             .setOnClickListener {
+
                 loadProperties()
             }
 
+        // Add property
         binding.fabAddProperty
             .setOnClickListener {
 
@@ -158,8 +217,58 @@ class LandlordPropertiesActivity : AppCompatActivity() {
             }
     }
 
+
     // ========================================================
-    // LOAD DATA
+    // OPEN PROPERTY DETAIL
+    // ========================================================
+
+    private fun openPropertyDetail(
+        property: PropertyResponse
+    ) {
+
+        startActivity(
+            Intent(
+                this,
+                PropertyDetailActivity::class.java
+            ).apply {
+
+                putExtra(
+                    PropertyDetailActivity.EXTRA_PROPERTY_ID,
+                    property.propertyId
+                )
+            }
+        )
+    }
+
+    // ========================================================
+    // OPEN ROOMS
+    // ========================================================
+
+    private fun openRooms(
+        property: PropertyResponse
+    ) {
+
+        startActivity(
+            Intent(
+                this,
+                LandlordRoomsActivity::class.java
+            ).apply {
+
+                putExtra(
+                    LandlordRoomsActivity.EXTRA_PROPERTY_ID,
+                    property.propertyId
+                )
+
+                putExtra(
+                    LandlordRoomsActivity.EXTRA_PROPERTY_NAME,
+                    property.propertyName
+                )
+            }
+        )
+    }
+
+    // ========================================================
+    // LOAD PROPERTIES
     // ========================================================
 
     private fun loadProperties() {
@@ -168,27 +277,28 @@ class LandlordPropertiesActivity : AppCompatActivity() {
             return
         }
 
-        isLoading = true
+        isLoading =
+            true
+
         showLoading()
 
         lifecycleScope.launch {
 
             try {
 
-                val result = kotlinx.coroutines.withTimeout(
-                    12_000L
+                when (
+                    val result =
+                        repository.getProperties()
                 ) {
-                    repository.getProperties()
-                }
-
-                when (result) {
 
                     is ApiResult.Success -> {
 
                         val properties =
                             result.data.orEmpty()
 
-                        if (properties.isEmpty()) {
+                        if (
+                            properties.isEmpty()
+                        ) {
 
                             showEmpty()
 
@@ -204,44 +314,39 @@ class LandlordPropertiesActivity : AppCompatActivity() {
 
                         showError(
                             result.exception.message
-                                ?: "Không thể kết nối đến máy chủ."
+                                ?: "Không thể tải danh sách khu trọ."
                         )
                     }
 
-                    ApiResult.Loading -> Unit
+                    ApiResult.Loading ->
+                        Unit
                 }
 
             } catch (
-                e: kotlinx.coroutines.TimeoutCancellationException
-            ) {
-
-                showError(
-                    "Không thể kết nối đến máy chủ. Vui lòng thử lại."
-                )
-
-            } catch (
-                e: kotlinx.coroutines.CancellationException
+                e: CancellationException
             ) {
 
                 throw e
 
             } catch (
-                _: Exception
+                e: Exception
             ) {
 
                 showError(
-                    "Đã xảy ra lỗi khi tải danh sách khu trọ."
+                    e.message
+                        ?: "Không thể tải danh sách khu trọ."
                 )
 
             } finally {
 
-                isLoading = false
+                isLoading =
+                    false
             }
         }
     }
 
     // ========================================================
-    // UI STATES
+    // UI - LOADING
     // ========================================================
 
     private fun showLoading() {
@@ -259,6 +364,10 @@ class LandlordPropertiesActivity : AppCompatActivity() {
             false
     }
 
+    // ========================================================
+    // UI - LIST
+    // ========================================================
+
     private fun showProperties(
         properties: List<PropertyResponse>
     ) {
@@ -273,12 +382,16 @@ class LandlordPropertiesActivity : AppCompatActivity() {
             true
 
         binding.fabAddProperty.isVisible =
-            true
+            !selectForRooms
 
         propertyAdapter.submitList(
             properties
         )
     }
+
+    // ========================================================
+    // UI - EMPTY
+    // ========================================================
 
     private fun showEmpty() {
 
@@ -291,18 +404,36 @@ class LandlordPropertiesActivity : AppCompatActivity() {
         binding.emptyContainer.isVisible =
             true
 
-        binding.fabAddProperty.isVisible =
-            true
-
-        binding.tvEmptyTitle.text =
-            "Chưa có khu trọ"
-
-        binding.tvEmptyMessage.text =
-            "Bạn chưa tạo khu trọ nào trên Roomify."
-
         binding.btnRetryProperties.isVisible =
             false
+
+        if (selectForRooms) {
+
+            binding.tvEmptyTitle.text =
+                "Chưa có khu trọ"
+
+            binding.tvEmptyMessage.text =
+                "Bạn cần tạo khu trọ trước khi có thể quản lý phòng."
+
+            binding.fabAddProperty.isVisible =
+                true
+
+        } else {
+
+            binding.tvEmptyTitle.text =
+                "Chưa có khu trọ"
+
+            binding.tvEmptyMessage.text =
+                "Bạn chưa tạo khu trọ nào trên Roomify."
+
+            binding.fabAddProperty.isVisible =
+                true
+        }
     }
+
+    // ========================================================
+    // UI - ERROR
+    // ========================================================
 
     private fun showError(
         message: String
@@ -333,13 +464,7 @@ class LandlordPropertiesActivity : AppCompatActivity() {
     // ========================================================
     // SESSION GUARD
     // ========================================================
-    override fun onResume() {
-        super.onResume()
 
-        if (::repository.isInitialized) {
-            loadProperties()
-        }
-    }
     override fun onStart() {
         super.onStart()
 
@@ -355,5 +480,20 @@ class LandlordPropertiesActivity : AppCompatActivity() {
                 ).show()
             }
         )
+    }
+
+    // ========================================================
+    // RELOAD
+    // ========================================================
+
+    override fun onResume() {
+        super.onResume()
+
+        if (
+            ::repository.isInitialized
+        ) {
+
+            loadProperties()
+        }
     }
 }

@@ -21,7 +21,8 @@ import kotlinx.coroutines.launch
 
 class LandlordHomeActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityLandlordHomeBinding
+    private lateinit var binding:
+            ActivityLandlordHomeBinding
 
     override fun onCreate(
         savedInstanceState: Bundle?
@@ -33,7 +34,9 @@ class LandlordHomeActivity : AppCompatActivity() {
                 layoutInflater
             )
 
-        setContentView(binding.root)
+        setContentView(
+            binding.root
+        )
 
         setupInsets()
         setupNavigation()
@@ -110,25 +113,60 @@ class LandlordHomeActivity : AppCompatActivity() {
 
     private fun setupActions() {
 
-        // Logout
-        binding.btnLogout.setOnClickListener {
+        // ----------------------------------------------------
+        // LOGOUT
+        // ----------------------------------------------------
 
-            LogoutHandler.logout(
-                activity = this,
-                logoutButton = binding.btnLogout
-            )
-        }
+        binding.btnLogout
+            .setOnClickListener {
 
-        // Open landlord properties
-        binding.cardProperties.setOnClickListener {
-
-            startActivity(
-                Intent(
-                    this,
-                    LandlordPropertiesActivity::class.java
+                LogoutHandler.logout(
+                    activity = this,
+                    logoutButton =
+                        binding.btnLogout
                 )
-            )
-        }
+            }
+
+        // ----------------------------------------------------
+        // PROPERTY MANAGEMENT
+        // Dashboard -> Khu trọ -> Property Detail
+        // ----------------------------------------------------
+
+        binding.cardProperties
+            .setOnClickListener {
+
+                startActivity(
+                    Intent(
+                        this,
+                        LandlordPropertiesActivity::class.java
+                    )
+                )
+            }
+
+        // ----------------------------------------------------
+        // ROOM MANAGEMENT
+        // Dashboard -> Phòng trọ
+        // -> chọn khu trọ
+        // -> danh sách phòng
+        // ----------------------------------------------------
+
+        binding.cardRooms
+            .setOnClickListener {
+
+                startActivity(
+                    Intent(
+                        this,
+                        LandlordPropertiesActivity::class.java
+                    ).apply {
+
+                        putExtra(
+                            LandlordPropertiesActivity
+                                .EXTRA_SELECT_FOR_ROOMS,
+                            true
+                        )
+                    }
+                )
+            }
     }
 
     // ========================================================

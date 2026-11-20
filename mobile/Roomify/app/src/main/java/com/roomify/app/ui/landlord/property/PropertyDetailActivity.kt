@@ -20,7 +20,7 @@ import com.roomify.app.data.repository.LandlordPropertyRepository
 import com.roomify.app.databinding.ActivityPropertyDetailBinding
 import com.roomify.app.ui.common.RoleSessionGuard
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-
+import com.roomify.app.ui.landlord.room.LandlordRoomsActivity
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -49,6 +49,10 @@ class PropertyDetailActivity : AppCompatActivity() {
 
     private var isUpdatingStatus =
         false
+
+    private var currentPropertyName =
+        ""
+
 
     override fun onCreate(
         savedInstanceState: Bundle?
@@ -167,6 +171,28 @@ class PropertyDetailActivity : AppCompatActivity() {
             .setOnClickListener {
 
                 confirmToggleStatus()
+            }
+
+        binding.btnManageRooms
+            .setOnClickListener {
+
+                startActivity(
+                    Intent(
+                        this,
+                        LandlordRoomsActivity::class.java
+                    ).apply {
+
+                        putExtra(
+                            LandlordRoomsActivity.EXTRA_PROPERTY_ID,
+                            propertyId
+                        )
+
+                        putExtra(
+                            LandlordRoomsActivity.EXTRA_PROPERTY_NAME,
+                            currentPropertyName
+                        )
+                    }
+                )
             }
     }
 
@@ -422,6 +448,9 @@ class PropertyDetailActivity : AppCompatActivity() {
 
         currentStatus =
             property.status
+
+        currentPropertyName =
+            property.propertyName
 
         binding.tvPropertyName.text =
             property.propertyName

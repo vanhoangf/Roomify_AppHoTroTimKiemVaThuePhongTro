@@ -325,6 +325,15 @@
                 android:text="Thông tin hệ thống" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnManageRooms"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="24dp"
+                android:text="Quản lý phòng trọ"
+                android:textAllCaps="false" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnEditProperty"
                 style="@style/Widget.Roomify.Button.Primary"
                 android:layout_width="match_parent"

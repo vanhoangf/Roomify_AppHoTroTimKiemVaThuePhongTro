@@ -54,6 +54,28 @@
             android:name=".ui.landlord.property.EditPropertyActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.landlord.room.LandlordRoomsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.landlord.room.LandlordAddRoomActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.landlord.room.LandlordRoomDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.landlord.room.LandlordEditRoomActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.landlord.room.LandlordRoomImagesActivity"
+            android:exported="false" />
         <!-- AUTH -->
         <activity
             android:name=".ui.auth.RegisterActivity"
