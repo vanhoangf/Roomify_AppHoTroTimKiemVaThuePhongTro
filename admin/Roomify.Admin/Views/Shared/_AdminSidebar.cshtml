@@ -99,15 +99,15 @@
 
 
         <!-- Reports -->
-        <span class="admin-nav-link is-disabled">
-
+        <a asp-controller="Reports"
+           asp-action="Index"
+           class="admin-nav-link @(currentController == "Reports" ? "active" : "")">
             <svg viewBox="0 0 24 24"
                  aria-hidden="true">
                 <path d="M4 3h16v18H4V3Zm2 2v14h12V5H6Zm2 2h8v2H8V7Zm0 4h8v2H8v-2Zm0 4h5v2H8v-2Z" />
             </svg>
-
             <span>Báo cáo</span>
-        </span>
+        </a>
 
 
         <!-- Reviews -->

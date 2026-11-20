@@ -1,0 +1,778 @@
+﻿@model Roomify.Admin.Models.Reports.AdminReportsViewModel
+
+@{
+    ViewData["Title"] = "Báo cáo";
+
+    var reports = Model.Reports;
+
+    var startPage =
+        reports is null
+            ? 1
+            : Math.Max(
+                1,
+                reports.Page - 2);
+
+    var endPage =
+        reports is null
+            ? 1
+            : Math.Min(
+                reports.TotalPages,
+                reports.Page + 2);
+
+
+    string StatusText(string status)
+    {
+        return status.ToUpperInvariant() switch
+        {
+            "OPEN" =>
+                "Chờ xử lý",
+
+            "RESOLVED" =>
+                "Đã xử lý",
+
+            "REJECTED" =>
+                "Đã từ chối",
+
+            _ =>
+                status
+        };
+    }
+}
+
+
+@section Styles {
+
+    <link rel="stylesheet"
+          href="~/css/admin-reports.css"
+          asp-append-version="true" />
+
+}
+
+
+<div class="reports-page">
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <section class="reports-heading">
+        <div>
+            <div class="reports-breadcrumb">
+                Trang chủ
+                <span>›</span>
+                Báo cáo
+                <span>›</span>
+                <strong>
+                    @(
+                        Model.Status switch
+                        {
+                            "OPEN" => "Chờ xử lý",
+                            "RESOLVED" => "Đã xử lý",
+                            "REJECTED" => "Đã từ chối",
+                            _ => "Tất cả"
+                        }
+                    )
+                </strong>
+            </div>
+            <h1>
+                @(
+                    Model.Status switch
+                    {
+                        "OPEN" => "Báo cáo chờ xử lý",
+                        "RESOLVED" => "Báo cáo đã xử lý",
+                        "REJECTED" => "Báo cáo đã từ chối",
+                        _ => "Quản lý báo cáo"
+                    }
+                )
+            </h1>
+
+            <p>
+                @(
+                    Model.Status switch
+                    {
+                        "OPEN" =>
+                            "Kiểm tra và xử lý các phản ánh đang chờ Admin.",
+                        "RESOLVED" =>
+                            "Theo dõi các báo cáo đã được giải quyết.",
+                        "REJECTED" =>
+                            "Theo dõi các báo cáo đã được xác định không hợp lệ.",
+                        _ =>
+                            "Theo dõi và xử lý các phản ánh liên quan đến tin phòng."
+                    }
+                )
+            </p>
+        </div>
+
+
+        <button type="button"
+                class="reports-export-button"
+                disabled
+                title="Backend chưa hỗ trợ xuất dữ liệu">
+
+            <svg viewBox="0 0 24 24">
+                <path d="M11 3h2v9l3-3 1.4 1.4L12 15.8l-5.4-5.4L8 9l3 3V3ZM5 18h14v2H5v-2Z" />
+            </svg>
+
+            Xuất dữ liệu
+
+        </button>
+
+    </section>
+
+    <nav class="reports-status-tabs">
+
+        <a asp-controller="Reports"
+           asp-action="Index"
+           asp-route-search="@Model.Search"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(
+           string.IsNullOrWhiteSpace(Model.Status)
+               ? "active"
+               : "")">
+
+            Tất cả
+
+            @if (Model.Dashboard is not null &&
+                 Model.TotalReports > 0)
+            {
+                <span class="reports-tab-count neutral">
+                    @Model.TotalReports
+                </span>
+            }
+
+        </a>
+
+
+        <a asp-controller="Reports"
+           asp-action="Index"
+           asp-route-status="OPEN"
+           asp-route-search="@Model.Search"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(
+           Model.Status == "OPEN"
+               ? "active open"
+               : "")">
+
+            Chờ xử lý
+
+            @if (Model.Dashboard is not null &&
+                 Model.Dashboard.OpenReports > 0)
+            {
+                <span class="reports-tab-count open">
+                    @Model.Dashboard.OpenReports
+                </span>
+            }
+
+        </a>
+
+
+        <a asp-controller="Reports"
+           asp-action="Index"
+           asp-route-status="RESOLVED"
+           asp-route-search="@Model.Search"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(
+           Model.Status == "RESOLVED"
+               ? "active"
+               : "")">
+
+            Đã xử lý
+
+            @if (Model.Dashboard is not null &&
+                 Model.Dashboard.ResolvedReports > 0)
+            {
+                <span class="reports-tab-count resolved">
+                    @Model.Dashboard.ResolvedReports
+                </span>
+            }
+
+        </a>
+
+
+        <a asp-controller="Reports"
+           asp-action="Index"
+           asp-route-status="REJECTED"
+           asp-route-search="@Model.Search"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(
+           Model.Status == "REJECTED"
+               ? "active rejected"
+               : "")">
+
+            Đã từ chối
+
+            @if (Model.Dashboard is not null &&
+                 Model.Dashboard.RejectedReports > 0)
+            {
+                <span class="reports-tab-count rejected">
+                    @Model.Dashboard.RejectedReports
+                </span>
+            }
+        </a>
+    </nav>
+    <!-- =====================================================
+         KPI
+         ===================================================== -->
+
+    <section class="reports-kpi-grid">
+
+        <article class="reports-kpi-card">
+
+            <div class="reports-kpi-top">
+
+                <span>
+                    Tổng báo cáo
+                </span>
+
+                <div class="reports-kpi-icon blue">
+                    !
+                </div>
+
+            </div>
+
+            <strong>
+                @(Model.Dashboard is null
+                    ? "—"
+                    : Model.TotalReports.ToString("N0"))
+            </strong>
+
+            <small>
+                Tất cả phản ánh
+            </small>
+
+        </article>
+
+
+        <article class="reports-kpi-card">
+
+            <div class="reports-kpi-top">
+
+                <span>
+                    Chờ xử lý
+                </span>
+
+                <div class="reports-kpi-icon orange">
+                    !
+                </div>
+
+            </div>
+
+            <strong>
+                @(Model.Dashboard?.OpenReports
+                    .ToString("N0") ?? "—")
+            </strong>
+
+            <small>
+                Cần Admin kiểm tra
+            </small>
+
+        </article>
+
+
+        <article class="reports-kpi-card">
+
+            <div class="reports-kpi-top">
+
+                <span>
+                    Đã xử lý
+                </span>
+
+                <div class="reports-kpi-icon green">
+                    ✓
+                </div>
+
+            </div>
+
+            <strong>
+                @(Model.Dashboard?.ResolvedReports
+                    .ToString("N0") ?? "—")
+            </strong>
+
+            <small>
+                Đã giải quyết
+            </small>
+
+        </article>
+
+
+        <article class="reports-kpi-card">
+
+            <div class="reports-kpi-top">
+
+                <span>
+                    Đã từ chối
+                </span>
+
+                <div class="reports-kpi-icon red">
+                    ×
+                </div>
+
+            </div>
+
+            <strong>
+                @(Model.Dashboard?.RejectedReports
+                    .ToString("N0") ?? "—")
+            </strong>
+
+            <small>
+                Báo cáo không hợp lệ
+            </small>
+
+        </article>
+
+    </section>
+
+
+    <!-- =====================================================
+         FILTER
+         ===================================================== -->
+
+    <section class="reports-filter-card">
+
+        <form asp-controller="Reports"
+              asp-action="Index"
+              method="get">
+
+            <div class="reports-filter-row">
+
+                <div class="reports-search">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="M10.5 4a6.5 6.5 0 1 0 4.1 11.5L20 20.9l1.4-1.4-5.4-5.4A6.5 6.5 0 0 0 10.5 4Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z" />
+                    </svg>
+
+                    <input type="text"
+                           name="search"
+                           value="@Model.Search"
+                           placeholder="Tìm theo lý do, người báo cáo, email hoặc phòng..." />
+
+                </div>
+
+
+                <select name="status">
+
+                    <option value="">
+                        Tất cả trạng thái
+                    </option>
+
+                    <option value="OPEN"
+                            selected="@(Model.Status == "OPEN")">
+                        Chờ xử lý
+                    </option>
+
+                    <option value="RESOLVED"
+                            selected="@(Model.Status == "RESOLVED")">
+                        Đã xử lý
+                    </option>
+
+                    <option value="REJECTED"
+                            selected="@(Model.Status == "REJECTED")">
+                        Đã từ chối
+                    </option>
+
+                </select>
+
+
+                <input type="hidden"
+                       name="pageSize"
+                       value="@Model.PageSize" />
+
+
+                <button type="submit"
+                        class="reports-filter-button">
+
+                    Lọc dữ liệu
+
+                </button>
+
+
+                <a asp-controller="Reports"
+                   asp-action="Index"
+                   asp-route-pageSize="@Model.PageSize"
+                   class="reports-reset-button">
+
+                    Đặt lại
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- =====================================================
+         ERROR
+         ===================================================== -->
+    @if (Model.HasError)
+    {
+        <section class="reports-state-card">
+
+            <div class="reports-state-icon error">
+                !
+            </div>
+
+            <h2>
+                Không thể tải danh sách báo cáo
+            </h2>
+
+            <p>
+                @Model.ErrorMessage
+            </p>
+
+        </section>
+    }
+    else if (reports is null ||
+             reports.Items.Count == 0)
+    {
+        <section class="reports-state-card">
+
+            <div class="reports-state-icon">
+                ✓
+            </div>
+
+            <h2>
+                Không có báo cáo
+            </h2>
+
+            <p>
+                Không tìm thấy báo cáo phù hợp với điều kiện hiện tại.
+            </p>
+
+        </section>
+    }
+    else
+    {
+        <!-- =================================================
+             TABLE
+             ================================================= -->
+
+        <section class="reports-table-card">
+
+            <div class="reports-table-wrapper">
+
+                <table class="reports-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Báo cáo
+                            </th>
+
+                            <th>
+                                Người báo cáo
+                            </th>
+
+                            <th>
+                                Phòng
+                            </th>
+
+                            <th>
+                                Lý do
+                            </th>
+
+                            <th>
+                                Trạng thái
+                            </th>
+
+                            <th>
+                                Ngày tạo
+                            </th>
+
+                            <th>
+                                Thao tác
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @foreach (var report in reports.Items)
+                        {
+                            <tr class="@(report.Status == "OPEN"
+                                ? "report-open-row"
+                                : "")">
+
+                                <!-- REPORT -->
+
+                                <td>
+
+                                    <div class="report-id-cell">
+
+                                        <strong>
+                                            #RP-@report.ReportId
+                                        </strong>
+                                        @if (report.Status == "OPEN")
+                                        {
+                                            <span class="report-needs-action">
+                                                Cần xử lý
+                                            </span>
+                                        }
+                                    </div>
+                                </td>
+
+                                <!-- REPORTER -->
+
+                                <td>
+
+                                    <div class="report-user-cell">
+
+                                        <strong>
+                                            @report.ReporterName
+                                        </strong>
+
+                                        <span>
+                                            @report.ReporterEmail
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- ROOM -->
+
+                                <td>
+
+                                    <div class="report-room-cell">
+
+                                        <strong>
+                                            @report.RoomTitle
+                                        </strong>
+
+                                        <span>
+                                            Room #@report.RoomId
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- REASON -->
+
+                                <td>
+
+                                    <div class="report-reason"
+                                         title="@report.Reason">
+
+                                        @report.Reason
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- STATUS -->
+
+                                <td>
+
+                                    <span class="
+                                        report-status
+                                        report-status-@report.Status.ToLowerInvariant()">
+
+                                        @StatusText(report.Status)
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- CREATED -->
+
+                                <td class="report-date">
+
+                                    @(report.CreatedAt
+                                        .ToLocalTime()
+                                        .ToString("dd/MM/yyyy HH:mm"))
+
+                                </td>
+
+
+                                <!-- ACTION -->
+                                <td>
+                                    <div class="dropdown">
+                                        <button type="button"
+                                                class="report-action-button"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                                title="Thao tác">
+                                            ⋮
+                                        </button>
+
+                                        <div class="dropdown-menu dropdown-menu-end report-action-menu">
+                                            <a asp-controller="Reports"
+                                               asp-action="Details"
+                                               asp-route-id="@report.ReportId"
+                                               asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")"
+                                               class="dropdown-item">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M12 5C7 5 3 8.1 1.5 12 3 15.9 7 19 12 19s9-3.1 10.5-7C21 8.1 17 5 12 5Zm0 12c-3.7 0-6.8-2.1-8.2-5C5.2 9.1 8.3 7 12 7s6.8 2.1 8.2 5c-1.4 2.9-4.5 5-8.2 5Zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" />
+                                                </svg>
+                                                Xem chi tiết
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+
+            <!-- =================================================
+                 TABLE FOOTER
+                 ================================================= -->
+
+            <div class="reports-table-footer">
+
+                <div class="reports-page-size">
+
+                    <span>
+                        Hiển thị
+                    </span>
+
+
+                    <form asp-controller="Reports"
+                          asp-action="Index"
+                          method="get">
+
+                        <input type="hidden"
+                               name="search"
+                               value="@Model.Search" />
+
+                        <input type="hidden"
+                               name="status"
+                               value="@Model.Status" />
+
+
+                        <select name="pageSize"
+                                onchange="this.form.submit()">
+
+                            <option value="10"
+                                    selected="@(Model.PageSize == 10)">
+                                10
+                            </option>
+
+                            <option value="20"
+                                    selected="@(Model.PageSize == 20)">
+                                20
+                            </option>
+
+                            <option value="50"
+                                    selected="@(Model.PageSize == 50)">
+                                50
+                            </option>
+
+                        </select>
+
+                    </form>
+
+
+                    <span>
+                        bản ghi
+                    </span>
+
+                </div>
+
+
+                <div class="reports-result-info">
+
+                    Hiển thị
+
+                    <strong>
+                        @(
+                            reports.TotalCount == 0
+                                ? 0
+                                : ((reports.Page - 1)
+                                   * reports.PageSize) + 1
+                        )
+
+                        -
+
+                        @Math.Min(
+                            reports.Page
+                            * reports.PageSize,
+                            reports.TotalCount)
+                    </strong>
+
+                    trong
+
+                    <strong>
+                        @reports.TotalCount.ToString("N0")
+                    </strong>
+
+                    báo cáo
+
+                </div>
+
+
+                @if (reports.TotalPages > 1)
+                {
+                    <nav class="reports-pagination">
+
+                        @if (reports.HasPreviousPage)
+                        {
+                            <a asp-controller="Reports"
+                               asp-action="Index"
+                               asp-route-page="@(reports.Page - 1)"
+                               asp-route-pageSize="@Model.PageSize"
+                               asp-route-search="@Model.Search"
+                               asp-route-status="@Model.Status">
+
+                                ‹
+
+                            </a>
+                        }
+
+
+                        @for (
+                            var pageNumber = startPage;
+                            pageNumber <= endPage;
+                            pageNumber++)
+                        {
+                            <a asp-controller="Reports"
+                               asp-action="Index"
+                               asp-route-page="@pageNumber"
+                               asp-route-pageSize="@Model.PageSize"
+                               asp-route-search="@Model.Search"
+                               asp-route-status="@Model.Status"
+                               class="@(pageNumber == reports.Page ? "active" : "")">
+
+                                @pageNumber
+
+                            </a>
+                        }
+
+
+                        @if (reports.HasNextPage)
+                        {
+                            <a asp-controller="Reports"
+                               asp-action="Index"
+                               asp-route-page="@(reports.Page + 1)"
+                               asp-route-pageSize="@Model.PageSize"
+                               asp-route-search="@Model.Search"
+                               asp-route-status="@Model.Status">
+
+                                ›
+
+                            </a>
+                        }
+
+                    </nav>
+                }
+
+            </div>
+
+        </section>
+    }
+
+</div>

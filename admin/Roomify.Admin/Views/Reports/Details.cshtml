@@ -1,0 +1,1166 @@
+﻿@model Roomify.Admin.Models.Reports.AdminReportDetailViewModel
+
+@{
+    ViewData["Title"] = "Chi tiết báo cáo";
+
+    var report = Model.Report;
+
+
+    string StatusText(string status)
+    {
+        return status.ToUpperInvariant() switch
+        {
+            "OPEN" =>
+                "Chờ xử lý",
+
+            "RESOLVED" =>
+                "Đã xử lý",
+
+            "REJECTED" =>
+                "Đã từ chối",
+
+            _ =>
+                status
+        };
+    }
+}
+
+
+@section Styles {
+
+    <link rel="stylesheet"
+          href="~/css/admin-report-detail.css"
+          asp-append-version="true" />
+
+}
+
+
+<div class="report-detail-page">
+
+    @if (Model.HasError || report is null)
+    {
+        <!-- =====================================================
+         ERROR STATE
+         ===================================================== -->
+
+        <section class="report-detail-error">
+
+            <div class="report-detail-error-icon">
+                !
+            </div>
+
+            <h1>
+                Không thể tải báo cáo
+            </h1>
+
+            <p>
+                @Model.ErrorMessage
+            </p>
+
+            <a href="@(Model.ReturnUrl ?? Url.Action("Index", "Reports"))"
+               class="report-detail-primary-link">
+
+                Quay lại danh sách
+
+            </a>
+
+        </section>
+    }
+    else
+    {
+        <!-- =====================================================
+         BREADCRUMB
+         ===================================================== -->
+
+        <div class="report-detail-breadcrumb">
+
+            <a asp-controller="Dashboard"
+               asp-action="Index">
+                Trang chủ
+            </a>
+
+            <span>›</span>
+
+            <a href="@(Model.ReturnUrl ?? Url.Action("Index", "Reports"))">
+                Báo cáo
+            </a>
+
+            <span>›</span>
+
+            <strong>
+                #RP-@report.ReportId
+            </strong>
+
+        </div>
+
+
+        <!-- =====================================================
+         HEADING
+         ===================================================== -->
+
+        <section class="report-detail-heading">
+
+            <div>
+
+                <h1>
+                    Chi tiết báo cáo
+                </h1>
+
+                <p>
+                    Kiểm tra nội dung phản ánh và thông tin liên quan trước khi xử lý.
+                </p>
+
+            </div>
+
+
+            <a href="@(Model.ReturnUrl ?? Url.Action("Index", "Reports"))"
+               class="report-detail-back">
+
+                <svg viewBox="0 0 24 24">
+                    <path d="m15 18-6-6 6-6 1.4 1.4L11.8 12l4.6 4.6L15 18Z" />
+                </svg>
+
+                Quay lại danh sách
+
+            </a>
+
+        </section>
+
+        @if (TempData["SuccessMessage"] is string successMessage)
+        {
+            <div class="report-detail-alert success">
+
+                <span>
+                    ✓
+                </span>
+
+                <div>
+                    @successMessage
+                </div>
+
+            </div>
+        }
+
+
+        @if (TempData["ErrorMessage"] is string errorMessage)
+        {
+            <div class="report-detail-alert error">
+
+                <span>
+                    !
+                </span>
+
+                <div>
+                    @errorMessage
+                </div>
+
+            </div>
+        }
+        <!-- =====================================================
+         SUMMARY
+         ===================================================== -->
+
+        <section class="report-summary-card">
+
+            <div class="report-summary-icon">
+                !
+            </div>
+
+
+            <div class="report-summary-main">
+
+                <div class="report-summary-top">
+
+                    <span class="report-code">
+                        #RP-@report.ReportId
+                    </span>
+
+
+                    <span class="
+                        detail-report-status
+                        detail-report-status-@report.Status.ToLowerInvariant()">
+
+                        @StatusText(report.Status)
+
+                    </span>
+
+
+                    @if (Model.IsOpen)
+                    {
+                        <span class="needs-action">
+                            Cần xử lý
+                        </span>
+                    }
+
+                </div>
+
+
+                <h2>
+                    @report.Reason
+                </h2>
+
+
+                <div class="report-summary-meta">
+
+                    <span>
+                        Người báo cáo:
+                        <strong>
+                            @report.ReporterName
+                        </strong>
+                    </span>
+
+
+                    <span>
+                        Room #@report.RoomId
+                    </span>
+
+
+                    <span>
+                        @(report.CreatedAt
+                            .ToLocalTime()
+                            .ToString("dd/MM/yyyy HH:mm"))
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+         MAIN GRID
+         ===================================================== -->
+
+        <div class="report-detail-grid">
+
+            <!-- =================================================
+             LEFT
+             ================================================= -->
+
+            <main class="report-detail-main">
+
+                <!-- REPORT CONTENT -->
+
+                <section class="report-detail-card">
+
+                    <div class="report-card-heading">
+
+                        <div class="report-card-icon red">
+                            !
+                        </div>
+
+
+                        <div>
+
+                            <h2>
+                                Nội dung phản ánh
+                            </h2>
+
+                            <p>
+                                Thông tin do người dùng gửi đến hệ thống
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="report-reason-box">
+
+                        <span>
+                            Lý do báo cáo
+                        </span>
+
+                        <strong>
+                            @report.Reason
+                        </strong>
+
+                    </div>
+
+
+                    <div class="report-description-box">
+
+                        <span>
+                            Mô tả chi tiết
+                        </span>
+
+
+                        @if (string.IsNullOrWhiteSpace(
+                            report.Description))
+                        {
+                            <p class="empty-text">
+                                Người dùng không cung cấp mô tả bổ sung.
+                            </p>
+                        }
+                        else
+                        {
+                            <p>
+                                @report.Description
+                            </p>
+                        }
+
+                    </div>
+
+                </section>
+
+
+                <!-- REPORTED ROOM -->
+
+                <section class="report-detail-card">
+
+                    <div class="report-card-heading">
+
+                        <div class="report-card-icon blue">
+                            ▣
+                        </div>
+
+
+                        <div>
+
+                            <h2>
+                                Phòng bị báo cáo
+                            </h2>
+
+                            <p>
+                                Tin phòng liên quan đến phản ánh
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="reported-room-box">
+
+                        <div class="reported-room-icon">
+                            ▣
+                        </div>
+
+
+                        <div class="reported-room-main">
+
+                            <span>
+                                Room #@report.RoomId
+                            </span>
+
+                            <strong>
+                                @report.RoomTitle
+                            </strong>
+
+                        </div>
+
+
+                        <a asp-controller="Rooms"
+                           asp-action="Details"
+                           asp-route-id="@report.RoomId"
+                           asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")"
+                           class="view-room-link">
+
+                            Xem tin phòng
+
+                            <span>›</span>
+
+                        </a>
+
+                    </div>
+
+                </section>
+
+
+                <!-- PROCESSING RESULT -->
+
+                <section class="report-detail-card">
+
+                    <div class="report-card-heading">
+
+                        <div class="report-card-icon green">
+                            ✓
+                        </div>
+
+
+                        <div>
+
+                            <h2>
+                                Kết quả xử lý
+                            </h2>
+
+                            <p>
+                                Quyết định của quản trị viên
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    @if (Model.IsOpen)
+                    {
+                        <div class="report-pending-state">
+
+                            <div class="report-pending-icon">
+                                !
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    Báo cáo đang chờ xử lý
+                                </strong>
+
+                                <p>
+                                    Chưa có quản trị viên đưa ra quyết định cho báo cáo này.
+                                </p>
+
+                            </div>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="report-processing-list">
+
+                            <div>
+
+                                <span>
+                                    Trạng thái
+                                </span>
+
+                                <strong>
+                                    @StatusText(report.Status)
+                                </strong>
+
+                            </div>
+
+
+                            <div>
+
+                                <span>
+                                    Xử lý bởi
+                                </span>
+
+                                <strong>
+                                    @(report.ResolvedByUserName
+                                        ?? "—")
+                                </strong>
+
+                            </div>
+
+
+                            <div>
+
+                                <span>
+                                    Thời gian xử lý
+                                </span>
+
+                                <strong>
+                                    @(
+                                        report.ResolvedAt.HasValue
+                                            ? report.ResolvedAt.Value
+                                                .ToLocalTime()
+                                                .ToString("dd/MM/yyyy HH:mm")
+                                            : "—"
+                                    )
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="
+                            admin-note-box
+                            @(Model.IsRejected ? "rejected" : "")">
+
+                            <span>
+                                Ghi chú của Admin
+                            </span>
+
+
+                            <p>
+                                @(
+                                    string.IsNullOrWhiteSpace(
+                                        report.AdminNote)
+                                        ? "Không có ghi chú."
+                                        : report.AdminNote
+                                )
+                            </p>
+
+                        </div>
+                    }
+
+                </section>
+
+            </main>
+
+
+            <!-- =================================================
+             RIGHT
+             ================================================= -->
+
+            <aside class="report-detail-sidebar">
+
+                <!-- REPORTER -->
+
+                <section class="report-side-card">
+
+                    <div class="report-side-heading">
+
+                        <h2>
+                            Người báo cáo
+                        </h2>
+
+                    </div>
+
+
+                    <div class="reporter-profile">
+
+                        <div class="reporter-avatar">
+
+                            @(
+                                string.IsNullOrWhiteSpace(
+                                    report.ReporterName)
+                                    ? "?"
+                                    : report.ReporterName[0]
+                                        .ToString()
+                                        .ToUpper()
+                            )
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                @report.ReporterName
+                            </strong>
+
+                            <span>
+                                @report.ReporterEmail
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="report-side-info">
+
+                        <div>
+
+                            <span>
+                                User ID
+                            </span>
+
+                            <strong>
+                                #@report.ReporterUserId
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Email
+                            </span>
+
+                            <strong>
+                                @report.ReporterEmail
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- SYSTEM -->
+
+                <section class="report-side-card">
+
+                    <div class="report-side-heading">
+
+                        <h2>
+                            Thông tin báo cáo
+                        </h2>
+
+                    </div>
+
+
+                    <div class="report-side-info">
+
+                        <div>
+
+                            <span>
+                                Report ID
+                            </span>
+
+                            <strong>
+                                #@report.ReportId
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Room ID
+                            </span>
+
+                            <strong>
+                                #@report.RoomId
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Trạng thái
+                            </span>
+
+                            <strong>
+                                @StatusText(report.Status)
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Ngày gửi
+                            </span>
+
+                            <strong>
+                                @(report.CreatedAt
+                                    .ToLocalTime()
+                                    .ToString("dd/MM/yyyy HH:mm"))
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- ACTION PREVIEW -->
+
+                <section class="report-side-card">
+
+                    <div class="report-side-heading">
+
+                        <h2>
+                            Thao tác xử lý
+                        </h2>
+
+                    </div>
+
+
+                    @if (Model.IsOpen)
+                    {
+                        <p class="report-action-description">
+                            Báo cáo đang chờ Admin đưa ra quyết định.
+                        </p>
+
+
+                        <div class="report-action-preview">
+
+                            <button type="button"
+                                    class="report-reject-preview"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#rejectReportModal">
+
+                                Từ chối báo cáo
+
+                            </button>
+
+
+                            <button type="button"
+                                    class="report-resolve-preview"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#resolveReportModal">
+
+                                Đánh dấu đã xử lý
+
+                            </button>
+
+                        </div>
+
+
+                        <small class="report-action-note">
+                            Mỗi quyết định xử lý đều yêu cầu ghi chú của Admin.
+                        </small>
+                    }
+                    else
+                    {
+                        <div class="report-already-processed">
+
+                            ✓ Báo cáo đã được xử lý.
+
+                        </div>
+                    }
+                </section>
+            </aside>
+        </div>
+
+        @if (Model.IsOpen)
+        {
+            <!-- =====================================================
+                 RESOLVE REPORT MODAL
+                 ===================================================== -->
+
+            <div class="modal fade"
+                 id="resolveReportModal"
+                 tabindex="-1"
+                 aria-hidden="true">
+
+                <div class="modal-dialog modal-dialog-centered">
+
+                    <div class="modal-content report-decision-modal">
+
+                        <form asp-controller="Reports"
+                              asp-action="Resolve"
+                              method="post"
+                              id="resolveReportForm"
+                              novalidate>
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="@report.ReportId" />
+
+                            <input type="hidden"
+                                   name="returnUrl"
+                                   value="@Model.ReturnUrl" />
+
+                            <div class="modal-header">
+
+                                <div>
+
+                                    <h5 class="modal-title">
+                                        Đánh dấu báo cáo đã xử lý
+                                    </h5>
+
+                                    <p>
+                                        Ghi nhận kết quả xử lý phản ánh của người dùng.
+                                    </p>
+
+                                </div>
+
+                                <button type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Đóng">
+                                </button>
+
+                            </div>
+
+                            <div class="modal-body">
+
+                                <div class="decision-report-summary">
+
+                                    <span>
+                                        #RP-@report.ReportId
+                                    </span>
+
+                                    <strong>
+                                        @report.Reason
+                                    </strong>
+
+                                    <small>
+                                        @report.RoomTitle
+                                    </small>
+
+                                </div>
+
+                                <div class="resolve-info-box">
+
+                                    <div class="resolve-info-icon">
+                                        ✓
+                                    </div>
+
+                                    <div>
+
+                                        <strong>
+                                            Xác nhận đã xử lý?
+                                        </strong>
+
+                                        <p>
+                                            Trạng thái báo cáo sẽ chuyển từ
+                                            <b>Chờ xử lý</b>
+                                            sang
+                                            <b>Đã xử lý</b>.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <label for="resolveAdminNote"
+                                       class="decision-note-label">
+
+                                    Ghi chú xử lý
+
+                                    <span>*</span>
+
+                                </label>
+
+                                <textarea id="resolveAdminNote"
+                                          name="adminNote"
+                                          maxlength="2000"
+                                          placeholder="Ví dụ: Đã kiểm tra nội dung phản ánh và làm việc với chủ trọ..."></textarea>
+
+                                <div id="resolveAdminNoteError"
+                                     class="decision-note-error"
+                                     hidden>
+
+                                    Vui lòng nhập ghi chú xử lý báo cáo.
+
+                                </div>
+
+                                <div class="decision-note-footer">
+
+                                    <span>
+                                        Ghi chú sẽ được lưu vào kết quả xử lý.
+                                    </span>
+
+                                    <span id="resolveAdminNoteCounter">
+                                        0 / 2000
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <div class="modal-footer">
+
+                                <button type="button"
+                                        class="decision-cancel-button"
+                                        data-bs-dismiss="modal">
+
+                                    Hủy
+
+                                </button>
+
+                                <button type="submit"
+                                        class="decision-resolve-button">
+
+                                    ✓ Xác nhận đã xử lý
+
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                 REJECT REPORT MODAL
+                 ===================================================== -->
+
+            <div class="modal fade"
+                 id="rejectReportModal"
+                 tabindex="-1"
+                 aria-hidden="true">
+
+                <div class="modal-dialog modal-dialog-centered">
+
+                    <div class="modal-content report-decision-modal">
+
+                        <form asp-controller="Reports"
+                              asp-action="Reject"
+                              method="post"
+                              id="rejectReportForm"
+                              novalidate>
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="@report.ReportId" />
+
+                            <input type="hidden"
+                                   name="returnUrl"
+                                   value="@Model.ReturnUrl" />
+
+                            <div class="modal-header">
+
+                                <div>
+
+                                    <h5 class="modal-title">
+                                        Từ chối báo cáo
+                                    </h5>
+
+                                    <p>
+                                        Sử dụng khi phản ánh không hợp lệ hoặc không đủ căn cứ.
+                                    </p>
+
+                                </div>
+
+                                <button type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Đóng">
+                                </button>
+
+                            </div>
+
+                            <div class="modal-body">
+
+                                <div class="decision-report-summary">
+
+                                    <span>
+                                        #RP-@report.ReportId
+                                    </span>
+
+                                    <strong>
+                                        @report.Reason
+                                    </strong>
+
+                                    <small>
+                                        Người báo cáo: @report.ReporterName
+                                    </small>
+
+                                </div>
+
+                                <div class="reject-info-box">
+
+                                    <div class="reject-info-icon">
+                                        !
+                                    </div>
+
+                                    <div>
+
+                                        <strong>
+                                            Xác nhận từ chối báo cáo?
+                                        </strong>
+
+                                        <p>
+                                            Báo cáo sẽ chuyển sang trạng thái
+                                            <b>Đã từ chối</b>.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <label for="rejectAdminNote"
+                                       class="decision-note-label">
+
+                                    Lý do từ chối
+
+                                    <span>*</span>
+
+                                </label>
+
+                                <textarea id="rejectAdminNote"
+                                          name="adminNote"
+                                          maxlength="2000"
+                                          placeholder="Ví dụ: Không tìm thấy bằng chứng cho phản ánh này..."></textarea>
+
+                                <div id="rejectAdminNoteError"
+                                     class="decision-note-error"
+                                     hidden>
+
+                                    Vui lòng nhập lý do từ chối báo cáo.
+
+                                </div>
+
+                                <div class="decision-note-footer">
+
+                                    <span>
+                                        Lý do sẽ được lưu vào lịch sử xử lý.
+                                    </span>
+
+                                    <span id="rejectAdminNoteCounter">
+                                        0 / 2000
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <div class="modal-footer">
+
+                                <button type="button"
+                                        class="decision-cancel-button"
+                                        data-bs-dismiss="modal">
+
+                                    Hủy
+
+                                </button>
+
+                                <button type="submit"
+                                        class="decision-reject-button">
+
+                                    ✕ Xác nhận từ chối
+
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+    }
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+
+                // =====================================================
+                // COMMON VALIDATION
+                // =====================================================
+
+                function setupDecisionForm(
+                    formId,
+                    textareaId,
+                    errorId,
+                    counterId) {
+
+                    const form =
+                        document.getElementById(
+                            formId
+                        );
+
+                    const textarea =
+                        document.getElementById(
+                            textareaId
+                        );
+
+                    const error =
+                        document.getElementById(
+                            errorId
+                        );
+
+                    const counter =
+                        document.getElementById(
+                            counterId
+                        );
+
+                    if (!form ||
+                        !textarea ||
+                        !error) {
+
+                        return;
+                    }
+
+                    function updateCounter() {
+
+                        if (!counter) {
+                            return;
+                        }
+
+                        counter.textContent =
+                            `${textarea.value.length} / 2000`;
+                    }
+
+                    function clearError() {
+
+                        if (
+                            textarea.value
+                                .trim()
+                                .length > 0
+                        ) {
+                            error.hidden = true;
+
+                            textarea.classList.remove(
+                                "is-invalid-field"
+                            );
+                        }
+                    }
+
+                    textarea.addEventListener(
+                        "input",
+                        function () {
+
+                            updateCounter();
+
+                            clearError();
+
+                        });
+
+                    form.addEventListener(
+                        "submit",
+                        function (event) {
+
+                            const value =
+                                textarea.value.trim();
+
+                            if (value.length === 0) {
+
+                                event.preventDefault();
+
+                                error.hidden = false;
+
+                                textarea.classList.add(
+                                    "is-invalid-field"
+                                );
+
+                                textarea.focus();
+
+                                return;
+                            }
+
+                            error.hidden = true;
+
+                            textarea.classList.remove(
+                                "is-invalid-field"
+                            );
+
+                        });
+
+                    updateCounter();
+                }
+
+                // =====================================================
+                // RESOLVE
+                // =====================================================
+
+                setupDecisionForm(
+                    "resolveReportForm",
+                    "resolveAdminNote",
+                    "resolveAdminNoteError",
+                    "resolveAdminNoteCounter"
+                );
+
+                // =====================================================
+                // REJECT
+                // =====================================================
+
+                setupDecisionForm(
+                    "rejectReportForm",
+                    "rejectAdminNote",
+                    "rejectAdminNoteError",
+                    "rejectAdminNoteCounter"
+                );
+
+            });
+
+    </script>
+
+}
