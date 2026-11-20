@@ -9,7 +9,7 @@
 
     <item
         android:id="@+id/navLandlordProperties"
-        android:enabled="false"
+        android:enabled="true"
         android:icon="@drawable/ic_landlord_property"
         android:title="Khu trọ" />
 

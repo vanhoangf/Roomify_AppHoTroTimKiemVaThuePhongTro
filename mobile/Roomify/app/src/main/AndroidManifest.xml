@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-permission android:name="android.permission.INTERNET" />
+
     <uses-permission
         android:name="android.permission.ACCESS_LOCAL_NETWORK" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -13,26 +16,52 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Roomify">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
+
             <intent-filter>
+
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".ui.student.StudentHomeActivity"
-            android:exported="false" />
 
+            </intent-filter>
+
+        </activity>
+
+        <!-- LANDLORD -->
         <activity
             android:name=".ui.landlord.LandlordHomeActivity"
             android:exported="false" />
 
         <activity
+            android:name=".ui.landlord.property.LandlordPropertiesActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.landlord.property.AddPropertyActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.landlord.property.PropertyDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.landlord.property.EditPropertyActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <!-- AUTH -->
+        <activity
             android:name=".ui.auth.RegisterActivity"
+            android:exported="false" />
+
+        <!-- STUDENT -->
+        <activity
+            android:name=".ui.student.StudentHomeActivity"
             android:exported="false" />
 
         <activity
@@ -87,6 +116,7 @@
             android:name=".ui.student.PaymentDetailActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+
         <activity
             android:name=".ui.student.SavedRoomsActivity"
             android:exported="false" />

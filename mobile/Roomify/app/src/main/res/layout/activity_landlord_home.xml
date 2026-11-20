@@ -135,14 +135,16 @@
                 android:layout_marginTop="16dp"
                 android:orientation="horizontal">
 
+                <!-- KHU TRỌ -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardProperties"
                     android:layout_width="0dp"
                     android:layout_height="140dp"
                     android:layout_marginEnd="6dp"
                     android:layout_weight="1"
-                    android:clickable="false"
-                    android:focusable="false"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     app:cardBackgroundColor="@color/surface_white"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="0dp"
@@ -181,6 +183,7 @@
 
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- PHÒNG TRỌ -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardRooms"
                     android:layout_width="0dp"
@@ -236,6 +239,7 @@
                 android:layout_marginTop="12dp"
                 android:orientation="horizontal">
 
+                <!-- LỊCH XEM PHÒNG -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardAppointments"
                     android:layout_width="0dp"
@@ -282,6 +286,7 @@
 
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- YÊU CẦU THUÊ -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardRentalRequests"
                     android:layout_width="0dp"
