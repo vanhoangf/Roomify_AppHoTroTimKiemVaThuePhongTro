@@ -48,10 +48,10 @@ class LandlordCreatePaymentActivity :
             String? =
         null
 
-    private var submitting =
+    private var isSubmitting =
         false
 
-    private val typeLabels =
+    private val paymentTypeLabels =
         listOf(
             "Tiền cọc",
             "Tiền thuê",
@@ -96,9 +96,13 @@ class LandlordCreatePaymentActivity :
 
         setupInsets()
         setupRepository()
-        setupTypeDropdown()
+        setupPaymentTypeDropdown()
         setupActions()
     }
+
+    // ============================================================
+    // INSETS
+    // ============================================================
 
     private fun setupInsets() {
 
@@ -106,21 +110,25 @@ class LandlordCreatePaymentActivity :
             binding.createPaymentRoot
         ) { view, insets ->
 
-            val bars =
+            val systemBars =
                 insets.getInsets(
                     WindowInsetsCompat.Type.systemBars()
                 )
 
             view.setPadding(
-                bars.left,
-                bars.top,
-                bars.right,
-                bars.bottom
+                systemBars.left,
+                systemBars.top,
+                systemBars.right,
+                systemBars.bottom
             )
 
             insets
         }
     }
+
+    // ============================================================
+    // REPOSITORY
+    // ============================================================
 
     private fun setupRepository() {
 
@@ -136,29 +144,46 @@ class LandlordCreatePaymentActivity :
             )
     }
 
-    private fun setupTypeDropdown() {
+    // ============================================================
+    // PAYMENT TYPE DROPDOWN
+    // ============================================================
 
-        binding.actPaymentType.setAdapter(
+    private fun setupPaymentTypeDropdown() {
+
+        val adapter =
             ArrayAdapter(
                 this,
                 android.R.layout
                     .simple_dropdown_item_1line,
-                typeLabels
+                paymentTypeLabels
             )
-        )
+
+        binding.actPaymentType
+            .setAdapter(
+                adapter
+            )
     }
+
+    // ============================================================
+    // ACTIONS
+    // ============================================================
 
     private fun setupActions() {
 
         binding.btnBack
             .setOnClickListener {
-                finish()
+
+                if (!isSubmitting) {
+                    finish()
+                }
             }
 
         binding.edtDueDate
             .setOnClickListener {
 
-                showDatePicker()
+                if (!isSubmitting) {
+                    showDatePicker()
+                }
             }
 
         binding.btnCreate
@@ -167,6 +192,10 @@ class LandlordCreatePaymentActivity :
                 createPayment()
             }
     }
+
+    // ============================================================
+    // DATE PICKER
+    // ============================================================
 
     private fun showDatePicker() {
 
@@ -183,12 +212,12 @@ class LandlordCreatePaymentActivity :
                 .build()
 
         picker.addOnPositiveButtonClickListener {
-                millis ->
+                selectedMillis ->
 
-            val date =
+            val selectedDate =
                 Instant
                     .ofEpochMilli(
-                        millis
+                        selectedMillis
                     )
                     .atZone(
                         ZoneOffset.UTC
@@ -196,15 +225,16 @@ class LandlordCreatePaymentActivity :
                     .toLocalDate()
 
             selectedDueDate =
-                date.toString()
+                selectedDate.toString()
 
-            binding.edtDueDate.setText(
-                date.format(
-                    DateTimeFormatter.ofPattern(
-                        "dd/MM/yyyy"
+            binding.edtDueDate
+                .setText(
+                    selectedDate.format(
+                        DateTimeFormatter.ofPattern(
+                            "dd/MM/yyyy"
+                        )
                     )
                 )
-            )
         }
 
         picker.show(
@@ -213,42 +243,22 @@ class LandlordCreatePaymentActivity :
         )
     }
 
+    // ============================================================
+    // CREATE PAYMENT
+    // ============================================================
+
     private fun createPayment() {
 
-        if (submitting) {
+        if (isSubmitting) {
             return
         }
 
-        binding.tilPaymentType.error =
-            null
+        clearErrors()
 
-        binding.tilAmount.error =
-            null
+        val paymentType =
+            getSelectedPaymentType()
 
-        val type =
-            when (
-                binding.actPaymentType.text
-                    ?.toString()
-                    ?.trim()
-            ) {
-
-                "Tiền cọc" ->
-                    "DEPOSIT"
-
-                "Tiền thuê" ->
-                    "RENT"
-
-                "Điện nước / Tiện ích" ->
-                    "UTILITY"
-
-                "Khoản khác" ->
-                    "OTHER"
-
-                else ->
-                    null
-            }
-
-        if (type == null) {
+        if (paymentType == null) {
 
             binding.tilPaymentType.error =
                 "Vui lòng chọn loại thanh toán."
@@ -256,31 +266,18 @@ class LandlordCreatePaymentActivity :
             return
         }
 
-        val rawAmount =
-            binding.edtAmount.text
-                ?.toString()
-                ?.trim()
-                .orEmpty()
-
         val amount =
-            runCatching {
+            getAmount()
 
-                BigDecimal(
-                    rawAmount
-                        .replace(
-                            ".",
-                            ""
-                        )
-                        .replace(
-                            ",",
-                            ""
-                        )
-                )
+        if (amount == null) {
 
-            }.getOrNull()
+            binding.tilAmount.error =
+                "Vui lòng nhập số tiền hợp lệ."
+
+            return
+        }
 
         if (
-            amount == null ||
             amount <= BigDecimal.ZERO
         ) {
 
@@ -298,6 +295,40 @@ class LandlordCreatePaymentActivity :
                     it.isNotBlank()
                 }
 
+        if (
+            note != null &&
+            note.length > 1000
+        ) {
+
+            binding.tilNote.error =
+                "Ghi chú tối đa 1000 ký tự."
+
+            return
+        }
+
+        sendCreatePayment(
+            paymentType =
+                paymentType,
+            amount =
+                amount,
+            dueDate =
+                selectedDueDate,
+            note =
+                note
+        )
+    }
+
+    // ============================================================
+    // SEND REQUEST
+    // ============================================================
+
+    private fun sendCreatePayment(
+        paymentType: String,
+        amount: BigDecimal,
+        dueDate: String?,
+        note: String?
+    ) {
+
         setLoading(
             true
         )
@@ -312,11 +343,11 @@ class LandlordCreatePaymentActivity :
                             contractId =
                                 contractId,
                             paymentType =
-                                type,
+                                paymentType,
                             amount =
                                 amount,
                             dueDate =
-                                selectedDueDate,
+                                dueDate,
                             note =
                                 note
                         )
@@ -393,26 +424,129 @@ class LandlordCreatePaymentActivity :
         }
     }
 
+    // ============================================================
+    // VALIDATION HELPERS
+    // ============================================================
+
+    private fun clearErrors() {
+
+        binding.tilPaymentType.error =
+            null
+
+        binding.tilAmount.error =
+            null
+
+        binding.tilDueDate.error =
+            null
+
+        binding.tilNote.error =
+            null
+    }
+
+    private fun getSelectedPaymentType():
+            String? {
+
+        val selected =
+            binding.actPaymentType.text
+                ?.toString()
+                ?.trim()
+                .orEmpty()
+
+        return when (selected) {
+
+            "Tiền cọc" ->
+                "DEPOSIT"
+
+            "Tiền thuê" ->
+                "RENT"
+
+            "Điện nước / Tiện ích" ->
+                "UTILITY"
+
+            "Khoản khác" ->
+                "OTHER"
+
+            else ->
+                null
+        }
+    }
+
+    private fun getAmount():
+            BigDecimal? {
+
+        val rawValue =
+            binding.edtAmount.text
+                ?.toString()
+                ?.trim()
+                .orEmpty()
+
+        if (rawValue.isBlank()) {
+            return null
+        }
+
+        return runCatching {
+
+            val normalized =
+                rawValue
+                    .replace(
+                        " ",
+                        ""
+                    )
+                    .replace(
+                        ",",
+                        ""
+                    )
+
+            BigDecimal(
+                normalized
+            )
+
+        }.getOrNull()
+    }
+
+    // ============================================================
+    // LOADING
+    // ============================================================
+
     private fun setLoading(
-        value: Boolean
+        loading: Boolean
     ) {
 
-        submitting =
-            value
+        isSubmitting =
+            loading
 
         binding.btnCreate.isEnabled =
-            !value
+            !loading
 
         binding.btnBack.isEnabled =
-            !value
+            !loading
+
+        binding.actPaymentType.isEnabled =
+            !loading
+
+        binding.edtAmount.isEnabled =
+            !loading
+
+        binding.edtDueDate.isEnabled =
+            !loading
+
+        binding.edtNote.isEnabled =
+            !loading
 
         binding.btnCreate.text =
-            if (value) {
+            if (loading) {
+
                 "Đang tạo..."
+
             } else {
+
                 "Tạo khoản thanh toán"
             }
     }
+
+    // ============================================================
+    // ROLE GUARD
+    // ============================================================
 
     override fun onStart() {
         super.onStart()

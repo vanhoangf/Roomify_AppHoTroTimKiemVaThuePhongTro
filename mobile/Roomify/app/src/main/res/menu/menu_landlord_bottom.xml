@@ -21,7 +21,7 @@
 
     <item
         android:id="@+id/navLandlordMessages"
-        android:enabled="false"
+        android:enabled="true"
         android:icon="@drawable/ic_nav_messages"
         android:title="Tin nhắn" />
 

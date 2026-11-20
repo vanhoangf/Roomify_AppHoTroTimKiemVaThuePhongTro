@@ -14,15 +14,17 @@ import com.roomify.app.data.local.TokenManager
 import com.roomify.app.databinding.ActivityLandlordHomeBinding
 import com.roomify.app.ui.common.LogoutHandler
 import com.roomify.app.ui.common.RoleSessionGuard
-import com.roomify.app.ui.landlord.property.LandlordPropertiesActivity
 import com.roomify.app.ui.landlord.appointment.LandlordViewingAppointmentsActivity
-import com.roomify.app.ui.landlord.rental.LandlordRentalRequestsActivity
 import com.roomify.app.ui.landlord.contract.LandlordContractsActivity
+import com.roomify.app.ui.landlord.message.LandlordConversationsActivity
+import com.roomify.app.ui.landlord.property.LandlordPropertiesActivity
+import com.roomify.app.ui.landlord.rental.LandlordRentalRequestsActivity
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
-class LandlordHomeActivity : AppCompatActivity() {
+class LandlordHomeActivity :
+    AppCompatActivity() {
 
     private lateinit var binding:
             ActivityLandlordHomeBinding
@@ -30,7 +32,9 @@ class LandlordHomeActivity : AppCompatActivity() {
     override fun onCreate(
         savedInstanceState: Bundle?
     ) {
-        super.onCreate(savedInstanceState)
+        super.onCreate(
+            savedInstanceState
+        )
 
         binding =
             ActivityLandlordHomeBinding.inflate(
@@ -79,17 +83,29 @@ class LandlordHomeActivity : AppCompatActivity() {
 
     private fun setupNavigation() {
 
-        binding.bottomNavigationLandlord.selectedItemId =
+        binding.bottomNavigationLandlord
+            .selectedItemId =
             R.id.navLandlordHome
 
         binding.bottomNavigationLandlord
             .setOnItemSelectedListener { item ->
 
-                when (item.itemId) {
+                when (
+                    item.itemId
+                ) {
+
+                    // ------------------------------------------------
+                    // HOME
+                    // ------------------------------------------------
 
                     R.id.navLandlordHome -> {
+
                         true
                     }
+
+                    // ------------------------------------------------
+                    // PROPERTIES
+                    // ------------------------------------------------
 
                     R.id.navLandlordProperties -> {
 
@@ -103,6 +119,10 @@ class LandlordHomeActivity : AppCompatActivity() {
                         false
                     }
 
+                    // ------------------------------------------------
+                    // RENTAL REQUESTS
+                    // ------------------------------------------------
+
                     R.id.navLandlordRequests -> {
 
                         startActivity(
@@ -115,7 +135,34 @@ class LandlordHomeActivity : AppCompatActivity() {
                         false
                     }
 
+                    // ------------------------------------------------
+                    // MESSAGES
+                    // ------------------------------------------------
+
+                    R.id.navLandlordMessages -> {
+
+                        startActivity(
+                            Intent(
+                                this,
+                                LandlordConversationsActivity::class.java
+                            )
+                        )
+
+                        false
+                    }
+
+                    // ------------------------------------------------
+                    // ACCOUNT
+                    // LL-3.10 chưa làm
+                    // ------------------------------------------------
+
+                    R.id.navLandlordAccount -> {
+
+                        false
+                    }
+
                     else -> {
+
                         false
                     }
                 }
@@ -123,10 +170,14 @@ class LandlordHomeActivity : AppCompatActivity() {
     }
 
     // ========================================================
-    // ACTIONS
+    // DASHBOARD ACTIONS
     // ========================================================
 
     private fun setupActions() {
+
+        // ----------------------------------------------------
+        // RENTAL REQUESTS
+        // ----------------------------------------------------
 
         binding.cardRentalRequests
             .setOnClickListener {
@@ -139,6 +190,10 @@ class LandlordHomeActivity : AppCompatActivity() {
                 )
             }
 
+        // ----------------------------------------------------
+        // CONTRACTS & PAYMENTS
+        // ----------------------------------------------------
+
         binding.cardContractsPayments
             .setOnClickListener {
 
@@ -150,15 +205,24 @@ class LandlordHomeActivity : AppCompatActivity() {
                 )
             }
 
+        // ----------------------------------------------------
+        // LOGOUT
+        // ----------------------------------------------------
+
         binding.btnLogout
             .setOnClickListener {
 
                 LogoutHandler.logout(
-                    activity = this,
+                    activity =
+                        this,
                     logoutButton =
                         binding.btnLogout
                 )
             }
+
+        // ----------------------------------------------------
+        // VIEWING APPOINTMENTS
+        // ----------------------------------------------------
 
         binding.cardAppointments
             .setOnClickListener {
@@ -173,7 +237,7 @@ class LandlordHomeActivity : AppCompatActivity() {
 
         // ----------------------------------------------------
         // PROPERTY MANAGEMENT
-        // Dashboard -> Khu trọ -> Property Detail
+        // Dashboard -> Khu trọ
         // ----------------------------------------------------
 
         binding.cardProperties
@@ -236,7 +300,9 @@ class LandlordHomeActivity : AppCompatActivity() {
                         }
 
                 binding.tvWelcome.text =
-                    if (fullName != null) {
+                    if (
+                        fullName != null
+                    ) {
 
                         "Xin chào, $fullName!"
 
@@ -269,8 +335,10 @@ class LandlordHomeActivity : AppCompatActivity() {
         super.onStart()
 
         RoleSessionGuard.verify(
-            activity = this,
-            expectedRole = "LANDLORD",
+            activity =
+                this,
+            expectedRole =
+                "LANDLORD",
             onNetworkError = { message ->
 
                 Toast.makeText(

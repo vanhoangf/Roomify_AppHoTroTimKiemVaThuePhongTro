@@ -120,6 +120,15 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".ui.landlord.message.LandlordConversationsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.landlord.message.LandlordChatActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- AUTH -->
         <activity
             android:name=".ui.auth.RegisterActivity"
