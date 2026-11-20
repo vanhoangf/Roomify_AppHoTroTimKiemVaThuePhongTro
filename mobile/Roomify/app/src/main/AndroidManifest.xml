@@ -85,6 +85,15 @@
             android:name=".ui.landlord.appointment.LandlordViewingAppointmentDetailActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ui.landlord.rental.LandlordRentalRequestsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.landlord.rental.LandlordRentalRequestDetailActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- AUTH -->
         <activity
             android:name=".ui.auth.RegisterActivity"

@@ -16,6 +16,7 @@ import com.roomify.app.ui.common.LogoutHandler
 import com.roomify.app.ui.common.RoleSessionGuard
 import com.roomify.app.ui.landlord.property.LandlordPropertiesActivity
 import com.roomify.app.ui.landlord.appointment.LandlordViewingAppointmentsActivity
+import com.roomify.app.ui.landlord.rental.LandlordRentalRequestsActivity
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -101,6 +102,18 @@ class LandlordHomeActivity : AppCompatActivity() {
                         false
                     }
 
+                    R.id.navLandlordRequests -> {
+
+                        startActivity(
+                            Intent(
+                                this,
+                                LandlordRentalRequestsActivity::class.java
+                            )
+                        )
+
+                        false
+                    }
+
                     else -> {
                         false
                     }
@@ -114,9 +127,16 @@ class LandlordHomeActivity : AppCompatActivity() {
 
     private fun setupActions() {
 
-        // ----------------------------------------------------
-        // LOGOUT
-        // ----------------------------------------------------
+        binding.cardRentalRequests
+            .setOnClickListener {
+
+                startActivity(
+                    Intent(
+                        this,
+                        LandlordRentalRequestsActivity::class.java
+                    )
+                )
+            }
 
         binding.btnLogout
             .setOnClickListener {
