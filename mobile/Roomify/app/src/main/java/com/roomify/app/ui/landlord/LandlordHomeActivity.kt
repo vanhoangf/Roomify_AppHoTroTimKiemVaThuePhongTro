@@ -19,6 +19,7 @@ import com.roomify.app.ui.landlord.contract.LandlordContractsActivity
 import com.roomify.app.ui.landlord.message.LandlordConversationsActivity
 import com.roomify.app.ui.landlord.property.LandlordPropertiesActivity
 import com.roomify.app.ui.landlord.rental.LandlordRentalRequestsActivity
+import com.roomify.app.ui.landlord.account.LandlordAccountActivity
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -157,6 +158,13 @@ class LandlordHomeActivity :
                     // ------------------------------------------------
 
                     R.id.navLandlordAccount -> {
+
+                        startActivity(
+                            Intent(
+                                this,
+                                LandlordAccountActivity::class.java
+                            )
+                        )
 
                         false
                     }

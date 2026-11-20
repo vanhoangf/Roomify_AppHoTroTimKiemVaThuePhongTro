@@ -129,6 +129,15 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".ui.landlord.account.LandlordAccountActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.landlord.account.LandlordEditProfileActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- AUTH -->
         <activity
             android:name=".ui.auth.RegisterActivity"
