@@ -17,6 +17,7 @@ import com.roomify.app.ui.common.RoleSessionGuard
 import com.roomify.app.ui.landlord.property.LandlordPropertiesActivity
 import com.roomify.app.ui.landlord.appointment.LandlordViewingAppointmentsActivity
 import com.roomify.app.ui.landlord.rental.LandlordRentalRequestsActivity
+import com.roomify.app.ui.landlord.contract.LandlordContractsActivity
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -134,6 +135,17 @@ class LandlordHomeActivity : AppCompatActivity() {
                     Intent(
                         this,
                         LandlordRentalRequestsActivity::class.java
+                    )
+                )
+            }
+
+        binding.cardContractsPayments
+            .setOnClickListener {
+
+                startActivity(
+                    Intent(
+                        this,
+                        LandlordContractsActivity::class.java
                     )
                 )
             }

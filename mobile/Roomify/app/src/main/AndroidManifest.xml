@@ -94,6 +94,19 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".ui.landlord.contract.LandlordContractsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.landlord.contract.LandlordContractDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.landlord.contract.LandlordCreateContractActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- AUTH -->
         <activity
             android:name=".ui.auth.RegisterActivity"

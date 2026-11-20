@@ -1,6 +1,7 @@
 package com.roomify.app.ui.landlord.rental
 
 import android.content.DialogInterface
+import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
 import android.view.Gravity
@@ -23,6 +24,7 @@ import com.roomify.app.data.remote.network.RetrofitClient
 import com.roomify.app.data.repository.LandlordRentalRequestRepository
 import com.roomify.app.databinding.ActivityLandlordRentalRequestDetailBinding
 import com.roomify.app.ui.common.RoleSessionGuard
+import com.roomify.app.ui.landlord.contract.LandlordCreateContractActivity
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -69,10 +71,9 @@ class LandlordRentalRequestDetailActivity :
         )
 
         binding =
-            ActivityLandlordRentalRequestDetailBinding
-                .inflate(
-                    layoutInflater
-                )
+            ActivityLandlordRentalRequestDetailBinding.inflate(
+                layoutInflater
+            )
 
         setContentView(
             binding.root
@@ -84,9 +85,7 @@ class LandlordRentalRequestDetailActivity :
                 0L
             )
 
-        if (
-            rentalRequestId <= 0L
-        ) {
+        if (rentalRequestId <= 0L) {
 
             Toast.makeText(
                 this,
@@ -177,6 +176,24 @@ class LandlordRentalRequestDetailActivity :
 
                 showRejectDialog()
             }
+
+        binding.btnCreateContract
+            .setOnClickListener {
+
+                startActivity(
+                    Intent(
+                        this,
+                        LandlordCreateContractActivity::class.java
+                    ).apply {
+
+                        putExtra(
+                            LandlordCreateContractActivity
+                                .EXTRA_RENTAL_REQUEST_ID,
+                            rentalRequestId
+                        )
+                    }
+                )
+            }
     }
 
     // ============================================================
@@ -207,9 +224,7 @@ class LandlordRentalRequestDetailActivity :
                         val request =
                             result.data
 
-                        if (
-                            request == null
-                        ) {
+                        if (request == null) {
 
                             showError(
                                 "Không nhận được dữ liệu yêu cầu thuê."
@@ -231,9 +246,7 @@ class LandlordRentalRequestDetailActivity :
                         )
                     }
 
-                    ApiResult.Loading -> {
-                        // Không cần xử lý thêm.
-                    }
+                    ApiResult.Loading -> Unit
                 }
 
             } catch (
@@ -259,27 +272,22 @@ class LandlordRentalRequestDetailActivity :
     // ============================================================
 
     private fun bindRequest(
-        request:
-        RentalRequestResponse
+        request: RentalRequestResponse
     ) {
 
-        binding.progressDetail
-            .isVisible =
+        binding.progressDetail.isVisible =
             false
 
-        binding.errorContainer
-            .isVisible =
+        binding.errorContainer.isVisible =
             false
 
-        binding.contentScroll
-            .isVisible =
+        binding.contentScroll.isVisible =
             true
 
         binding.tvStudentName.text =
-            request.studentName
-                .ifBlank {
-                    "Sinh viên"
-                }
+            request.studentName.ifBlank {
+                "Sinh viên"
+            }
 
         binding.tvStudentPhone.text =
             request.studentPhone
@@ -318,24 +326,19 @@ class LandlordRentalRequestDetailActivity :
                 }
                 ?: "Sinh viên không để lại lời nhắn."
 
-        binding.landlordResponseContainer
-            .isVisible =
-            !request.landlordNote
-                .isNullOrBlank()
+        binding.landlordResponseContainer.isVisible =
+            !request.landlordNote.isNullOrBlank()
 
         binding.tvLandlordNote.text =
             request.landlordNote
                 ?.trim()
                 .orEmpty()
 
-        binding.respondedContainer
-            .isVisible =
-            !request.respondedAt
-                .isNullOrBlank()
+        binding.respondedContainer.isVisible =
+            !request.respondedAt.isNullOrBlank()
 
         if (
-            !request.respondedAt
-                .isNullOrBlank()
+            !request.respondedAt.isNullOrBlank()
         ) {
 
             binding.tvRespondedAt.text =
@@ -410,24 +413,26 @@ class LandlordRentalRequestDetailActivity :
         )
     }
 
+    // ============================================================
+    // ACTION VISIBILITY
+    // ============================================================
+
     private fun bindActions(
         status: String
     ) {
 
-        val canProcess =
+        binding.actionContainer.isVisible =
+            status == "PENDING" ||
+                    status == "APPROVED"
+
+        binding.btnApprove.isVisible =
             status == "PENDING"
 
-        binding.actionContainer
-            .isVisible =
-            canProcess
+        binding.btnReject.isVisible =
+            status == "PENDING"
 
-        binding.btnApprove
-            .isVisible =
-            canProcess
-
-        binding.btnReject
-            .isVisible =
-            canProcess
+        binding.btnCreateContract.isVisible =
+            status == "APPROVED"
     }
 
     // ============================================================
@@ -510,9 +515,7 @@ class LandlordRentalRequestDetailActivity :
                         val data =
                             result.data
 
-                        if (
-                            data != null
-                        ) {
+                        if (data != null) {
 
                             bindRequest(
                                 data
@@ -532,9 +535,7 @@ class LandlordRentalRequestDetailActivity :
                         )
                     }
 
-                    ApiResult.Loading -> {
-                        // Không cần xử lý thêm.
-                    }
+                    ApiResult.Loading -> Unit
                 }
 
             } catch (
@@ -679,9 +680,7 @@ class LandlordRentalRequestDetailActivity :
                         val data =
                             result.data
 
-                        if (
-                            data != null
-                        ) {
+                        if (data != null) {
 
                             bindRequest(
                                 data
@@ -701,9 +700,7 @@ class LandlordRentalRequestDetailActivity :
                         )
                     }
 
-                    ApiResult.Loading -> {
-                        // Không cần xử lý thêm.
-                    }
+                    ApiResult.Loading -> Unit
                 }
 
             } catch (
@@ -809,10 +806,7 @@ class LandlordRentalRequestDetailActivity :
         value: String?
     ): String {
 
-        if (
-            value.isNullOrBlank()
-        ) {
-
+        if (value.isNullOrBlank()) {
             return "-"
         }
 
@@ -872,16 +866,13 @@ class LandlordRentalRequestDetailActivity :
 
     private fun showLoading() {
 
-        binding.progressDetail
-            .isVisible =
+        binding.progressDetail.isVisible =
             true
 
-        binding.contentScroll
-            .isVisible =
+        binding.contentScroll.isVisible =
             false
 
-        binding.errorContainer
-            .isVisible =
+        binding.errorContainer.isVisible =
             false
     }
 
@@ -889,16 +880,13 @@ class LandlordRentalRequestDetailActivity :
         message: String
     ) {
 
-        binding.progressDetail
-            .isVisible =
+        binding.progressDetail.isVisible =
             false
 
-        binding.contentScroll
-            .isVisible =
+        binding.contentScroll.isVisible =
             false
 
-        binding.errorContainer
-            .isVisible =
+        binding.errorContainer.isVisible =
             true
 
         binding.tvErrorMessage.text =
@@ -918,16 +906,8 @@ class LandlordRentalRequestDetailActivity :
         binding.btnReject.isEnabled =
             !loading
 
-        if (loading) {
-
-            binding.btnApprove.text =
-                "Đang xử lý..."
-
-        } else {
-
-            binding.btnApprove.text =
-                "Duyệt yêu cầu"
-        }
+        binding.btnCreateContract.isEnabled =
+            !loading
     }
 
     private fun showActionError(

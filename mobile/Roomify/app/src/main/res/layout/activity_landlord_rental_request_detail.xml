@@ -362,6 +362,16 @@
                     android:textAllCaps="false"
                     android:textColor="@color/status_error" />
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCreateContract"
+                    style="@style/Widget.Roomify.Button.Primary"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:layout_marginTop="10dp"
+                    android:text="Tạo hợp đồng"
+                    android:textAllCaps="false"
+                    android:visibility="gone" />
+
             </LinearLayout>
 
         </LinearLayout>
