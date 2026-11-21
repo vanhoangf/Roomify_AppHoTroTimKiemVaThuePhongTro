@@ -1,0 +1,963 @@
+﻿@model Roomify.Admin.Models.Payments.AdminPaymentsViewModel
+
+@{
+    ViewData["Title"] =
+        "Thanh toán";
+
+    var payments =
+        Model.Payments;
+
+
+    var startPage =
+        payments is null
+            ? 1
+            : Math.Max(
+                1,
+                payments.Page - 2);
+
+
+    var endPage =
+        payments is null
+            ? 1
+            : Math.Min(
+                payments.TotalPages,
+                payments.Page + 2);
+
+
+    string StatusText(string status)
+    {
+        return status.ToUpperInvariant()
+            switch
+        {
+            "PENDING" =>
+                "Chờ xử lý",
+
+            "PAID" =>
+                "Đã thanh toán",
+
+            "FAILED" =>
+                "Thất bại",
+
+            "CANCELLED" =>
+                "Đã hủy",
+
+            _ =>
+                status
+        };
+    }
+
+
+    string PaymentTypeText(string paymentType)
+    {
+        return paymentType.ToUpperInvariant()
+            switch
+        {
+            "DEPOSIT" =>
+                "Tiền cọc",
+
+            "RENT" =>
+                "Tiền thuê",
+
+            "UTILITY" =>
+                "Điện / nước / dịch vụ",
+
+            "OTHER" =>
+                "Khác",
+
+            _ =>
+                paymentType
+        };
+    }
+
+
+    string PaymentMethodText(string? method)
+    {
+        if (string.IsNullOrWhiteSpace(method))
+        {
+            return "Chưa thanh toán";
+        }
+
+
+        return method.ToUpperInvariant()
+            switch
+        {
+            "CASH" =>
+                "Tiền mặt",
+
+            "BANK_TRANSFER" =>
+                "Chuyển khoản",
+
+            "OTHER" =>
+                "Khác",
+
+            _ =>
+                method
+        };
+    }
+}
+
+
+@section Styles {
+
+    <link rel="stylesheet"
+          href="~/css/admin-payments.css"
+          asp-append-version="true" />
+
+}
+
+
+<div class="payments-page">
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <section class="payments-heading">
+
+        <div>
+
+            <div class="payments-breadcrumb">
+
+                Trang chủ
+
+                <span>›</span>
+
+                <strong>
+                    Thanh toán
+                </strong>
+
+            </div>
+
+
+            <h1>
+                Quản lý thanh toán
+            </h1>
+
+
+            <p>
+                Theo dõi các khoản thanh toán phát sinh từ hợp đồng thuê phòng.
+            </p>
+
+        </div>
+
+
+        <button type="button"
+                class="payments-export-button"
+                disabled
+                title="Backend chưa hỗ trợ xuất dữ liệu">
+
+            Xuất dữ liệu
+
+        </button>
+
+    </section>
+
+
+    <!-- =====================================================
+         STATUS TABS
+         ===================================================== -->
+
+    <nav class="payments-status-tabs">
+
+        <a asp-controller="Payments"
+           asp-action="Index"
+           asp-route-search="@Model.Search"
+           asp-route-paymentType="@Model.PaymentType"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(
+           string.IsNullOrWhiteSpace(Model.Status)
+               ? "active"
+               : "")">
+
+            Tất cả
+
+            @if (payments is not null)
+            {
+                <span class="payments-tab-count neutral">
+                    @payments.TotalPayments
+                </span>
+            }
+
+        </a>
+
+
+        <a asp-controller="Payments"
+           asp-action="Index"
+           asp-route-status="PENDING"
+           asp-route-search="@Model.Search"
+           asp-route-paymentType="@Model.PaymentType"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(Model.Status == "PENDING" ? "active pending" : "")">
+
+            Chờ xử lý
+
+            @if (payments is not null)
+            {
+                <span class="payments-tab-count pending">
+                    @payments.PendingPayments
+                </span>
+            }
+
+        </a>
+
+
+        <a asp-controller="Payments"
+           asp-action="Index"
+           asp-route-status="PAID"
+           asp-route-search="@Model.Search"
+           asp-route-paymentType="@Model.PaymentType"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(Model.Status == "PAID" ? "active paid" : "")">
+
+            Đã thanh toán
+
+            @if (payments is not null)
+            {
+                <span class="payments-tab-count paid">
+                    @payments.PaidPayments
+                </span>
+            }
+
+        </a>
+
+
+        <a asp-controller="Payments"
+           asp-action="Index"
+           asp-route-status="FAILED"
+           asp-route-search="@Model.Search"
+           asp-route-paymentType="@Model.PaymentType"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(Model.Status == "FAILED" ? "active failed" : "")">
+
+            Thất bại
+
+            @if (payments is not null)
+            {
+                <span class="payments-tab-count failed">
+                    @payments.FailedPayments
+                </span>
+            }
+
+        </a>
+
+
+        <a asp-controller="Payments"
+           asp-action="Index"
+           asp-route-status="CANCELLED"
+           asp-route-search="@Model.Search"
+           asp-route-paymentType="@Model.PaymentType"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(Model.Status == "CANCELLED" ? "active cancelled" : "")">
+
+            Đã hủy
+
+            @if (payments is not null)
+            {
+                <span class="payments-tab-count cancelled">
+                    @payments.CancelledPayments
+                </span>
+            }
+
+        </a>
+
+    </nav>
+
+
+    <!-- =====================================================
+         KPI
+         ===================================================== -->
+
+    <section class="payments-kpi-grid">
+
+        <article class="payments-kpi-card">
+
+            <span>
+                Tổng thanh toán
+            </span>
+
+            <strong>
+                @(payments?.TotalPayments
+                    .ToString("N0") ?? "—")
+            </strong>
+
+            <small>
+                Tất cả khoản thanh toán
+            </small>
+
+        </article>
+
+
+        <article class="payments-kpi-card">
+
+            <span>
+                Chờ xử lý
+            </span>
+
+            <strong class="orange">
+                @(payments?.PendingPayments
+                    .ToString("N0") ?? "—")
+            </strong>
+
+            <small>
+                Đang chờ chủ trọ xác nhận
+            </small>
+
+        </article>
+
+
+        <article class="payments-kpi-card">
+
+            <span>
+                Đã thanh toán
+            </span>
+
+            <strong class="green">
+                @(payments?.PaidPayments
+                    .ToString("N0") ?? "—")
+            </strong>
+
+            <small>
+                Thanh toán thành công
+            </small>
+
+        </article>
+
+
+        <article class="payments-kpi-card">
+
+            <span>
+                Thất bại
+            </span>
+
+            <strong class="red">
+                @(payments?.FailedPayments
+                    .ToString("N0") ?? "—")
+            </strong>
+
+            <small>
+                Thanh toán bị từ chối
+            </small>
+
+        </article>
+
+
+        <article class="payments-kpi-card">
+
+            <span>
+                Đã hủy
+            </span>
+
+            <strong class="gray">
+                @(payments?.CancelledPayments
+                    .ToString("N0") ?? "—")
+            </strong>
+
+            <small>
+                Khoản thanh toán đã hủy
+            </small>
+
+        </article>
+
+
+        <article class="payments-kpi-card revenue">
+
+            <span>
+                Tổng tiền đã thu
+            </span>
+
+            <strong class="blue">
+                @(payments is null
+                    ? "—"
+                    : $"{payments.TotalPaidAmount:N0} đ")
+            </strong>
+
+            <small>
+                Tổng giá trị các payment PAID
+            </small>
+
+        </article>
+
+    </section>
+
+
+    <!-- =====================================================
+         FILTER
+         ===================================================== -->
+
+    <section class="payments-filter-card">
+
+        <form asp-controller="Payments"
+              asp-action="Index"
+              method="get">
+
+            <div class="payments-filter-row">
+
+                <div class="payments-search">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="M10.5 4a6.5 6.5 0 1 0 4.1 11.5L20 20.9l1.4-1.4-5.4-5.4A6.5 6.5 0 0 0 10.5 4Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z" />
+                    </svg>
+
+
+                    <input type="text"
+                           name="search"
+                           value="@Model.Search"
+                           placeholder="Mã hợp đồng, mã giao dịch, sinh viên, chủ trọ, phòng..." />
+
+                </div>
+
+
+                <select name="status">
+
+                    <option value="">
+                        Tất cả trạng thái
+                    </option>
+
+                    <option value="PENDING"
+                            selected="@(Model.Status == "PENDING")">
+                        Chờ xử lý
+                    </option>
+
+                    <option value="PAID"
+                            selected="@(Model.Status == "PAID")">
+                        Đã thanh toán
+                    </option>
+
+                    <option value="FAILED"
+                            selected="@(Model.Status == "FAILED")">
+                        Thất bại
+                    </option>
+
+                    <option value="CANCELLED"
+                            selected="@(Model.Status == "CANCELLED")">
+                        Đã hủy
+                    </option>
+
+                </select>
+
+
+                <select name="paymentType">
+
+                    <option value="">
+                        Tất cả loại
+                    </option>
+
+                    <option value="DEPOSIT"
+                            selected="@(Model.PaymentType == "DEPOSIT")">
+                        Tiền cọc
+                    </option>
+
+                    <option value="RENT"
+                            selected="@(Model.PaymentType == "RENT")">
+                        Tiền thuê
+                    </option>
+
+                    <option value="UTILITY"
+                            selected="@(Model.PaymentType == "UTILITY")">
+                        Điện / nước / dịch vụ
+                    </option>
+
+                    <option value="OTHER"
+                            selected="@(Model.PaymentType == "OTHER")">
+                        Khác
+                    </option>
+
+                </select>
+
+
+                <input type="hidden"
+                       name="pageSize"
+                       value="@Model.PageSize" />
+
+
+                <button type="submit"
+                        class="payments-filter-button">
+
+                    Lọc
+
+                </button>
+
+
+                <a asp-controller="Payments"
+                   asp-action="Index"
+                   asp-route-pageSize="@Model.PageSize"
+                   class="payments-reset-button">
+
+                    Đặt lại
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- =====================================================
+         ERROR / EMPTY
+         ===================================================== -->
+    @if (Model.HasError)
+    {
+        <section class="payments-state">
+
+            <div class="payments-state-icon error">
+                !
+            </div>
+
+
+            <h2>
+                Không thể tải danh sách thanh toán
+            </h2>
+
+
+            <p>
+                @Model.ErrorMessage
+            </p>
+
+        </section>
+    }
+    else if (payments is null ||
+             payments.Items.Count == 0)
+    {
+        <section class="payments-state">
+
+            <div class="payments-state-icon">
+                ₫
+            </div>
+
+
+            <h2>
+                Không có thanh toán
+            </h2>
+
+
+            <p>
+                Không tìm thấy khoản thanh toán phù hợp với điều kiện hiện tại.
+            </p>
+
+        </section>
+    }
+    else
+    {
+        <!-- =================================================
+             TABLE
+             ================================================= -->
+
+        <section class="payments-table-card">
+
+            <div class="payments-table-wrapper">
+
+                <table class="payments-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Thanh toán
+                            </th>
+
+                            <th>
+                                Hợp đồng
+                            </th>
+
+                            <th>
+                                Sinh viên
+                            </th>
+
+                            <th>
+                                Loại
+                            </th>
+
+                            <th>
+                                Số tiền
+                            </th>
+
+                            <th>
+                                Phương thức
+                            </th>
+
+                            <th>
+                                Trạng thái
+                            </th>
+
+                            <th>
+                                Hạn thanh toán
+                            </th>
+
+                            <th>
+                                Thao tác
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @foreach (var payment in payments.Items)
+                        {
+                            <tr class="payment-row-@payment.Status.ToLowerInvariant()">
+
+                                <!-- PAYMENT -->
+
+                                <td>
+
+                                    <div class="payment-id-cell">
+
+                                        <strong>
+                                            #PM-@payment.PaymentId
+                                        </strong>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            payment.TransactionReference))
+                                        {
+                                            <span title="@payment.TransactionReference">
+                                                @payment.TransactionReference
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span>
+                                                Chưa có mã giao dịch
+                                            </span>
+                                        }
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- CONTRACT -->
+
+                                <td>
+
+                                    <div class="payment-contract-cell">
+
+                                        <strong>
+                                            @payment.ContractCode
+                                        </strong>
+
+                                        <span title="@payment.RoomTitle">
+                                            @payment.RoomTitle
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- STUDENT -->
+
+                                <td>
+
+                                    <div class="payment-person-cell">
+
+                                        <strong title="@payment.StudentName">
+                                            @payment.StudentName
+                                        </strong>
+
+                                        <span title="@payment.StudentEmail">
+                                            @payment.StudentEmail
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- TYPE -->
+
+                                <td>
+
+                                    <span class="
+                                        payment-type
+                                        payment-type-@payment.PaymentType.ToLowerInvariant()">
+
+                                        @PaymentTypeText(
+                                            payment.PaymentType)
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- AMOUNT -->
+
+                                <td>
+
+                                    <div class="payment-amount-cell">
+
+                                        <strong>
+                                            @payment.Amount.ToString("N0") đ
+                                        </strong>
+
+                                        <span>
+                                            @payment.PropertyName
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- METHOD -->
+
+                                <td>
+
+                                    <span class="payment-method">
+
+                                        @PaymentMethodText(
+                                            payment.PaymentMethod)
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- STATUS -->
+
+                                <td>
+
+                                    <span class="
+                                        payment-status
+                                        payment-status-@payment.Status.ToLowerInvariant()">
+
+                                        @StatusText(
+                                            payment.Status)
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- DUE DATE -->
+
+                                <td>
+
+                                    <div class="payment-date-cell">
+
+                                        @if (payment.DueDate.HasValue)
+                                        {
+                                            <strong>
+                                                @(payment.DueDate.Value
+                                                .ToString("dd/MM/yyyy"))
+                                            </strong>
+                                        }
+                                        else
+                                        {
+                                            <strong>
+                                                —
+                                            </strong>
+                                        }
+
+
+                                        <span>
+                                            Tạo:
+                                            @(payment.CreatedAt
+                                            .ToLocalTime()
+                                            .ToString("dd/MM/yyyy"))
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- ACTION -->
+
+                                <td class="payment-action-column">
+
+                                    <div class="dropdown">
+
+                                        <button type="button"
+                                                class="payment-action-button"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                                title="Thao tác">
+                                            ⋮
+                                        </button>
+
+                                        <div class="dropdown-menu dropdown-menu-end payment-action-menu">
+                                            <a asp-controller="Payments"
+                                               asp-action="Details"
+                                               asp-route-id="@payment.PaymentId"
+                                               asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")"
+                                               class="dropdown-item">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M12 5C7 5 3 8.1 1.5 12 3 15.9 7 19 12 19s9-3.1 10.5-7C21 8.1 17 5 12 5Zm0 12c-3.7 0-6.8-2.1-8.2-5C5.2 9.1 8.3 7 12 7s6.8 2.1 8.2 5c-1.4 2.9-4.5 5-8.2 5Zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" />
+                                                </svg>
+                                                Xem chi tiết
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+
+            <!-- =================================================
+                 FOOTER
+                 ================================================= -->
+
+            <div class="payments-table-footer">
+
+                <div class="payments-page-size">
+
+                    <span>
+                        Hiển thị
+                    </span>
+
+
+                    <form asp-controller="Payments"
+                          asp-action="Index"
+                          method="get">
+
+                        <input type="hidden"
+                               name="search"
+                               value="@Model.Search" />
+
+                        <input type="hidden"
+                               name="status"
+                               value="@Model.Status" />
+
+                        <input type="hidden"
+                               name="paymentType"
+                               value="@Model.PaymentType" />
+
+
+                        <select name="pageSize"
+                                onchange="this.form.submit()">
+
+                            <option value="10"
+                                    selected="@(Model.PageSize == 10)">
+                                10
+                            </option>
+
+                            <option value="20"
+                                    selected="@(Model.PageSize == 20)">
+                                20
+                            </option>
+
+                            <option value="50"
+                                    selected="@(Model.PageSize == 50)">
+                                50
+                            </option>
+
+                        </select>
+
+                    </form>
+
+
+                    <span>
+                        bản ghi
+                    </span>
+
+                </div>
+
+
+                @{
+                    var from =
+                        payments.TotalCount == 0
+                            ? 0
+                            : ((payments.Page - 1)
+                               * payments.PageSize) + 1;
+
+                    var to =
+                        Math.Min(
+                            payments.Page
+                            * payments.PageSize,
+                            payments.TotalCount);
+                }
+
+
+                <div class="payments-result-info">
+
+                    Hiển thị
+
+                    <strong>
+                        @from
+                    </strong>
+
+                    -
+
+                    <strong>
+                        @to
+                    </strong>
+
+                    trong
+
+                    <strong>
+                        @payments.TotalCount
+                    </strong>
+
+                    kết quả
+
+                </div>
+
+
+                @if (payments.TotalPages > 1)
+                {
+                    <nav class="payments-pagination">
+
+                        <a asp-controller="Payments"
+                           asp-action="Index"
+                           asp-route-search="@Model.Search"
+                           asp-route-status="@Model.Status"
+                           asp-route-paymentType="@Model.PaymentType"
+                           asp-route-page="@(payments.Page - 1)"
+                           asp-route-pageSize="@Model.PageSize"
+                           class="@(!payments.HasPreviousPage ? "disabled" : "")">
+
+                            ‹
+
+                        </a>
+
+
+                        @for (
+                            var pageNumber = startPage;
+                            pageNumber <= endPage;
+                            pageNumber++)
+                        {
+                            <a asp-controller="Payments"
+                               asp-action="Index"
+                               asp-route-search="@Model.Search"
+                               asp-route-status="@Model.Status"
+                               asp-route-paymentType="@Model.PaymentType"
+                               asp-route-page="@pageNumber"
+                               asp-route-pageSize="@Model.PageSize"
+                               class="@(pageNumber == payments.Page ? "active" : "")">
+
+                                @pageNumber
+
+                            </a>
+                        }
+
+
+                        <a asp-controller="Payments"
+                           asp-action="Index"
+                           asp-route-search="@Model.Search"
+                           asp-route-status="@Model.Status"
+                           asp-route-paymentType="@Model.PaymentType"
+                           asp-route-page="@(payments.Page + 1)"
+                           asp-route-pageSize="@Model.PageSize"
+                           class="@(!payments.HasNextPage ? "disabled" : "")">
+
+                            ›
+
+                        </a>
+
+                    </nav>
+                }
+
+            </div>
+
+        </section>
+    }
+
+</div>

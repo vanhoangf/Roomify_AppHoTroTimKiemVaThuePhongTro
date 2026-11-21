@@ -4,6 +4,7 @@ using Roomify.Admin.Services.Auth;
 using Roomify.Admin.Services.Catalog;
 using Roomify.Admin.Services.Contracts;
 using Roomify.Admin.Services.Dashboard;
+using Roomify.Admin.Services.Payments;
 using Roomify.Admin.Services.Reports;
 using Roomify.Admin.Services.Reviews;
 using Roomify.Admin.Services.Rooms;
@@ -109,6 +110,7 @@ builder.Services.AddScoped<IAdminReportApiService, AdminReportApiService>();
 builder.Services.AddScoped<IAdminReviewApiService, AdminReviewApiService>();
 builder.Services.AddScoped<IAdminCatalogApiService, AdminCatalogApiService>();
 builder.Services.AddScoped<IAdminContractApiService, AdminContractApiService>();
+builder.Services.AddScoped<IAdminPaymentApiService, AdminPaymentApiService>();
 // APP
 var app = builder.Build();
 
