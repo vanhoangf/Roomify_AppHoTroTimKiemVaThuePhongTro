@@ -111,7 +111,9 @@
 
 
         <!-- Reviews -->
-        <span class="admin-nav-link is-disabled">
+        <a asp-controller="Reviews"
+           asp-action="Index"
+           class="admin-nav-link @(currentController == "Reviews" ? "active" : "")">
 
             <svg viewBox="0 0 24 24"
                  aria-hidden="true">
@@ -119,7 +121,8 @@
             </svg>
 
             <span>Đánh giá</span>
-        </span>
+
+        </a>
 
 
         <!-- Catalog -->
