@@ -1,0 +1,1082 @@
+﻿@using System.Text.Json
+@model Roomify.Admin.Models.Statistics.AdminStatisticsViewModel
+
+@{
+    ViewData["Title"] =
+        "Thống kê";
+
+    var statistics =
+        Model.Statistics;
+
+
+    string RangeText()
+    {
+        return Model.Range switch
+        {
+            "7" =>
+                "7 ngày gần nhất",
+
+            "30" =>
+                "30 ngày gần nhất",
+
+            "90" =>
+                "90 ngày gần nhất",
+
+            "year" =>
+                "Năm nay",
+
+            "custom" =>
+                "Khoảng tùy chỉnh",
+
+            _ =>
+                "30 ngày gần nhất"
+        };
+    }
+}
+
+
+@section Styles {
+
+    <link rel="stylesheet"
+          href="~/css/admin-statistics.css"
+          asp-append-version="true" />
+
+}
+
+
+<div class="statistics-page">
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <section class="statistics-heading">
+
+        <div>
+
+            <div class="statistics-breadcrumb">
+
+                Trang chủ
+
+                <span>›</span>
+
+                <strong>
+                    Thống kê
+                </strong>
+
+            </div>
+
+
+            <h1>
+                Thống kê hệ thống
+            </h1>
+
+
+            <p>
+                Theo dõi tăng trưởng, hoạt động và doanh thu của Roomify.
+            </p>
+
+        </div>
+
+
+        @if (statistics is not null)
+        {
+            <div class="statistics-period-label">
+
+                <span>
+                    Khoảng dữ liệu
+                </span>
+
+                <strong>
+                    @statistics.FromDate.ToString("dd/MM/yyyy")
+                    -
+                    @statistics.ToDate.ToString("dd/MM/yyyy")
+                </strong>
+
+                <small>
+                    @statistics.PeriodDays ngày
+                </small>
+
+            </div>
+        }
+
+    </section>
+
+
+    <!-- =====================================================
+         RANGE FILTER
+         ===================================================== -->
+
+    <section class="statistics-range-card">
+
+        <div class="statistics-range-tabs">
+
+            <a asp-controller="Statistics"
+               asp-action="Index"
+               asp-route-range="7"
+               class="@(Model.Range == "7" ? "active" : "")">
+
+                7 ngày
+
+            </a>
+
+
+            <a asp-controller="Statistics"
+               asp-action="Index"
+               asp-route-range="30"
+               class="@(Model.Range == "30" ? "active" : "")">
+
+                30 ngày
+
+            </a>
+
+
+            <a asp-controller="Statistics"
+               asp-action="Index"
+               asp-route-range="90"
+               class="@(Model.Range == "90" ? "active" : "")">
+
+                90 ngày
+
+            </a>
+
+
+            <a asp-controller="Statistics"
+               asp-action="Index"
+               asp-route-range="year"
+               class="@(Model.Range == "year" ? "active" : "")">
+
+                Năm nay
+
+            </a>
+
+        </div>
+
+
+        <form asp-controller="Statistics"
+              asp-action="Index"
+              method="get"
+              class="statistics-custom-range">
+
+            <input type="hidden"
+                   name="range"
+                   value="custom" />
+
+
+            <div>
+
+                <label for="statisticsFromDate">
+                    Từ ngày
+                </label>
+
+                <input id="statisticsFromDate"
+                       type="date"
+                       name="fromDate"
+                       value="@(Model.CustomFromDate?.ToString("yyyy-MM-dd"))" />
+
+            </div>
+
+
+            <span>
+                →
+            </span>
+
+
+            <div>
+
+                <label for="statisticsToDate">
+                    Đến ngày
+                </label>
+
+                <input id="statisticsToDate"
+                       type="date"
+                       name="toDate"
+                       value="@(Model.CustomToDate?.ToString("yyyy-MM-dd"))" />
+
+            </div>
+
+
+            <button type="submit">
+                Áp dụng
+            </button>
+
+        </form>
+
+    </section>
+
+
+    @if (Model.HasError)
+    {
+        <!-- =================================================
+             ERROR
+             ================================================= -->
+
+        <section class="statistics-state">
+
+            <div class="statistics-state-icon">
+                !
+            </div>
+
+
+            <h2>
+                Không thể tải dữ liệu thống kê
+            </h2>
+
+
+            <p>
+                @Model.ErrorMessage
+            </p>
+
+
+            <a asp-controller="Statistics"
+               asp-action="Index"
+               asp-route-range="30">
+
+                Tải lại 30 ngày gần nhất
+
+            </a>
+
+        </section>
+    }
+    else if (statistics is not null)
+    {
+        <!-- =================================================
+             OVERVIEW KPI
+             ================================================= -->
+
+        <div class="statistics-section-heading">
+
+            <div>
+
+                <h2>
+                    Tổng quan hệ thống
+                </h2>
+
+                <p>
+                    Các chỉ số tổng trên toàn bộ hệ thống.
+                </p>
+
+            </div>
+
+
+            <span>
+                @RangeText()
+            </span>
+
+        </div>
+
+
+        <section class="statistics-overview-grid">
+
+            <article class="statistics-overview-card">
+
+                <div class="statistics-kpi-top">
+
+                    <span>
+                        Người dùng
+                    </span>
+
+                    <div class="statistics-icon blue">
+                        U
+                    </div>
+
+                </div>
+
+
+                <strong>
+                    @statistics.Overview.TotalUsers.ToString("N0")
+                </strong>
+
+
+                <small>
+                    Tổng tài khoản hệ thống
+                </small>
+
+            </article>
+
+
+            <article class="statistics-overview-card">
+
+                <div class="statistics-kpi-top">
+
+                    <span>
+                        Phòng trọ
+                    </span>
+
+                    <div class="statistics-icon purple">
+                        R
+                    </div>
+
+                </div>
+
+
+                <strong>
+                    @statistics.Overview.TotalRooms.ToString("N0")
+                </strong>
+
+
+                <small>
+                    Tổng phòng đã tạo
+                </small>
+
+            </article>
+
+
+            <article class="statistics-overview-card">
+
+                <div class="statistics-kpi-top">
+
+                    <span>
+                        Hợp đồng
+                    </span>
+
+                    <div class="statistics-icon cyan">
+                        #
+                    </div>
+
+                </div>
+
+
+                <strong>
+                    @statistics.Overview.TotalContracts.ToString("N0")
+                </strong>
+
+
+                <small>
+                    Tổng hợp đồng thuê
+                </small>
+
+            </article>
+
+
+            <article class="statistics-overview-card">
+
+                <div class="statistics-kpi-top">
+
+                    <span>
+                        Thanh toán
+                    </span>
+
+                    <div class="statistics-icon orange">
+                        ₫
+                    </div>
+
+                </div>
+
+
+                <strong>
+                    @statistics.Overview.TotalPayments.ToString("N0")
+                </strong>
+
+
+                <small>
+                    Tổng payment phát sinh
+                </small>
+
+            </article>
+
+
+            <article class="statistics-overview-card revenue">
+
+                <div class="statistics-kpi-top">
+
+                    <span>
+                        Tổng tiền đã thu
+                    </span>
+
+                    <div class="statistics-icon green">
+                        ₫
+                    </div>
+
+                </div>
+
+
+                <strong>
+                    @statistics.Overview.TotalPaidAmount.ToString("N0") đ
+                </strong>
+
+
+                <small>
+                    Toàn bộ payment PAID
+                </small>
+
+            </article>
+
+        </section>
+
+
+        <!-- =================================================
+             PERIOD PERFORMANCE
+             ================================================= -->
+
+        <div class="statistics-section-heading">
+
+            <div>
+
+                <h2>
+                    Hiệu quả trong khoảng thời gian
+                </h2>
+
+                <p>
+                    Các chỉ số chỉ tính trong khoảng đang được chọn.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <section class="statistics-period-grid">
+
+            <article>
+
+                <span>
+                    Doanh thu
+                </span>
+
+                <strong class="green">
+                    @statistics.Revenue.TotalPaidAmount.ToString("N0") đ
+                </strong>
+
+                <small>
+                    Doanh thu thực nhận trong kỳ
+                </small>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    Thanh toán thành công
+                </span>
+
+                <strong>
+                    @statistics.Revenue.PaidPayments.ToString("N0")
+                </strong>
+
+                <small>
+                    Số payment PAID trong kỳ
+                </small>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    Giá trị trung bình
+                </span>
+
+                <strong class="blue">
+                    @statistics.Revenue.AveragePaymentAmount.ToString("N0") đ
+                </strong>
+
+                <small>
+                    Trung bình mỗi payment PAID
+                </small>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    Người dùng mới
+                </span>
+
+                <strong>
+                    @statistics.Users.NewUsersInPeriod.ToString("N0")
+                </strong>
+
+                <small>
+                    Tài khoản được tạo trong kỳ
+                </small>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    Hợp đồng mới
+                </span>
+
+                <strong>
+                    @statistics.Contracts.CreatedInPeriod.ToString("N0")
+                </strong>
+
+                <small>
+                    Hợp đồng được tạo trong kỳ
+                </small>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    Phòng mới
+                </span>
+
+                <strong>
+                    @statistics.Rooms.CreatedInPeriod.ToString("N0")
+                </strong>
+
+                <small>
+                    Phòng được tạo trong kỳ
+                </small>
+
+            </article>
+
+        </section>
+
+
+        <!-- =================================================
+             STATUS BREAKDOWN
+             ================================================= -->
+
+        <div class="statistics-breakdown-grid">
+
+            <!-- CONTRACTS -->
+
+            <section class="statistics-breakdown-card">
+
+                <div class="statistics-card-heading">
+
+                    <div>
+
+                        <h2>
+                            Hợp đồng
+                        </h2>
+
+                        <p>
+                            Phân bố trạng thái hiện tại
+                        </p>
+
+                    </div>
+
+
+                    <strong>
+                        @statistics.Contracts.TotalContracts.ToString("N0")
+                    </strong>
+
+                </div>
+
+
+                <div class="statistics-status-list">
+
+                    <div>
+
+                        <span class="statistics-dot orange">
+                        </span>
+
+                        <span>
+                            Chờ xác nhận
+                        </span>
+
+                        <strong>
+                            @statistics.Contracts.PendingContracts
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="statistics-dot blue">
+                        </span>
+
+                        <span>
+                            Đang hiệu lực
+                        </span>
+
+                        <strong>
+                            @statistics.Contracts.ActiveContracts
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="statistics-dot green">
+                        </span>
+
+                        <span>
+                            Hoàn thành
+                        </span>
+
+                        <strong>
+                            @statistics.Contracts.CompletedContracts
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="statistics-dot red">
+                        </span>
+
+                        <span>
+                            Đã hủy
+                        </span>
+
+                        <strong>
+                            @statistics.Contracts.CancelledContracts
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- USERS -->
+
+            <section class="statistics-breakdown-card">
+
+                <div class="statistics-card-heading">
+
+                    <div>
+
+                        <h2>
+                            Người dùng
+                        </h2>
+
+                        <p>
+                            Thành phần tài khoản
+                        </p>
+
+                    </div>
+
+
+                    <strong>
+                        @statistics.Users.TotalUsers.ToString("N0")
+                    </strong>
+
+                </div>
+
+
+                <div class="statistics-status-list">
+
+                    <div>
+
+                        <span class="statistics-dot blue">
+                        </span>
+
+                        <span>
+                            Sinh viên
+                        </span>
+
+                        <strong>
+                            @statistics.Users.Students
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="statistics-dot purple">
+                        </span>
+
+                        <span>
+                            Chủ trọ
+                        </span>
+
+                        <strong>
+                            @statistics.Users.Landlords
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="statistics-dot green">
+                        </span>
+
+                        <span>
+                            Người dùng mới trong kỳ
+                        </span>
+
+                        <strong>
+                            @statistics.Users.NewUsersInPeriod
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ROOMS -->
+
+            <section class="statistics-breakdown-card">
+
+                <div class="statistics-card-heading">
+
+                    <div>
+
+                        <h2>
+                            Phòng trọ
+                        </h2>
+
+                        <p>
+                            Phân bố trạng thái tin đăng
+                        </p>
+
+                    </div>
+
+
+                    <strong>
+                        @statistics.Rooms.TotalRooms.ToString("N0")
+                    </strong>
+
+                </div>
+
+
+                <div class="statistics-status-list">
+
+                    <div>
+
+                        <span class="statistics-dot orange">
+                        </span>
+
+                        <span>
+                            Chờ duyệt
+                        </span>
+
+                        <strong>
+                            @statistics.Rooms.PendingRooms
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="statistics-dot green">
+                        </span>
+
+                        <span>
+                            Đã đăng
+                        </span>
+
+                        <strong>
+                            @statistics.Rooms.PublishedRooms
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="statistics-dot red">
+                        </span>
+
+                        <span>
+                            Từ chối
+                        </span>
+
+                        <strong>
+                            @statistics.Rooms.RejectedRooms
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="statistics-dot blue">
+                        </span>
+
+                        <span>
+                            Phòng mới trong kỳ
+                        </span>
+
+                        <strong>
+                            @statistics.Rooms.CreatedInPeriod
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+
+        <!-- =================================================
+     CHARTS
+     ================================================= -->
+
+        <div class="statistics-section-heading statistics-chart-section-heading">
+
+            <div>
+
+                <h2>
+                    Biểu đồ xu hướng
+                </h2>
+
+                <p>
+                    Phân tích dữ liệu theo từng ngày trong khoảng thời gian đang chọn.
+                </p>
+
+            </div>
+
+
+            <span>
+                @statistics.PeriodDays ngày
+            </span>
+
+        </div>
+
+
+        <section class="statistics-charts-grid">
+
+            <!-- REVENUE -->
+
+            <article class="statistics-chart-card revenue-chart-card">
+
+                <div class="statistics-chart-heading">
+
+                    <div>
+
+                        <span class="statistics-chart-label">
+                            Doanh thu
+                        </span>
+
+                        <h3>
+                            Doanh thu theo ngày
+                        </h3>
+
+                        <p>
+                            Tổng giá trị payment PAID theo ngày xác nhận.
+                        </p>
+
+                    </div>
+
+
+                    <div class="statistics-chart-summary green">
+
+                        <span>
+                            Trong kỳ
+                        </span>
+
+                        <strong>
+                            @statistics.Revenue.TotalPaidAmount.ToString("N0") đ
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="statistics-chart-container statistics-chart-container-large">
+
+                    <canvas id="statisticsRevenueChart">
+                    </canvas>
+
+                </div>
+
+            </article>
+
+
+            <!-- CONTRACTS -->
+
+            <article class="statistics-chart-card">
+
+                <div class="statistics-chart-heading">
+
+                    <div>
+
+                        <span class="statistics-chart-label">
+                            Hợp đồng
+                        </span>
+
+                        <h3>
+                            Hợp đồng mới theo ngày
+                        </h3>
+
+                        <p>
+                            Số hợp đồng được tạo mới trong từng ngày.
+                        </p>
+
+                    </div>
+
+
+                    <div class="statistics-chart-summary blue">
+
+                        <span>
+                            Trong kỳ
+                        </span>
+
+                        <strong>
+                            @statistics.Contracts.CreatedInPeriod
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="statistics-chart-container">
+
+                    <canvas id="statisticsContractsChart">
+                    </canvas>
+
+                </div>
+
+            </article>
+
+
+            <!-- USERS -->
+
+            <article class="statistics-chart-card">
+
+                <div class="statistics-chart-heading">
+
+                    <div>
+
+                        <span class="statistics-chart-label">
+                            Người dùng
+                        </span>
+
+                        <h3>
+                            Người dùng mới theo ngày
+                        </h3>
+
+                        <p>
+                            Số tài khoản mới được đăng ký trên Roomify.
+                        </p>
+
+                    </div>
+
+
+                    <div class="statistics-chart-summary purple">
+
+                        <span>
+                            Trong kỳ
+                        </span>
+
+                        <strong>
+                            @statistics.Users.NewUsersInPeriod
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="statistics-chart-container">
+
+                    <canvas id="statisticsUsersChart">
+                    </canvas>
+
+                </div>
+
+            </article>
+
+
+            <!-- ROOMS -->
+
+            <article class="statistics-chart-card">
+
+                <div class="statistics-chart-heading">
+
+                    <div>
+
+                        <span class="statistics-chart-label">
+                            Phòng trọ
+                        </span>
+
+                        <h3>
+                            Phòng mới theo ngày
+                        </h3>
+
+                        <p>
+                            Số phòng được tạo mới trong từng ngày.
+                        </p>
+
+                    </div>
+
+
+                    <div class="statistics-chart-summary cyan">
+
+                        <span>
+                            Trong kỳ
+                        </span>
+
+                        <strong>
+                            @statistics.Rooms.CreatedInPeriod
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="statistics-chart-container">
+
+                    <canvas id="statisticsRoomsChart">
+                    </canvas>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+        <!-- =================================================
+     CHART DATA
+     ================================================= -->
+
+        <script id="statisticsRevenueData"
+                type="application/json">
+            @Html.Raw(
+                    JsonSerializer.Serialize(
+                            statistics.Revenue.RevenueByDate))
+        </script>
+
+
+        <script id="statisticsContractsData"
+                type="application/json">
+            @Html.Raw(
+                    JsonSerializer.Serialize(
+                            statistics.Contracts.ContractsByDate))
+        </script>
+
+
+        <script id="statisticsUsersData"
+                type="application/json">
+            @Html.Raw(
+                    JsonSerializer.Serialize(
+                            statistics.Users.NewUsersByDate))
+        </script>
+
+
+        <script id="statisticsRoomsData"
+                type="application/json">
+            @Html.Raw(
+                    JsonSerializer.Serialize(
+                            statistics.Rooms.RoomsByDate))
+        </script>
+    }
+</div>
+@section Scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.min.js">
+    </script>
+
+    <script src="~/js/admin-statistics.js"
+            asp-append-version="true">
+    </script>
+
+}

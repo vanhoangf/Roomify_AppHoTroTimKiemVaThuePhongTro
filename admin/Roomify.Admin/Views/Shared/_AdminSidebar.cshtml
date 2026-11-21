@@ -162,15 +162,15 @@
 
 
         <!-- Statistics -->
-        <span class="admin-nav-link is-disabled">
-
+        <a asp-controller="Statistics"
+           asp-action="Index"
+           class="admin-nav-link @(currentController == "Statistics" ? "active" : "")">
             <svg viewBox="0 0 24 24"
                  aria-hidden="true">
                 <path d="M4 19h3V9H4v10Zm5 0h3V5H9v14Zm5 0h3v-7h-3v7Zm5 0h3V2h-3v17Z" />
             </svg>
-
             <span>Thống kê</span>
-        </span>
+        </a>
 
     </nav>
 
