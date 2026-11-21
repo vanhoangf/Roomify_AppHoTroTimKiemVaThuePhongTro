@@ -126,15 +126,15 @@
 
 
         <!-- Catalog -->
-        <span class="admin-nav-link is-disabled">
-
+        <a asp-controller="Catalog"
+           asp-action="Index"
+           class="admin-nav-link @(currentController == "Catalog" ? "active" : "")">
             <svg viewBox="0 0 24 24"
                  aria-hidden="true">
                 <path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z" />
             </svg>
-
             <span>Danh mục</span>
-        </span>
+        </a>
 
 
         <!-- Contracts -->
