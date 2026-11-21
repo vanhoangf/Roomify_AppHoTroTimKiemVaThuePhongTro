@@ -1,6 +1,8 @@
 package com.roomify.app.data.remote.api
 
+import com.roomify.app.data.remote.dto.users.LandlordProfileResponse
 import com.roomify.app.data.remote.dto.users.StudentProfileResponse
+import com.roomify.app.data.remote.dto.users.UpdateLandlordProfileRequest
 import com.roomify.app.data.remote.dto.users.UpdateStudentProfileRequest
 import com.roomify.app.data.remote.dto.users.UpdateUserRequest
 import com.roomify.app.data.remote.dto.users.UserMeResponse
@@ -18,11 +20,19 @@ interface UserApi {
 
     @PUT("api/users/me")
     suspend fun updateMe(
-        @Body request: UpdateUserRequest
+        @Body
+        request: UpdateUserRequest
     ): Response<UserMeResponse>
 
     @PUT("api/users/me/student-profile")
     suspend fun updateStudentProfile(
-        @Body request: UpdateStudentProfileRequest
+        @Body
+        request: UpdateStudentProfileRequest
     ): Response<StudentProfileResponse>
+
+    @PUT("api/users/me/landlord-profile")
+    suspend fun updateLandlordProfile(
+        @Body
+        request: UpdateLandlordProfileRequest
+    ): Response<LandlordProfileResponse>
 }

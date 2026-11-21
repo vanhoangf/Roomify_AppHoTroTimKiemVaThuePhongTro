@@ -3,7 +3,9 @@ package com.roomify.app.data.repository
 import com.roomify.app.data.remote.api.UserApi
 import com.roomify.app.data.remote.common.ApiResult
 import com.roomify.app.data.remote.common.safeApiCall
+import com.roomify.app.data.remote.dto.users.LandlordProfileResponse
 import com.roomify.app.data.remote.dto.users.StudentProfileResponse
+import com.roomify.app.data.remote.dto.users.UpdateLandlordProfileRequest
 import com.roomify.app.data.remote.dto.users.UpdateStudentProfileRequest
 import com.roomify.app.data.remote.dto.users.UpdateUserRequest
 import com.roomify.app.data.remote.dto.users.UserMeResponse
@@ -25,7 +27,9 @@ class UserRepository(
     ): ApiResult<UserMeResponse> {
 
         return safeApiCall {
-            api.updateMe(request)
+            api.updateMe(
+                request
+            )
         }
     }
 
@@ -34,7 +38,20 @@ class UserRepository(
     ): ApiResult<StudentProfileResponse> {
 
         return safeApiCall {
-            api.updateStudentProfile(request)
+            api.updateStudentProfile(
+                request
+            )
+        }
+    }
+
+    suspend fun updateLandlordProfile(
+        request: UpdateLandlordProfileRequest
+    ): ApiResult<LandlordProfileResponse> {
+
+        return safeApiCall {
+            api.updateLandlordProfile(
+                request
+            )
         }
     }
 }

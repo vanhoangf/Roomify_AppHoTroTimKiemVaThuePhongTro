@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/messageRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
+
+    <TextView
+        android:id="@+id/tvMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxWidth="292dp"
+        android:paddingStart="15dp"
+        android:paddingTop="11dp"
+        android:paddingEnd="15dp"
+        android:paddingBottom="11dp"
+        android:text="Tin nhắn"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/tvTime"
+        style="@style/TextAppearance.Roomify.Caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="20:15"
+        android:textColor="@color/text_muted" />
+
+</LinearLayout>

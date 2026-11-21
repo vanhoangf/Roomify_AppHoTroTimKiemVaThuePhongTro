@@ -51,6 +51,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+
+        isCoreLibraryDesugaringEnabled = true
     }
 }
 
@@ -128,4 +130,7 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.4.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
+    coreLibraryDesugaring(
+        "com.android.tools:desugar_jdk_libs:2.1.5"
+    )
 }

@@ -38,7 +38,10 @@ data class UserMeResponse(
     val updatedAt: String,
 
     @SerializedName("studentProfile")
-    val studentProfile: StudentProfileResponse?
+    val studentProfile: StudentProfileResponse? = null,
+
+    @SerializedName("landlordProfile")
+    val landlordProfile: LandlordProfileResponse? = null
 )
 
 data class StudentProfileResponse(
@@ -65,6 +68,24 @@ data class StudentProfileResponse(
     val verifiedAt: String?
 )
 
+data class LandlordProfileResponse(
+
+    @SerializedName("landlordId")
+    val landlordId: Long,
+
+    @SerializedName("identityNumber")
+    val identityNumber: String?,
+
+    @SerializedName("identityDocumentUrl")
+    val identityDocumentUrl: String?,
+
+    @SerializedName("isVerified")
+    val isVerified: Boolean,
+
+    @SerializedName("verifiedAt")
+    val verifiedAt: String?
+)
+
 data class UpdateUserRequest(
 
     @SerializedName("fullName")
@@ -81,4 +102,10 @@ data class UpdateStudentProfileRequest(
 
     @SerializedName("studentCode")
     val studentCode: String?
+)
+
+data class UpdateLandlordProfileRequest(
+
+    @SerializedName("identityNumber")
+    val identityNumber: String?
 )
