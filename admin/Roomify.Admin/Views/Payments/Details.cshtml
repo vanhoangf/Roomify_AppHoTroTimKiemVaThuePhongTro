@@ -1,0 +1,1188 @@
+﻿@model Roomify.Admin.Models.Payments.AdminPaymentDetailViewModel
+
+@{
+    ViewData["Title"] =
+        "Chi tiết thanh toán";
+
+    var payment =
+        Model.Payment;
+
+
+    string StatusText(string status)
+    {
+        return status.ToUpperInvariant()
+            switch
+        {
+            "PENDING" =>
+                "Chờ xử lý",
+
+            "PAID" =>
+                "Đã thanh toán",
+
+            "FAILED" =>
+                "Thất bại",
+
+            "CANCELLED" =>
+                "Đã hủy",
+
+            _ =>
+                status
+        };
+    }
+
+
+    string PaymentTypeText(string type)
+    {
+        return type.ToUpperInvariant()
+            switch
+        {
+            "DEPOSIT" =>
+                "Tiền cọc",
+
+            "RENT" =>
+                "Tiền thuê",
+
+            "UTILITY" =>
+                "Điện / nước / dịch vụ",
+
+            "OTHER" =>
+                "Khác",
+
+            _ =>
+                type
+        };
+    }
+
+
+    string PaymentMethodText(string? method)
+    {
+        if (string.IsNullOrWhiteSpace(method))
+        {
+            return "Chưa có";
+        }
+
+
+        return method.ToUpperInvariant()
+            switch
+        {
+            "CASH" =>
+                "Tiền mặt",
+
+            "BANK_TRANSFER" =>
+                "Chuyển khoản ngân hàng",
+
+            "OTHER" =>
+                "Khác",
+
+            _ =>
+                method
+        };
+    }
+}
+
+
+@section Styles {
+
+    <link rel="stylesheet"
+          href="~/css/admin-payment-detail.css"
+          asp-append-version="true" />
+
+}
+
+
+<div class="payment-detail-page">
+
+    @if (Model.HasError ||
+         payment is null)
+    {
+        <section class="payment-detail-error">
+
+            <div class="payment-detail-error-icon">
+                !
+            </div>
+
+
+            <h1>
+                Không thể tải thanh toán
+            </h1>
+
+
+            <p>
+                @Model.ErrorMessage
+            </p>
+
+
+            <a href="@(Model.ReturnUrl ?? Url.Action("Index", "Payments"))"
+               class="payment-detail-primary-link">
+
+                Quay lại danh sách
+
+            </a>
+
+        </section>
+    }
+    else
+    {
+        <!-- =====================================================
+         BREADCRUMB
+         ===================================================== -->
+
+        <div class="payment-detail-breadcrumb">
+
+            <a asp-controller="Dashboard"
+               asp-action="Index">
+                Trang chủ
+            </a>
+
+            <span>›</span>
+
+            <a href="@(Model.ReturnUrl ?? Url.Action("Index", "Payments"))">
+                Thanh toán
+            </a>
+
+            <span>›</span>
+
+            <strong>
+                #PM-@payment.PaymentId
+            </strong>
+
+        </div>
+
+
+        <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+        <section class="payment-detail-heading">
+
+            <div>
+
+                <h1>
+                    Chi tiết thanh toán
+                </h1>
+
+                <p>
+                    Theo dõi thông tin giao dịch và minh chứng thanh toán.
+                </p>
+
+            </div>
+
+
+            <a href="@(Model.ReturnUrl ?? Url.Action("Index", "Payments"))"
+               class="payment-detail-back">
+
+                <svg viewBox="0 0 24 24">
+                    <path d="m15 18-6-6 6-6 1.4 1.4L11.8 12l4.6 4.6L15 18Z" />
+                </svg>
+
+                Quay lại danh sách
+
+            </a>
+
+        </section>
+
+
+        <!-- =====================================================
+         SUMMARY
+         ===================================================== -->
+
+        <section class="payment-summary-card">
+
+            <div class="payment-summary-icon">
+                ₫
+            </div>
+
+
+            <div class="payment-summary-main">
+
+                <div class="payment-summary-top">
+
+                    <span class="payment-summary-id">
+                        #PM-@payment.PaymentId
+                    </span>
+
+
+                    <span class="
+                        detail-payment-status
+                        detail-payment-status-@payment.Status.ToLowerInvariant()">
+
+                        @StatusText(
+                            payment.Status)
+
+                    </span>
+
+
+                    <span class="detail-payment-type">
+
+                        @PaymentTypeText(
+                            payment.PaymentType)
+
+                    </span>
+
+                </div>
+
+
+                <h2>
+                    @payment.Amount.ToString("N0") đ
+                </h2>
+
+
+                <div class="payment-summary-meta">
+
+                    <span>
+                        Hợp đồng:
+                        <strong>
+                            @payment.ContractCode
+                        </strong>
+                    </span>
+
+
+                    <span>
+                        Sinh viên:
+                        <strong>
+                            @payment.StudentName
+                        </strong>
+                    </span>
+
+
+                    <span>
+                        Phòng:
+                        <strong>
+                            @payment.RoomTitle
+                        </strong>
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <div class="payment-detail-grid">
+
+            <!-- =================================================
+             MAIN
+             ================================================= -->
+
+            <main class="payment-detail-main">
+
+                <!-- PAYMENT INFO -->
+
+                <section class="payment-detail-card">
+
+                    <div class="payment-card-heading">
+
+                        <div class="payment-card-icon blue">
+                            ₫
+                        </div>
+
+
+                        <div>
+
+                            <h2>
+                                Thông tin thanh toán
+                            </h2>
+
+                            <p>
+                                Chi tiết khoản thanh toán
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="payment-info-grid">
+
+                        <div>
+                            <span>Payment ID</span>
+
+                            <strong>
+                                #@payment.PaymentId
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <span>Loại thanh toán</span>
+
+                            <strong>
+                                @PaymentTypeText(
+                                    payment.PaymentType)
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <span>Số tiền</span>
+
+                            <strong class="money">
+                                @payment.Amount.ToString("N0") đ
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <span>Trạng thái</span>
+
+                            <strong>
+                                @StatusText(
+                                    payment.Status)
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <span>Hạn thanh toán</span>
+
+                            <strong>
+                                @(payment.DueDate.HasValue
+                                    ? payment.DueDate.Value
+                                        .ToString("dd/MM/yyyy")
+                                    : "Không xác định")
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <span>Phương thức</span>
+
+                            <strong>
+                                @PaymentMethodText(
+                                    payment.PaymentMethod)
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- TRANSACTION -->
+
+                <section class="payment-detail-card">
+
+                    <div class="payment-card-heading">
+
+                        <div class="payment-card-icon green">
+                            ✓
+                        </div>
+
+
+                        <div>
+
+                            <h2>
+                                Thông tin giao dịch
+                            </h2>
+
+                            <p>
+                                Dữ liệu được sinh viên cung cấp khi thanh toán
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="payment-transaction-list">
+
+                        <div>
+
+                            <span>
+                                Mã giao dịch
+                            </span>
+
+
+                            <strong>
+                                @(string.IsNullOrWhiteSpace(
+                                    payment.TransactionReference)
+                                    ? "Chưa có"
+                                    : payment.TransactionReference)
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Phương thức thanh toán
+                            </span>
+
+
+                            <strong>
+                                @PaymentMethodText(
+                                    payment.PaymentMethod)
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Thời gian thanh toán
+                            </span>
+
+
+                            <strong>
+                                @(payment.PaidAt.HasValue
+                                    ? payment.PaidAt.Value
+                                        .ToLocalTime()
+                                        .ToString("dd/MM/yyyy HH:mm")
+                                    : "Chưa xác nhận thanh toán")
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- PROOF -->
+
+                <section class="payment-detail-card">
+
+                    <div class="payment-card-heading">
+
+                        <div class="payment-card-icon purple">
+                            ▣
+                        </div>
+
+
+                        <div>
+
+                            <h2>
+                                Minh chứng thanh toán
+                            </h2>
+
+                            <p>
+                                Hình ảnh được sinh viên gửi lên
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    @if (string.IsNullOrWhiteSpace(
+                        payment.ProofImageUrl))
+                    {
+                        <div class="payment-proof-empty">
+
+                            <div>
+                                ▣
+                            </div>
+
+
+                            <strong>
+                                Chưa có minh chứng
+                            </strong>
+
+
+                            <span>
+                                Sinh viên chưa cung cấp hình ảnh thanh toán.
+                            </span>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="payment-proof">
+
+                            <a href="@payment.ProofImageUrl"
+                               target="_blank"
+                               rel="noopener noreferrer">
+
+                                <img src="@payment.ProofImageUrl"
+                                     alt="Minh chứng thanh toán #PM-@payment.PaymentId" />
+
+                            </a>
+
+
+                            <div class="payment-proof-footer">
+
+                                <div>
+
+                                    <strong>
+                                        Minh chứng thanh toán
+                                    </strong>
+
+                                    <span>
+                                        Nhấn vào ảnh để xem kích thước đầy đủ
+                                    </span>
+
+                                </div>
+
+
+                                <a href="@payment.ProofImageUrl"
+                                   target="_blank"
+                                   rel="noopener noreferrer">
+
+                                    Mở ảnh
+
+                                    <span>
+                                        ↗
+                                    </span>
+
+                                </a>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </section>
+
+
+                <!-- NOTE -->
+
+                <section class="payment-detail-card">
+
+                    <div class="payment-card-heading">
+
+                        <div class="payment-card-icon orange">
+                            ≡
+                        </div>
+
+
+                        <div>
+
+                            <h2>
+                                Ghi chú
+                            </h2>
+
+                            <p>
+                                Nội dung bổ sung của khoản thanh toán
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="
+                        payment-note
+                        @(Model.IsFailed ? "failed" : "")">
+
+                        @if (string.IsNullOrWhiteSpace(
+                            payment.Note))
+                        {
+                            <p class="empty">
+                                Không có ghi chú.
+                            </p>
+                        }
+                        else
+                        {
+                            <p>
+                                @payment.Note
+                            </p>
+                        }
+
+                    </div>
+
+                </section>
+
+
+                <!-- CONTRACT / ROOM -->
+
+                <section class="payment-detail-card">
+
+                    <div class="payment-card-heading">
+
+                        <div class="payment-card-icon cyan">
+                            #
+                        </div>
+
+
+                        <div>
+
+                            <h2>
+                                Hợp đồng và phòng
+                            </h2>
+
+                            <p>
+                                Nguồn phát sinh khoản thanh toán
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="payment-related-card">
+
+                        <div>
+
+                            <span>
+                                Hợp đồng
+                            </span>
+
+
+                            <strong>
+                                @payment.ContractCode
+                            </strong>
+
+
+                            <small>
+                                Contract #@payment.ContractId
+                            </small>
+
+                        </div>
+
+
+                        <a asp-controller="Contracts"
+                           asp-action="Details"
+                           asp-route-id="@payment.ContractId"
+                           asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")">
+
+                            Xem hợp đồng
+
+                            <span>›</span>
+
+                        </a>
+
+                    </div>
+
+
+                    <div class="payment-related-card">
+
+                        <div>
+
+                            <span>
+                                Phòng
+                            </span>
+
+
+                            <strong>
+                                @payment.RoomTitle
+                            </strong>
+
+
+                            <small>
+                                @payment.PropertyName
+                            </small>
+
+                        </div>
+
+
+                        <a asp-controller="Rooms"
+                           asp-action="Details"
+                           asp-route-id="@payment.RoomId"
+                           asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")">
+
+                            Xem phòng
+
+                            <span>›</span>
+
+                        </a>
+
+                    </div>
+
+
+                    <div class="payment-property-info">
+
+                        <div>
+                            <span>Room ID</span>
+
+                            <strong>
+                                #@payment.RoomId
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <span>Property ID</span>
+
+                            <strong>
+                                #@payment.PropertyId
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <span>Khu trọ</span>
+
+                            <strong>
+                                @payment.PropertyName
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- TIMELINE -->
+
+                <section class="payment-detail-card">
+
+                    <div class="payment-card-heading">
+
+                        <div class="payment-card-icon gray">
+                            ◷
+                        </div>
+
+
+                        <div>
+
+                            <h2>
+                                Lịch sử thanh toán
+                            </h2>
+
+                            <p>
+                                Các mốc thời gian chính
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="payment-timeline">
+
+                        <div class="payment-timeline-item done">
+
+                            <span class="timeline-dot">
+                            </span>
+
+
+                            <div>
+
+                                <strong>
+                                    Khoản thanh toán được tạo
+                                </strong>
+
+
+                                <span>
+                                    @payment.CreatedAt
+                                    .ToLocalTime()
+                                    .ToString("dd/MM/yyyy HH:mm")
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        @if (payment.UpdatedAt >
+                             payment.CreatedAt)
+                        {
+                            <div class="payment-timeline-item">
+
+                                <span class="timeline-dot">
+                                </span>
+
+
+                                <div>
+
+                                    <strong>
+                                        Thông tin được cập nhật
+                                    </strong>
+
+
+                                    <span>
+                                        @payment.UpdatedAt
+                                        .ToLocalTime()
+                                        .ToString("dd/MM/yyyy HH:mm")
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        }
+
+
+                        @if (payment.ConfirmedAt.HasValue)
+                        {
+                            <div class="payment-timeline-item done">
+
+                                <span class="timeline-dot">
+                                </span>
+
+
+                                <div>
+
+                                    <strong>
+                                        Chủ trọ xác nhận thanh toán
+                                    </strong>
+
+
+                                    <span>
+                                        @payment.ConfirmedAt.Value
+                                        .ToLocalTime()
+                                        .ToString("dd/MM/yyyy HH:mm")
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        }
+
+
+                        @if (Model.IsPaid &&
+                             payment.PaidAt.HasValue)
+                        {
+                            <div class="payment-timeline-item paid">
+
+                                <span class="timeline-dot">
+                                </span>
+
+
+                                <div>
+
+                                    <strong>
+                                        Thanh toán thành công
+                                    </strong>
+
+
+                                    <span>
+                                        @payment.PaidAt.Value
+                                        .ToLocalTime()
+                                        .ToString("dd/MM/yyyy HH:mm")
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        }
+                        else if (Model.IsPending)
+                        {
+                            <div class="payment-timeline-item current">
+
+                                <span class="timeline-dot">
+                                </span>
+
+
+                                <div>
+
+                                    <strong>
+                                        Đang chờ chủ trọ xử lý
+                                    </strong>
+
+                                    <span>
+                                        Trạng thái hiện tại
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        }
+                        else if (Model.IsFailed)
+                        {
+                            <div class="payment-timeline-item failed">
+
+                                <span class="timeline-dot">
+                                </span>
+
+
+                                <div>
+
+                                    <strong>
+                                        Thanh toán bị từ chối
+                                    </strong>
+
+                                    <span>
+                                        Trạng thái hiện tại
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        }
+                        else if (Model.IsCancelled)
+                        {
+                            <div class="payment-timeline-item cancelled">
+
+                                <span class="timeline-dot">
+                                </span>
+
+
+                                <div>
+
+                                    <strong>
+                                        Thanh toán đã hủy
+                                    </strong>
+
+                                    <span>
+                                        Trạng thái hiện tại
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        }
+
+                    </div>
+
+                </section>
+
+            </main>
+
+
+            <!-- =================================================
+             RIGHT SIDEBAR
+             ================================================= -->
+
+            <aside class="payment-detail-sidebar">
+
+                <!-- STUDENT -->
+
+                <section class="payment-side-card">
+
+                    <div class="payment-side-heading">
+
+                        <h2>
+                            Sinh viên
+                        </h2>
+
+                    </div>
+
+
+                    <div class="payment-person-profile">
+
+                        <div class="payment-avatar student">
+
+                            @(
+                                string.IsNullOrWhiteSpace(
+                                    payment.StudentName)
+                                    ? "?"
+                                    : payment.StudentName[0]
+                                        .ToString()
+                                        .ToUpper()
+                            )
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                @payment.StudentName
+                            </strong>
+
+                            <span>
+                                @payment.StudentEmail
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="payment-side-info">
+
+                        <div>
+                            <span>Student ID</span>
+
+                            <strong>
+                                #@payment.StudentId
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <span>User ID</span>
+
+                            <strong>
+                                #@payment.StudentUserId
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <span>Số điện thoại</span>
+
+                            <strong>
+                                @(payment.StudentPhone ?? "—")
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- LANDLORD -->
+
+                <section class="payment-side-card">
+
+                    <div class="payment-side-heading">
+
+                        <h2>
+                            Chủ trọ
+                        </h2>
+
+                    </div>
+
+
+                    <div class="payment-person-profile">
+
+                        <div class="payment-avatar landlord">
+
+                            @(
+                                string.IsNullOrWhiteSpace(
+                                    payment.LandlordName)
+                                    ? "?"
+                                    : payment.LandlordName[0]
+                                        .ToString()
+                                        .ToUpper()
+                            )
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                @payment.LandlordName
+                            </strong>
+
+                            <span>
+                                @payment.LandlordEmail
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="payment-side-info">
+
+                        <div>
+                            <span>Landlord ID</span>
+
+                            <strong>
+                                #@payment.LandlordId
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <span>User ID</span>
+
+                            <strong>
+                                #@payment.LandlordUserId
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <span>Số điện thoại</span>
+
+                            <strong>
+                                @(payment.LandlordPhone ?? "—")
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- CONFIRMATION -->
+
+                <section class="payment-side-card">
+
+                    <div class="payment-side-heading">
+
+                        <h2>
+                            Xác nhận thanh toán
+                        </h2>
+
+                    </div>
+
+
+                    @if (payment.ConfirmedByUserId.HasValue)
+                    {
+                        <div class="payment-confirmation">
+
+                            <div class="confirmation-icon">
+                                ✓
+                            </div>
+
+
+                            <strong>
+                                @(payment.ConfirmedByUserName
+                                    ?? "Chủ trọ")
+                            </strong>
+
+
+                            <span>
+                                User #@payment.ConfirmedByUserId
+                            </span>
+
+
+                            @if (payment.ConfirmedAt.HasValue)
+                            {
+                                <small>
+                                    @payment.ConfirmedAt.Value
+                                    .ToLocalTime()
+                                    .ToString("dd/MM/yyyy HH:mm")
+                                </small>
+                            }
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="payment-confirmation empty">
+
+                            <div class="confirmation-icon">
+                                ◷
+                            </div>
+
+
+                            <strong>
+                                Chưa được xác nhận
+                            </strong>
+
+
+                            <span>
+                                Chưa có người xác nhận khoản thanh toán này.
+                            </span>
+
+                        </div>
+                    }
+
+                </section>
+
+
+                <!-- ADMIN NOTE -->
+
+                <section class="payment-side-card">
+
+                    <div class="payment-side-heading">
+
+                        <h2>
+                            Quyền Admin
+                        </h2>
+
+                    </div>
+
+
+                    <div class="payment-admin-notice">
+
+                        <span>
+                            i
+                        </span>
+
+
+                        <p>
+                            Admin chỉ theo dõi thanh toán. Việc xác nhận,
+                            từ chối hoặc hủy khoản thanh toán được thực hiện
+                            bởi Sinh viên hoặc Chủ trọ theo luồng nghiệp vụ.
+                        </p>
+
+                    </div>
+
+                </section>
+
+            </aside>
+
+        </div>
+    }
+
+</div>

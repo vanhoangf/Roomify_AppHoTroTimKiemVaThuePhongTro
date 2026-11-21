@@ -1,0 +1,177 @@
+﻿@{
+    var currentController =
+        ViewContext.RouteData.Values["controller"]?.ToString()
+        ?? string.Empty;
+
+    var currentListingStatus =
+        Context.Request.Query["listingStatus"]
+            .ToString();
+
+    var isRoomsPage =
+        currentController == "Rooms";
+
+    var isPendingReviewPage =
+        isRoomsPage &&
+        string.Equals(
+            currentListingStatus,
+            "PENDING",
+            StringComparison.OrdinalIgnoreCase);
+}
+
+<aside class="admin-sidebar"
+       id="adminSidebar">
+
+    <!-- =========================
+         BRAND
+         ========================= -->
+    <div class="sidebar-brand">
+
+        <div class="sidebar-brand-logo">
+            <img src="~/images/roomify-logo.png"
+                 alt="Roomify" />
+        </div>
+
+        <div class="sidebar-brand-content">
+            <strong>Roomify Admin</strong>
+            <span>Quản trị hệ thống</span>
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         NAVIGATION
+         ========================= -->
+    <nav class="sidebar-navigation">
+
+        <!-- Dashboard -->
+        <a asp-controller="Dashboard"
+           asp-action="Index"
+           class="admin-nav-link @(currentController == "Dashboard" ? "active" : "")">
+
+            <svg viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <path d="M3 3h8v8H3V3Zm10 0h8v8h-8V3ZM3 13h8v8H3v-8Zm10 0h8v8h-8v-8Z" />
+            </svg>
+
+            <span>Dashboard</span>
+        </a>
+
+
+        <!-- Users -->
+        <a asp-controller="Users"
+           asp-action="Index"
+           class="admin-nav-link @(currentController == "Users" ? "active" : "")">
+
+            <svg viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3ZM8 11c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3Zm8 2c-2 0-6 1-6 3v3h6v-3c0-1.1.5-2.1 1.5-2.9-.5-.1-1-.1-1.5-.1ZM8 13c-2 0-6 1-6 3v3h8v-3c0-1 .3-1.9.9-2.7-.9-.2-1.9-.3-2.9-.3Z" />
+            </svg>
+
+            <span>Người dùng</span>
+
+        </a>
+
+
+        <!-- Rooms -->
+        <a asp-controller="Rooms"
+           asp-action="Index"
+           class="admin-nav-link @(isRoomsPage && !isPendingReviewPage ? "active" : "")">
+            <svg viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <path d="M4 3h16v18H4V3Zm2 2v14h12V5H6Zm2 2h8v5H8V7Zm0 7h3v3H8v-3Zm5 0h3v3h-3v-3Z" />
+            </svg>
+            <span>Phòng trọ</span>
+        </a>
+
+
+        <!-- Room approval -->
+        <a asp-controller="Rooms"
+           asp-action="Index"
+           asp-route-listingStatus="PENDING"
+           class="admin-nav-link @(isPendingReviewPage ? "active" : "")">
+            <svg viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <path d="M6 2h9l5 5v15H6V2Zm2 2v16h10V8h-4V4H8Zm2 7h6v2h-6v-2Zm0 4h6v2h-6v-2Zm-1-7 1.4-1.4 1.1 1.1 2.6-2.6L15.5 6.5 11.5 10.5 9 8Z" />
+            </svg>
+            <span>Duyệt tin</span>
+        </a>
+
+
+        <!-- Reports -->
+        <a asp-controller="Reports"
+           asp-action="Index"
+           class="admin-nav-link @(currentController == "Reports" ? "active" : "")">
+            <svg viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <path d="M4 3h16v18H4V3Zm2 2v14h12V5H6Zm2 2h8v2H8V7Zm0 4h8v2H8v-2Zm0 4h5v2H8v-2Z" />
+            </svg>
+            <span>Báo cáo</span>
+        </a>
+
+
+        <!-- Reviews -->
+        <a asp-controller="Reviews"
+           asp-action="Index"
+           class="admin-nav-link @(currentController == "Reviews" ? "active" : "")">
+
+            <svg viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <path d="m12 2 3.1 6.3L22 9.3l-5 4.9 1.2 6.8L12 17.8 5.8 21 7 14.2 2 9.3l6.9-1L12 2Z" />
+            </svg>
+
+            <span>Đánh giá</span>
+
+        </a>
+
+
+        <!-- Catalog -->
+        <a asp-controller="Catalog"
+           asp-action="Index"
+           class="admin-nav-link @(currentController == "Catalog" ? "active" : "")">
+            <svg viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z" />
+            </svg>
+            <span>Danh mục</span>
+        </a>
+
+
+        <!-- Contracts -->
+        <a asp-controller="Contracts"
+           asp-action="Index"
+           class="admin-nav-link @(currentController == "Contracts" ? "active" : "")">
+            <svg viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <path d="M5 2h10l4 4v16H5V2Zm2 2v16h10V7h-3V4H7Zm2 6h6v2H9v-2Zm0 4h6v2H9v-2Z" />
+            </svg>
+            <span>Hợp đồng</span>
+        </a>
+
+
+        <!-- Payments -->
+        <a asp-controller="Payments"
+           asp-action="Index"
+           class="admin-nav-link @(currentController == "Payments" ? "active" : "")">
+            <svg viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <path d="M3 5h18v14H3V5Zm2 2v2h14V7H5Zm0 4v6h14v-6H5Zm2 2h5v2H7v-2Z" />
+            </svg>
+            <span>Thanh toán</span>
+        </a>
+
+
+        <!-- Statistics -->
+        <a asp-controller="Statistics"
+           asp-action="Index"
+           class="admin-nav-link @(currentController == "Statistics" ? "active" : "")">
+            <svg viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <path d="M4 19h3V9H4v10Zm5 0h3V5H9v14Zm5 0h3v-7h-3v7Zm5 0h3V2h-3v17Z" />
+            </svg>
+            <span>Thống kê</span>
+        </a>
+
+    </nav>
+
+</aside>

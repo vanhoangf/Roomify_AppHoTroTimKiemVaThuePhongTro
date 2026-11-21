@@ -1,5 +1,15 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Roomify.Admin.Infrastructure;
 using Roomify.Admin.Services.Auth;
+using Roomify.Admin.Services.Catalog;
+using Roomify.Admin.Services.Contracts;
+using Roomify.Admin.Services.Dashboard;
+using Roomify.Admin.Services.Payments;
+using Roomify.Admin.Services.Reports;
+using Roomify.Admin.Services.Reviews;
+using Roomify.Admin.Services.Rooms;
+using Roomify.Admin.Services.Statistics;
+using Roomify.Admin.Services.Users;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +20,10 @@ builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromHours(8);
-    options.Cookie.Name = "Roomify.Admin.Session";
+
+    options.Cookie.Name =
+        "Roomify.Admin.Session";
+
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
@@ -20,10 +33,18 @@ builder.Services
         CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Auth/Login";
-        options.AccessDeniedPath = "/Auth/AccessDenied";
-        options.Cookie.Name = "Roomify.Admin.Auth";
-        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.LoginPath =
+            "/Auth/Login";
+
+        options.AccessDeniedPath =
+            "/Auth/AccessDenied";
+
+        options.Cookie.Name =
+            "Roomify.Admin.Auth";
+
+        options.ExpireTimeSpan =
+            TimeSpan.FromHours(8);
+
         options.SlidingExpiration = true;
 
         options.Cookie.HttpOnly = true;
@@ -32,28 +53,74 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// ROOMIFY API CONFIGURATION
+
 var apiBaseUrl =
     builder.Configuration["RoomifyApi:BaseUrl"]
     ?? throw new InvalidOperationException(
         "RoomifyApi:BaseUrl chưa được cấu hình.");
+// HTTP CONTEXT
 
+builder.Services.AddHttpContextAccessor();
+
+// JWT HANDLER
+builder.Services.AddTransient<
+    AdminBearerTokenHandler>();
+
+// AUTH / PUBLIC API
 builder.Services.AddHttpClient(
     "RoomifyApi",
     client =>
     {
-        client.BaseAddress = new Uri(apiBaseUrl);
-        client.Timeout = TimeSpan.FromSeconds(30);
+        client.BaseAddress =
+            new Uri(apiBaseUrl);
+
+        client.Timeout =
+            TimeSpan.FromSeconds(30);
 
         client.DefaultRequestHeaders.Add(
             "Accept",
             "application/json");
     });
+
+// ADMIN PROTECTED API
+builder.Services
+    .AddHttpClient(
+        "RoomifyAdminApi",
+        client =>
+        {
+            client.BaseAddress =
+                new Uri(apiBaseUrl);
+
+            client.Timeout =
+                TimeSpan.FromSeconds(30);
+
+            client.DefaultRequestHeaders.Add(
+                "Accept",
+                "application/json");
+        })
+    .AddHttpMessageHandler<
+        AdminBearerTokenHandler>();
+
+// SERVICES
 builder.Services.AddScoped<IAdminAuthApiService, AdminAuthApiService>();
+builder.Services.AddScoped<IAdminDashboardApiService, AdminDashboardApiService>();
+builder.Services.AddScoped<IAdminUserApiService, AdminUserApiService>();
+builder.Services.AddScoped<IAdminRoomApiService, AdminRoomApiService>();
+builder.Services.AddScoped<IAdminReportApiService, AdminReportApiService>();
+builder.Services.AddScoped<IAdminReviewApiService, AdminReviewApiService>();
+builder.Services.AddScoped<IAdminCatalogApiService, AdminCatalogApiService>();
+builder.Services.AddScoped<IAdminContractApiService, AdminContractApiService>();
+builder.Services.AddScoped<IAdminPaymentApiService, AdminPaymentApiService>();
+builder.Services.AddScoped<IAdminStatisticsApiService, AdminStatisticsApiService>();
+// APP
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler(
+        "/Home/Error");
+
     app.UseHsts();
 }
 
@@ -70,7 +137,8 @@ app.MapStaticAssets();
 
 app.MapControllerRoute(
         name: "default",
-        pattern: "{controller=Home}/{action=Index}/{id?}")
+        pattern:
+            "{controller=Dashboard}/{action=Index}/{id?}")
     .WithStaticAssets();
 
 app.Run();

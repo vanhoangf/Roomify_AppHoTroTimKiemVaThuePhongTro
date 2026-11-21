@@ -1,0 +1,839 @@
+﻿@model Roomify.Admin.Models.Users.AdminUsersViewModel
+
+@{
+    ViewData["Title"] = "Người dùng";
+
+    var users = Model.Users;
+
+    string Initials(string? fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName))
+        {
+            return "?";
+        }
+
+        var parts =
+            fullName
+                .Split(
+                    ' ',
+                    StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length == 1)
+        {
+            return parts[0]
+                .Substring(0, 1)
+                .ToUpper();
+        }
+
+        return string.Concat(
+            parts[^2][0],
+            parts[^1][0])
+            .ToUpper();
+    }
+
+    var startPage =
+        users is null
+            ? 1
+            : Math.Max(
+                1,
+                users.Page - 2);
+
+    var endPage =
+        users is null
+            ? 1
+            : Math.Min(
+                users.TotalPages,
+                users.Page + 2);
+}
+
+@section Styles {
+    <link rel="stylesheet"
+          href="~/css/admin-users.css"
+          asp-append-version="true" />
+}
+
+
+<div class="users-page">
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <section class="users-heading">
+
+        <div>
+
+            <div class="users-breadcrumb">
+                Trang chủ
+                <span>›</span>
+                Người dùng
+                <span>›</span>
+                <strong>Tất cả người dùng</strong>
+            </div>
+
+            <h1>
+                Quản lý người dùng
+            </h1>
+
+            <p>
+                Quản lý danh sách tài khoản sinh viên,
+                chủ trọ và phân quyền hệ thống Roomify.
+            </p>
+
+        </div>
+    </section>
+
+
+    <!-- =====================================================
+         KPI
+         ===================================================== -->
+
+    <section class="users-kpi-grid">
+
+        <article class="users-kpi-card">
+
+            <div class="users-kpi-top">
+
+                <span>
+                    Tổng tài khoản
+                </span>
+
+                <div class="users-kpi-icon blue">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3ZM8 11c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3Zm8 2c-2 0-6 1-6 3v3h12v-3c0-2-4-3-6-3ZM8 13c-2 0-6 1-6 3v3h2v-3c0-1 .3-1.8.9-2.5C10 13.2 9 13 8 13Z" />
+                    </svg>
+
+                </div>
+
+            </div>
+
+            <strong>
+                @(Model.Dashboard?.TotalUsers.ToString("N0") ?? "—")
+            </strong>
+
+            @if (Model.Dashboard is not null)
+            {
+                <div class="users-kpi-footer green">
+                    @Model.Dashboard.ActiveUsers.ToString("N0")
+                    đang hoạt động
+                </div>
+            }
+
+        </article>
+
+
+        <article class="users-kpi-card">
+
+            <div class="users-kpi-top">
+
+                <span>
+                    Sinh viên (Student)
+                </span>
+
+                <div class="users-kpi-icon teal">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="m12 3 10 5-10 5L2 8l10-5Zm-6 8.2V16l6 3 6-3v-4.8l-6 3-6-3Z" />
+                    </svg>
+
+                </div>
+
+            </div>
+
+            <strong>
+                @(Model.Dashboard?.TotalStudents.ToString("N0") ?? "—")
+            </strong>
+
+            @if (Model.Dashboard is not null)
+            {
+                <div class="users-kpi-inline">
+
+                    <span class="percentage teal">
+                        @Model.StudentPercentage%
+                    </span>
+
+                    <span>
+                        tổng hệ thống
+                    </span>
+
+                </div>
+            }
+
+        </article>
+
+
+        <article class="users-kpi-card">
+
+            <div class="users-kpi-top">
+
+                <span>
+                    Chủ trọ (Landlord)
+                </span>
+
+                <div class="users-kpi-icon orange">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 21V8l9-6 9 6v13h-7v-7h-4v7H3Zm2-2h3v-7h8v7h3V9l-7-4.7L5 9v10Z" />
+                    </svg>
+
+                </div>
+
+            </div>
+
+            <strong>
+                @(Model.Dashboard?.TotalLandlords.ToString("N0") ?? "—")
+            </strong>
+
+            @if (Model.Dashboard is not null)
+            {
+                <div class="users-kpi-inline">
+
+                    <span class="percentage orange">
+                        @Model.LandlordPercentage%
+                    </span>
+
+                    <span>
+                        tổng hệ thống
+                    </span>
+
+                </div>
+            }
+
+        </article>
+
+
+        <article class="users-kpi-card">
+
+            <div class="users-kpi-top">
+
+                <span>
+                    Tài khoản bị khóa
+                </span>
+
+                <div class="users-kpi-icon red">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="M17 8h-1V6a4 4 0 0 0-8 0v2H7v4.1A5.5 5.5 0 1 0 17 15V8Zm-7-2a2 2 0 1 1 4 0v2h-4V6Zm6.5 13.1-1.4 1.4-1.6-1.6-1.6 1.6-1.4-1.4 1.6-1.6-1.6-1.6 1.4-1.4 1.6 1.6 1.6-1.6 1.4 1.4-1.6 1.6 1.6 1.6Z" />
+                    </svg>
+
+                </div>
+
+            </div>
+
+            <strong>
+                @(Model.Dashboard?.LockedUsers.ToString("N0") ?? "—")
+            </strong>
+
+            @if (Model.Dashboard is not null)
+            {
+                <div class="users-kpi-inline">
+
+                    <span class="percentage red">
+                        Cần kiểm tra
+                    </span>
+
+                    <span>
+                        chiếm @Model.LockedPercentage%
+                    </span>
+
+                </div>
+            }
+
+        </article>
+
+    </section>
+
+
+    <!-- =====================================================
+         FILTERS
+         ===================================================== -->
+
+    <section class="users-filter-card">
+
+        <form asp-controller="Users"
+              asp-action="Index"
+              method="get">
+
+            <div class="users-filter-main">
+
+                <div class="users-search">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="M10.5 4a6.5 6.5 0 1 0 4.1 11.5L20 20.9l1.4-1.4-5.4-5.4A6.5 6.5 0 0 0 10.5 4Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z" />
+                    </svg>
+
+                    <input type="text"
+                           name="search"
+                           value="@Model.Search"
+                           placeholder="Tìm theo tên, email, số điện thoại..." />
+
+                </div>
+
+
+                <select name="role"
+                        class="users-filter-select">
+
+                    <option value="">
+                        Vai trò: Tất cả
+                    </option>
+
+                    <option value="STUDENT"
+                            selected="@(Model.Role == "STUDENT")">
+                        Sinh viên
+                    </option>
+
+                    <option value="LANDLORD"
+                            selected="@(Model.Role == "LANDLORD")">
+                        Chủ trọ
+                    </option>
+
+                    <option value="ADMIN"
+                            selected="@(Model.Role == "ADMIN")">
+                        Admin
+                    </option>
+
+                </select>
+
+
+                <select name="status"
+                        class="users-filter-select">
+
+                    <option value="">
+                        Trạng thái: Tất cả
+                    </option>
+
+                    <option value="ACTIVE"
+                            selected="@(Model.Status == "ACTIVE")">
+                        Hoạt động
+                    </option>
+
+                    <option value="LOCKED"
+                            selected="@(Model.Status == "LOCKED")">
+                        Đã khóa
+                    </option>
+
+                </select>
+
+                <select name="verified"
+                        class="users-filter-select">
+
+                    <option value="">
+                        Xác minh: Tất cả
+                    </option>
+
+                    <option value="true"
+                            selected="@(Model.Verified == true)">
+                        Đã xác minh
+                    </option>
+
+                    <option value="false"
+                            selected="@(Model.Verified == false)">
+                        Chưa xác minh
+                    </option>
+
+                </select>
+
+                <input type="hidden"
+                       name="pageSize"
+                       value="@Model.PageSize" />
+
+
+                <button type="submit"
+                        class="users-filter-button">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 5h18l-7 8v6l-4-2v-4L3 5Z" />
+                    </svg>
+
+                    Lọc
+
+                </button>
+
+
+                <a asp-controller="Users"
+                   asp-action="Index"
+                   class="users-reset-button">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 5V2L8 6l4 4V7a5 5 0 1 1-4.6 7H5.3A7 7 0 1 0 12 5Z" />
+                    </svg>
+
+                    Đặt lại
+
+                </a>
+
+            </div>
+
+
+            <div class="users-filter-bottom">
+
+                <div>
+
+                    Tìm thấy:
+
+                    <strong>
+                        @(users?.TotalCount.ToString("N0") ?? "0")
+                        kết quả
+                    </strong>
+
+                </div>
+
+                <div class="active-filter-summary">
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Role))
+                    {
+                        <span>
+                            Role: @Model.Role
+                        </span>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Status))
+                    {
+                        <span>
+                            Status: @Model.Status
+                        </span>
+                    }
+
+                    @if (Model.Verified.HasValue)
+                    {
+                        <span>
+                            @(Model.Verified.Value
+                                ? "Đã xác minh"
+                                : "Chưa xác minh")
+                        </span>
+                    }
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- =====================================================
+         ERROR
+         ===================================================== -->
+    @if (Model.HasError)
+    {
+        <section class="users-state">
+
+            <div class="users-state-icon error">
+                !
+            </div>
+
+            <h2>
+                Không thể tải người dùng
+            </h2>
+
+            <p>
+                @Model.ErrorMessage
+            </p>
+
+            <a asp-controller="Users"
+               asp-action="Index"
+               class="users-retry">
+                Thử lại
+            </a>
+
+        </section>
+    }
+    else if (Model.IsEmpty)
+    {
+        <!-- =================================================
+             EMPTY
+             ================================================= -->
+
+        <section class="users-state">
+
+            <div class="users-state-icon">
+                0
+            </div>
+
+            <h2>
+                Không tìm thấy người dùng
+            </h2>
+
+            <p>
+                Thử thay đổi từ khóa hoặc bộ lọc.
+            </p>
+
+            <a asp-controller="Users"
+               asp-action="Index"
+               class="users-retry">
+                Xóa bộ lọc
+            </a>
+
+        </section>
+    }
+    else if (users is not null)
+    {
+        <!-- =================================================
+             TABLE
+             ================================================= -->
+
+        <section class="users-table-card">
+
+            <div class="users-table-wrapper">
+
+                <table class="users-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>
+                                NGƯỜI DÙNG
+                            </th>
+
+                            <th>
+                                VAI TRÒ
+                            </th>
+
+                            <th>
+                                SỐ ĐIỆN THOẠI
+                            </th>
+
+                            <th>
+                                NGÀY TẠO
+                            </th>
+
+                            <th>
+                                TRẠNG THÁI
+                            </th>
+
+                            <th class="action-column">
+                                THAO TÁC
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @foreach (var user in users.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="user-avatar">
+                                            <span class="user-avatar-fallback">
+                                                @(string.IsNullOrWhiteSpace(user.FullName)
+                                                    ? "?"
+                                                    : user.FullName[..1].ToUpper())
+                                            </span>
+                                        </div>
+
+
+                                        <div class="user-identity">
+
+                                            <strong>
+                                                @user.FullName
+                                            </strong>
+
+                                            <span>
+                                                @user.Email
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <td>
+
+                                    <div class="role-cell">
+
+                                        <span class="
+                                            role-badge
+                                            role-@user.RoleCode.ToLowerInvariant()">
+
+                                            @(
+                                                user.RoleCode switch
+                                                {
+                                                    "STUDENT" => "Student",
+                                                    "LANDLORD" => "Landlord",
+                                                    "ADMIN" => "Admin",
+                                                    _ => user.RoleCode
+                                                }
+                                            )
+
+                                        </span>
+
+
+                                        @if (user.RoleCode is "STUDENT" or "LANDLORD")
+                                        {
+                                            @if (user.IsProfileVerified == true)
+                                            {
+                                                <span class="verify-label verified">
+                                                    ✓ Đã xác minh
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="verify-label unverified">
+                                                    Chưa xác minh
+                                                </span>
+                                            }
+                                        }
+
+                                    </div>
+
+                                </td>
+
+
+                                <td class="phone-cell">
+
+                                    @(
+                                        string.IsNullOrWhiteSpace(
+                                            user.Phone)
+                                            ? "—"
+                                            : user.Phone
+                                    )
+
+                                </td>
+
+
+                                <td class="date-cell">
+                                    @(user.CreatedAt
+                                        .ToLocalTime()
+                                        .ToString("dd/MM/yyyy"))
+                                </td>
+
+
+                                <td>
+
+                                    @if (user.Status == "ACTIVE")
+                                    {
+                                        <span class="status-badge active">
+
+                                            <span></span>
+
+                                            Hoạt động
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge locked">
+
+                                            <span></span>
+
+                                            Đã khóa
+
+                                        </span>
+                                    }
+
+                                </td>
+
+
+                                <td class="action-column">
+
+                                    <div class="dropdown">
+
+                                        <button type="button"
+                                                class="user-action-button"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                                title="Thao tác">
+
+                                            ⋮
+
+                                        </button>
+
+
+                                        <div class="dropdown-menu dropdown-menu-end user-action-menu">
+
+                                            <a asp-controller="Users"
+                                               asp-action="Details"
+                                               asp-route-id="@user.UserId"
+                                               asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")"
+                                               class="dropdown-item">
+
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M12 5C7 5 3 8.1 1.5 12 3 15.9 7 19 12 19s9-3.1 10.5-7C21 8.1 17 5 12 5Zm0 12c-3.7 0-6.8-2.1-8.2-5C5.2 9.1 8.3 7 12 7s6.8 2.1 8.2 5c-1.4 2.9-4.5 5-8.2 5Zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" />
+                                                </svg>
+
+                                                Xem chi tiết
+
+                                            </a>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- =============================================
+                 FOOTER / PAGINATION
+                 ============================================= -->
+
+            <div class="users-table-footer">
+
+                <div class="users-page-size">
+
+                    <span>
+                        Hiển thị
+                    </span>
+
+                    <form asp-controller="Users"
+                          asp-action="Index"
+                          method="get">
+
+                        <input type="hidden"
+                               name="search"
+                               value="@Model.Search" />
+
+                        <input type="hidden"
+                               name="role"
+                               value="@Model.Role" />
+
+                        <input type="hidden"
+                               name="status"
+                               value="@Model.Status" />
+
+                        @if (Model.Verified.HasValue)
+                        {
+                            <input type="hidden"
+                                   name="verified"
+                                   value="@Model.Verified.Value.ToString().ToLowerInvariant()" />
+                        }
+
+                        <select name="pageSize"
+                                onchange="this.form.submit()">
+
+                            <option value="8"
+                                    selected="@(Model.PageSize == 8)">
+                                8
+                            </option>
+
+                            <option value="10"
+                                    selected="@(Model.PageSize == 10)">
+                                10
+                            </option>
+
+                            <option value="20"
+                                    selected="@(Model.PageSize == 20)">
+                                20
+                            </option>
+
+                            <option value="50"
+                                    selected="@(Model.PageSize == 50)">
+                                50
+                            </option>
+
+                        </select>
+
+                    </form>
+
+                    <span>
+                        bản ghi mỗi trang
+                    </span>
+
+                </div>
+
+
+                <div class="users-result-info">
+
+                    Hiển thị
+
+                    <strong>
+                        @(
+                            users.TotalCount == 0
+                                ? 0
+                                : ((users.Page - 1)
+                                   * users.PageSize) + 1
+                        )
+                        -
+                        @Math.Min(
+                            users.Page * users.PageSize,
+                            users.TotalCount)
+                    </strong>
+
+                    trong tổng số
+
+                    <strong>
+                        @users.TotalCount.ToString("N0")
+                    </strong>
+
+                    tài khoản
+
+                </div>
+
+
+                @if (users.TotalPages > 1)
+                {
+                    <nav class="users-pagination">
+
+                        @if (users.HasPreviousPage)
+                        {
+                            <a asp-controller="Users"
+                               asp-action="Index"
+                               asp-route-page="@(users.Page - 1)"
+                               asp-route-pageSize="@Model.PageSize"
+                               asp-route-search="@Model.Search"
+                               asp-route-role="@Model.Role"
+                               asp-route-status="@Model.Status"
+                               asp-route-verified="@Model.Verified">
+                                ‹
+                            </a>
+                        }
+
+
+                        @for (
+                            var pageNumber = startPage;
+                            pageNumber <= endPage;
+                            pageNumber++)
+                        {
+                            <a asp-controller="Users"
+                               asp-action="Index"
+                               asp-route-page="@pageNumber"
+                               asp-route-pageSize="@Model.PageSize"
+                               asp-route-search="@Model.Search"
+                               asp-route-role="@Model.Role"
+                               asp-route-status="@Model.Status"
+                               class="@(pageNumber == users.Page ? "active" : "")">
+
+                                @pageNumber
+
+                            </a>
+                        }
+
+
+                        @if (users.HasNextPage)
+                        {
+                            <a asp-controller="Users"
+                               asp-action="Index"
+                               asp-route-page="@(users.Page + 1)"
+                               asp-route-pageSize="@Model.PageSize"
+                               asp-route-search="@Model.Search"
+                               asp-route-role="@Model.Role"
+                               asp-route-status="@Model.Status">
+                                ›
+                            </a>
+                        }
+
+                    </nav>
+                }
+
+            </div>
+
+        </section>
+    }
+
+</div>

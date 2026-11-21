@@ -1,0 +1,1798 @@
+﻿@model Roomify.Admin.Models.Rooms.AdminRoomDetailViewModel
+
+@{
+    ViewData["Title"] = "Chi tiết tin phòng";
+
+    var room = Model.Room;
+
+    string ListingStatusText(string status)
+    {
+        return status.ToUpperInvariant() switch
+        {
+            "DRAFT" => "Bản nháp",
+            "PENDING" => "Chờ duyệt",
+            "PUBLISHED" => "Đã đăng",
+            "REJECTED" => "Đã từ chối",
+            "HIDDEN" => "Đã ẩn",
+            _ => status
+        };
+    }
+
+    string AvailabilityText(string status)
+    {
+        return status.ToUpperInvariant() switch
+        {
+            "AVAILABLE" => "Còn trống",
+            "RESERVED" => "Đã giữ chỗ",
+            "RENTED" => "Đã thuê",
+            "UNAVAILABLE" => "Không khả dụng",
+            _ => status
+        };
+    }
+
+    string GenderText(string? value)
+    {
+        return value?.ToUpperInvariant() switch
+        {
+            "MALE" => "Nam",
+            "FEMALE" => "Nữ",
+            "ALL" => "Tất cả",
+            _ => "Không yêu cầu"
+        };
+    }
+
+    string Money(decimal? value)
+    {
+        return value.HasValue
+            ? $"{value.Value:N0} ₫"
+            : "Chưa cập nhật";
+    }
+}
+
+@section Styles {
+    <link rel="stylesheet"
+          href="~/css/admin-room-detail.css"
+          asp-append-version="true" />
+}
+
+
+<div class="room-detail-page">
+
+    @if (Model.HasError || room is null)
+    {
+        <section class="room-detail-error">
+
+            <div class="room-detail-error-icon">
+                !
+            </div>
+
+            <h1>
+                Không thể tải tin phòng
+            </h1>
+
+            <p>
+                @Model.ErrorMessage
+            </p>
+
+            <a href="@(Model.ReturnUrl ?? Url.Action("Index", "Rooms"))"
+               class="room-detail-primary-link">
+
+                Quay lại danh sách
+
+            </a>
+
+        </section>
+    }
+    else
+    {
+        <!-- =====================================================
+         BREADCRUMB
+         ===================================================== -->
+
+        <div class="room-detail-breadcrumb">
+
+            <a asp-controller="Dashboard"
+               asp-action="Index">
+                Trang chủ
+            </a>
+
+            <span>›</span>
+
+            <a href="@(Model.ReturnUrl ?? Url.Action("Index", "Rooms"))">
+                Phòng trọ
+            </a>
+
+            <span>›</span>
+
+            <strong>
+                Chi tiết phòng
+            </strong>
+
+        </div>
+
+
+        <!-- =====================================================
+         TOP HEADER
+         ===================================================== -->
+
+        <section class="room-detail-heading">
+
+            <div>
+
+                <h1>
+                    Chi tiết tin phòng
+                </h1>
+
+                <p>
+                    Kiểm tra đầy đủ thông tin trước khi thực hiện kiểm duyệt.
+                </p>
+
+            </div>
+
+            <a href="@(Model.ReturnUrl ?? Url.Action("Index", "Rooms"))"
+               class="room-detail-back">
+
+                <svg viewBox="0 0 24 24">
+                    <path d="m15 18-6-6 6-6 1.4 1.4L11.8 12l4.6 4.6L15 18Z" />
+                </svg>
+
+                Quay lại danh sách
+
+            </a>
+
+        </section>
+
+        @if (TempData["SuccessMessage"] is string successMessage)
+        {
+            <div class="room-detail-alert success">
+
+                <span>
+                    ✓
+                </span>
+
+                <div>
+                    @successMessage
+                </div>
+
+            </div>
+        }
+
+
+        @if (TempData["ErrorMessage"] is string errorMessage)
+        {
+            <div class="room-detail-alert error">
+
+                <span>
+                    !
+                </span>
+
+                <div>
+                    @errorMessage
+                </div>
+
+            </div>
+        }
+        <!-- =====================================================
+         SUMMARY
+         ===================================================== -->
+
+        <section class="room-summary-card">
+
+            <div class="room-summary-main">
+
+                <div class="room-summary-status">
+
+                    <span class="room-code">
+                        #RM-@room.RoomId
+                    </span>
+
+                    <span class="
+                        room-detail-listing-status
+                        status-@room.ListingStatus.ToLowerInvariant()">
+
+                        @ListingStatusText(room.ListingStatus)
+
+                    </span>
+
+                    <span class="
+                        room-detail-availability
+                        availability-@room.AvailabilityStatus.ToLowerInvariant()">
+
+                        <i></i>
+
+                        @AvailabilityText(room.AvailabilityStatus)
+
+                    </span>
+
+                </div>
+
+
+                <h2>
+                    @room.Title
+                </h2>
+
+
+                <div class="room-summary-sub">
+
+                    <span>
+                        🏢 @room.PropertyName
+                    </span>
+
+                    <span>
+                        👤 @room.LandlordName
+                    </span>
+
+                    <span>
+                        🕒 Cập nhật:
+                        @(room.UpdatedAt
+                            .ToLocalTime()
+                            .ToString("dd/MM/yyyy HH:mm"))
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="room-summary-price">
+
+                <span>
+                    Giá thuê
+                </span>
+
+                <strong>
+                    @room.RentPrice.ToString("N0") ₫
+                </strong>
+
+                <small>
+                    / tháng
+                </small>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+         MAIN GRID
+         ===================================================== -->
+
+        <div class="room-detail-layout">
+
+            <!-- =================================================
+             LEFT
+             ================================================= -->
+
+            <main class="room-detail-left">
+
+                <!-- =============================================
+                 IMAGE GALLERY
+                 ============================================= -->
+
+                <section class="detail-section">
+
+                    <div class="section-heading">
+
+                        <div>
+
+                            <h2>
+                                Thư viện ảnh thực tế
+                            </h2>
+
+                            <p>
+                                Ảnh do chủ trọ tải lên cho tin phòng
+                            </p>
+
+                        </div>
+
+                        <span class="section-count">
+                            @room.Images.Count ảnh
+                        </span>
+
+                    </div>
+
+
+                    @if (room.Images.Count == 0)
+                    {
+                        <div class="gallery-empty">
+
+                            <div>
+                                🖼
+                            </div>
+
+                            <strong>
+                                Chưa có ảnh phòng
+                            </strong>
+
+                            <span>
+                                Chủ trọ chưa tải ảnh cho tin này.
+                            </span>
+
+                        </div>
+                    }
+                    else
+                    {
+                        var primaryImage =
+                            room.Images
+                                .OrderByDescending(x => x.IsPrimary)
+                                .ThenBy(x => x.SortOrder)
+                                .First();
+
+
+                        <div class="room-gallery">
+
+                            <div class="room-primary-image">
+
+                                <img src="@primaryImage.ImageUrl"
+                                     id="roomPrimaryImage"
+                                     alt="@room.Title" />
+
+                                @if (primaryImage.IsPrimary)
+                                {
+                                    <span class="primary-image-label">
+                                        ★ Ảnh chính
+                                    </span>
+                                }
+
+                            </div>
+
+
+                            @if (room.Images.Count > 1)
+                            {
+                                <div class="room-thumbnails">
+
+                                    @foreach (var image in room.Images)
+                                    {
+                                        <button type="button"
+                                                class="room-thumbnail @(image.ImageId == primaryImage.ImageId ? "active" : "")"
+                                                data-image="@image.ImageUrl">
+
+                                            <img src="@image.ImageUrl"
+                                                 alt="Ảnh phòng" />
+
+                                        </button>
+                                    }
+
+                                </div>
+                            }
+
+                        </div>
+                    }
+
+                </section>
+
+
+                <!-- =============================================
+                 ROOM SPECIFICATIONS
+                 ============================================= -->
+
+                <section class="detail-section">
+
+                    <div class="section-heading">
+
+                        <div>
+
+                            <h2>
+                                Thông số phòng & Quy định lưu trú
+                            </h2>
+
+                            <p>
+                                Thông tin sử dụng và điều kiện phòng
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="room-spec-grid">
+
+                        <article class="room-spec-card">
+
+                            <span>
+                                Diện tích
+                            </span>
+
+                            <strong>
+                                @room.AreaM2.ToString("0.##") m²
+                            </strong>
+
+                            <small>
+                                Diện tích sử dụng
+                            </small>
+
+                        </article>
+
+
+                        <article class="room-spec-card">
+
+                            <span>
+                                Sức chứa
+                            </span>
+
+                            <strong>
+                                @room.MaxOccupants người
+                            </strong>
+
+                            <small>
+                                Tối đa cho phép
+                            </small>
+
+                        </article>
+
+
+                        <article class="room-spec-card">
+
+                            <span>
+                                Giới tính ưu tiên
+                            </span>
+
+                            <strong>
+                                @GenderText(room.GenderPreference)
+                            </strong>
+
+                            <small>
+                                Điều kiện lưu trú
+                            </small>
+
+                        </article>
+
+
+                        <article class="room-spec-card">
+
+                            <span>
+                                Có thể thuê từ
+                            </span>
+
+                            <strong>
+                                @(
+                                    room.AvailableFrom.HasValue
+                                        ? room.AvailableFrom.Value
+                                            .ToString("dd/MM/yyyy")
+                                        : "Chưa cập nhật"
+                                )
+                            </strong>
+
+                            <small>
+                                Ngày sẵn sàng
+                            </small>
+
+                        </article>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =============================================
+                 COST
+                 ============================================= -->
+
+                <section class="detail-section">
+
+                    <div class="section-heading">
+
+                        <div>
+
+                            <h2>
+                                Chi phí sinh hoạt & bảng giá
+                            </h2>
+
+                            <p>
+                                Các khoản phí do chủ trọ khai báo
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="rent-highlight">
+
+                        <div>
+
+                            <span>
+                                Giá thuê niêm yết hàng tháng
+                            </span>
+
+                            <strong>
+                                @room.RentPrice.ToString("N0") ₫
+                            </strong>
+
+                        </div>
+
+                        <small>
+                            / tháng
+                        </small>
+
+                    </div>
+
+
+                    <div class="room-cost-grid">
+
+                        <article>
+
+                            <span>
+                                Tiền đặt cọc
+                            </span>
+
+                            <strong>
+                                @Money(room.DepositAmount)
+                            </strong>
+
+                        </article>
+
+
+                        <article>
+
+                            <span>
+                                Tiền điện
+                            </span>
+
+                            <strong>
+                                @(
+                                    room.ElectricityPrice.HasValue
+                                        ? $"{room.ElectricityPrice.Value:N0} ₫ / kWh"
+                                        : "Chưa cập nhật"
+                                )
+                            </strong>
+
+                        </article>
+
+
+                        <article>
+
+                            <span>
+                                Tiền nước
+                            </span>
+
+                            <strong>
+                                @Money(room.WaterPrice)
+                            </strong>
+
+                        </article>
+
+
+                        <article>
+
+                            <span>
+                                Internet / Wifi
+                            </span>
+
+                            <strong>
+                                @(
+                                    room.InternetPrice == 0
+                                        ? "Miễn phí"
+                                        : Money(room.InternetPrice)
+                                )
+                            </strong>
+
+                        </article>
+
+
+                        <article>
+
+                            <span>
+                                Phí dịch vụ
+                            </span>
+
+                            <strong>
+                                @Money(room.ServiceFee)
+                            </strong>
+
+                        </article>
+
+
+                        <article>
+
+                            <span>
+                                Phí giữ xe
+                            </span>
+
+                            <strong>
+                                @(
+                                    room.ParkingFee == 0
+                                        ? "Miễn phí"
+                                        : Money(room.ParkingFee)
+                                )
+                            </strong>
+
+                        </article>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =============================================
+                 AMENITIES
+                 ============================================= -->
+
+                <section class="detail-section">
+
+                    <div class="section-heading">
+
+                        <div>
+
+                            <h2>
+                                Tiện ích phòng & khu trọ
+                            </h2>
+
+                            <p>
+                                Các tiện ích đang được khai báo cho phòng
+                            </p>
+
+                        </div>
+
+                        <span class="section-count">
+                            @room.Amenities.Count tiện ích
+                        </span>
+
+                    </div>
+
+
+                    @if (room.Amenities.Count == 0)
+                    {
+                        <div class="simple-empty">
+                            Chưa có tiện ích được khai báo.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="amenity-grid">
+
+                            @foreach (var amenity in room.Amenities)
+                            {
+                                <article class="amenity-item">
+
+                                    <div class="amenity-icon">
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            amenity.IconUrl))
+                                        {
+                                            <img src="@amenity.IconUrl"
+                                                 alt="@amenity.AmenityName" />
+                                        }
+                                        else
+                                        {
+                                            <span>
+                                                ✓
+                                            </span>
+                                        }
+
+                                    </div>
+
+                                    <strong>
+                                        @amenity.AmenityName
+                                    </strong>
+
+                                </article>
+                            }
+
+                        </div>
+                    }
+
+                </section>
+
+
+                <!-- =============================================
+                 DESCRIPTION
+                 ============================================= -->
+
+                <section class="detail-section">
+
+                    <div class="section-heading">
+
+                        <div>
+
+                            <h2>
+                                Mô tả chi tiết phòng từ chủ trọ
+                            </h2>
+
+                            <p>
+                                Nội dung giới thiệu được chủ trọ cung cấp
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="room-description-box">
+
+                        @if (string.IsNullOrWhiteSpace(room.Description))
+                        {
+                            <span>
+                                Chủ trọ chưa cung cấp mô tả chi tiết.
+                            </span>
+                        }
+                        else
+                        {
+                            @room.Description
+                        }
+
+                    </div>
+
+
+                    @if (!string.IsNullOrWhiteSpace(
+                        room.PropertyDescription))
+                    {
+                        <div class="property-description-box">
+
+                            <strong>
+                                Mô tả khu trọ
+                            </strong>
+
+                            <p>
+                                @room.PropertyDescription
+                            </p>
+
+                        </div>
+                    }
+
+                </section>
+
+
+                <!-- =============================================
+                 REPORTS
+                 ============================================= -->
+
+                <section class="detail-section reports-section">
+
+                    <div class="section-heading">
+
+                        <div>
+
+                            <h2>
+                                Báo cáo & phản ánh liên quan
+                            </h2>
+
+                            <p>
+                                Các báo cáo gần nhất liên quan đến phòng
+                            </p>
+
+                        </div>
+
+
+                        @if (room.TotalReports > 0)
+                        {
+                            <span class="report-count">
+
+                                @room.TotalReports báo cáo
+
+                            </span>
+                        }
+
+                    </div>
+
+
+                    @if (room.RecentReports.Count == 0)
+                    {
+                        <div class="simple-empty">
+                            Chưa có báo cáo liên quan đến phòng này.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="related-report-list">
+
+                            @foreach (var report in room.RecentReports)
+                            {
+                                <article class="related-report">
+
+                                    <div class="related-report-top">
+
+                                        <strong>
+                                            Báo cáo #@report.ReportId
+                                        </strong>
+
+                                        <span class="
+                                            report-status
+                                            report-@report.Status.ToLowerInvariant()">
+
+                                            @report.Status
+
+                                        </span>
+
+                                    </div>
+
+
+                                    <div class="related-report-meta">
+
+                                        <span>
+                                            Người báo cáo:
+                                            <strong>@report.ReporterName</strong>
+                                        </span>
+
+                                        <span>
+                                            @(report.CreatedAt
+                                                .ToLocalTime()
+                                                .ToString("dd/MM/yyyy HH:mm"))
+                                        </span>
+
+                                    </div>
+
+
+                                    <p>
+                                        <strong>
+                                            @report.Reason
+                                        </strong>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            report.Description))
+                                        {
+                                            <span>
+                                                — @report.Description
+                                            </span>
+                                        }
+
+                                    </p>
+
+                                </article>
+                            }
+
+                        </div>
+                    }
+
+                </section>
+
+            </main>
+
+
+            <!-- =================================================
+             RIGHT SIDEBAR
+             ================================================= -->
+
+            <aside class="room-detail-right">
+
+                <!-- =============================================
+                 REVIEW
+                 ============================================= -->
+
+                <section class="detail-side-card review-card">
+
+                    <div class="side-card-heading">
+
+                        <h2>
+                            Kiểm duyệt & vận hành
+                        </h2>
+
+                        <span class="
+                            room-detail-listing-status
+                            status-@room.ListingStatus.ToLowerInvariant()">
+
+                            @ListingStatusText(room.ListingStatus)
+
+                        </span>
+
+                    </div>
+
+
+                    <div class="side-info-list">
+
+                        <div>
+
+                            <span>
+                                Trạng thái
+                            </span>
+
+                            <strong>
+                                @ListingStatusText(room.ListingStatus)
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Người xử lý
+                            </span>
+
+                            <strong>
+                                @(room.ReviewedByUserName ?? "Chưa xử lý")
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Thời gian xử lý
+                            </span>
+
+                            <strong>
+                                @(
+                                    room.ReviewedAt.HasValue
+                                        ? room.ReviewedAt.Value
+                                            .ToLocalTime()
+                                            .ToString("dd/MM/yyyy HH:mm")
+                                        : "—"
+                                )
+                            </strong>
+
+                        </div>
+
+
+                        @if (room.PublishedAt.HasValue)
+                        {
+                            <div>
+
+                                <span>
+                                    Ngày đăng
+                                </span>
+
+                                <strong>
+                                    @(room.PublishedAt.Value
+                                        .ToLocalTime()
+                                        .ToString("dd/MM/yyyy HH:mm"))
+                                </strong>
+
+                            </div>
+                        }
+
+                    </div>
+
+
+                    @if (Model.IsRejected)
+                    {
+                        <div class="side-rejection-box">
+
+                            <strong>
+                                Lý do từ chối
+                            </strong>
+
+                            <p>
+                                @(room.RejectionReason ?? "Không có lý do.")
+                            </p>
+
+                        </div>
+                    }
+
+
+                    @if (Model.IsPending)
+                    {
+                        <div class="review-checklist">
+
+                            <strong>
+                                Checklist kiểm duyệt
+                            </strong>
+
+                            <label>
+                                <input type="checkbox"
+                                       disabled
+                                       checked="@(room.Images.Count > 0)" />
+
+                                Có hình ảnh phòng
+                            </label>
+
+                            <label>
+                                <input type="checkbox"
+                                       disabled
+                                       checked="@(!string.IsNullOrWhiteSpace(room.Description))" />
+
+                                Có mô tả tin phòng
+                            </label>
+
+                            <label>
+                                <input type="checkbox"
+                                       disabled
+                                       checked="@(room.RentPrice > 0)" />
+
+                                Có giá thuê
+                            </label>
+
+                            <label>
+                                <input type="checkbox"
+                                       disabled
+                                       checked="@(room.MaxOccupants > 0)" />
+
+                                Có thông tin sức chứa
+                            </label>
+
+                        </div>
+                    }
+
+
+                    <div class="review-action-preview">
+
+                        @if (Model.IsPending)
+                        {
+                            <button type="button"
+                                    class="preview-reject"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#rejectRoomModal">
+                                ✕ Từ chối
+                            </button>
+                            <button type="button"
+                                    class="preview-approve"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#approveRoomModal">
+                                ✓ Duyệt tin
+                            </button>
+                        }
+                        else
+                        {
+                            <span>Tin đã được xử lý.</span>
+                        }
+                    </div>
+
+                </section>
+
+
+                <!-- =============================================
+                 INTERACTION
+                 ============================================= -->
+
+                <section class="detail-side-card">
+
+                    <div class="side-card-heading">
+
+                        <h2>
+                            Thống kê tương tác
+                        </h2>
+
+                    </div>
+
+
+                    <div class="interaction-grid">
+
+                        <article>
+
+                            <span>
+                                Lượt xem
+                            </span>
+
+                            <strong>
+                                @room.ViewCount.ToString("N0")
+                            </strong>
+
+                        </article>
+
+
+                        <article>
+
+                            <span>
+                                Lưu tin
+                            </span>
+
+                            <strong>
+                                @room.SavedCount.ToString("N0")
+                            </strong>
+
+                        </article>
+
+
+                        <article>
+
+                            <span>
+                                Báo cáo
+                            </span>
+
+                            <strong>
+                                @room.TotalReports.ToString("N0")
+                            </strong>
+
+                        </article>
+
+
+                        <article>
+
+                            <span>
+                                Đang mở
+                            </span>
+
+                            <strong>
+                                @room.OpenReports.ToString("N0")
+                            </strong>
+
+                        </article>
+
+                    </div>
+
+
+                    <div class="interaction-note">
+                        Không hiển thị biểu đồ 7 ngày vì backend hiện chưa lưu lịch sử lượt xem theo từng ngày.
+                    </div>
+
+                </section>
+
+
+                <!-- =============================================
+                 PROPERTY / LOCATION
+                 ============================================= -->
+
+                <section class="detail-side-card">
+
+                    <div class="side-card-heading">
+
+                        <h2>
+                            Vị trí & Khu trọ liên kết
+                        </h2>
+
+                    </div>
+
+
+                    <div class="property-overview">
+
+                        <strong>
+                            @room.PropertyName
+                        </strong>
+
+                        <span>
+                            @room.PropertyTypeName
+                        </span>
+
+                    </div>
+
+
+                    <div class="property-stat-row">
+
+                        <div>
+
+                            <span>
+                                Tổng phòng
+                            </span>
+
+                            <strong>
+                                @room.PropertyTotalRooms
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Còn trống
+                            </span>
+
+                            <strong class="green-text">
+                                @room.PropertyAvailableRooms
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Đã thuê
+                            </span>
+
+                            <strong>
+                                @room.PropertyRentedRooms
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="landlord-side-box">
+
+                        <div class="landlord-side-avatar">
+
+                            @(
+                                string.IsNullOrWhiteSpace(room.LandlordName)
+                                    ? "?"
+                                    : room.LandlordName[0]
+                                        .ToString()
+                                        .ToUpper()
+                            )
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="landlord-name-line">
+
+                                <strong>
+                                    @room.LandlordName
+                                </strong>
+
+                                @if (room.LandlordIsVerified)
+                                {
+                                    <span title="Chủ trọ đã xác minh">
+                                        ✓
+                                    </span>
+                                }
+
+                            </div>
+
+                            <small>
+                                @room.LandlordPhone
+                            </small>
+
+                            <small>
+                                @room.LandlordEmail
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="location-info">
+
+                        <div>
+
+                            <span>
+                                Tỉnh / Thành phố
+                            </span>
+
+                            <strong>
+                                @room.ProvinceName
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Xã / Phường
+                            </span>
+
+                            <strong>
+                                @room.WardName
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Địa chỉ
+                            </span>
+
+                            <strong>
+                                @room.AddressLine
+                            </strong>
+
+                        </div>
+
+
+                        @if (room.Latitude.HasValue &&
+                             room.Longitude.HasValue)
+                        {
+                            <div>
+
+                                <span>
+                                    Tọa độ
+                                </span>
+
+                                <strong>
+                                    @room.Latitude,
+                                    @room.Longitude
+                                </strong>
+
+                            </div>
+                        }
+
+                    </div>
+
+                </section>
+
+
+                <!-- =============================================
+                 META
+                 ============================================= -->
+
+                <section class="detail-side-card">
+
+                    <div class="side-card-heading">
+
+                        <h2>
+                            Thông tin hệ thống
+                        </h2>
+
+                    </div>
+
+
+                    <div class="side-info-list">
+
+                        <div>
+
+                            <span>
+                                Room ID
+                            </span>
+
+                            <strong>
+                                #@room.RoomId
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Property ID
+                            </span>
+
+                            <strong>
+                                #@room.PropertyId
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Ngày tạo
+                            </span>
+
+                            <strong>
+                                @(room.CreatedAt
+                                    .ToLocalTime()
+                                    .ToString("dd/MM/yyyy HH:mm"))
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Cập nhật
+                            </span>
+
+                            <strong>
+                                @(room.UpdatedAt
+                                    .ToLocalTime()
+                                    .ToString("dd/MM/yyyy HH:mm"))
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </aside>
+
+        </div>
+
+
+        @if (Model.IsPending)
+        {
+            <!-- =====================================================
+                 APPROVE MODAL
+                 ===================================================== -->
+
+            <div class="modal fade"
+                 id="approveRoomModal"
+                 tabindex="-1"
+                 aria-hidden="true">
+
+                <div class="modal-dialog modal-dialog-centered">
+
+                    <div class="modal-content room-review-modal">
+
+                        <form asp-controller="Rooms"
+                              asp-action="Approve"
+                              method="post">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="@room.RoomId" />
+
+                            <input type="hidden"
+                                   name="returnUrl"
+                                   value="@Model.ReturnUrl" />
+
+
+                            <div class="modal-header">
+
+                                <div>
+
+                                    <h5 class="modal-title">
+                                        Duyệt tin phòng
+                                    </h5>
+
+                                    <p>
+                                        Tin phòng sẽ được công khai
+                                        sau khi xác nhận.
+                                    </p>
+
+                                </div>
+
+
+                                <button type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Đóng">
+                                </button>
+
+                            </div>
+
+
+                            <div class="modal-body">
+
+                                <div class="review-room-summary">
+
+                                    <strong>
+                                        @room.Title
+                                    </strong>
+
+                                    <span>
+                                        @room.PropertyName
+                                    </span>
+
+                                </div>
+
+
+                                <div class="approve-confirm-box">
+
+                                    <div class="approve-confirm-icon">
+                                        ✓
+                                    </div>
+
+                                    <div>
+
+                                        <strong>
+                                            Xác nhận duyệt tin?
+                                        </strong>
+
+                                        <p>
+                                            Trạng thái sẽ chuyển từ
+                                            <b>Chờ duyệt</b> sang
+                                            <b>Đã đăng</b>.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="modal-footer">
+
+                                <button type="button"
+                                        class="review-modal-cancel"
+                                        data-bs-dismiss="modal">
+
+                                    Hủy
+
+                                </button>
+
+
+                                <button type="submit"
+                                        class="review-modal-approve">
+
+                                    ✓ Xác nhận duyệt
+
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                 REJECT MODAL
+                 ===================================================== -->
+
+            <div class="modal fade"
+                 id="rejectRoomModal"
+                 tabindex="-1"
+                 aria-hidden="true">
+
+                <div class="modal-dialog modal-dialog-centered">
+
+                    <div class="modal-content room-review-modal">
+
+                        <form asp-controller="Rooms"
+                              asp-action="Reject"
+                              method="post"
+                              id="rejectRoomForm"
+                              novalidate>
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="@room.RoomId" />
+
+                            <input type="hidden"
+                                   name="returnUrl"
+                                   value="@Model.ReturnUrl" />
+
+
+                            <div class="modal-header">
+
+                                <div>
+
+                                    <h5 class="modal-title">
+                                        Từ chối tin phòng
+                                    </h5>
+
+                                    <p>
+                                        Hãy cung cấp lý do để ghi nhận
+                                        quyết định kiểm duyệt.
+                                    </p>
+
+                                </div>
+
+
+                                <button type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Đóng">
+                                </button>
+
+                            </div>
+
+
+                            <div class="modal-body">
+
+                                <div class="review-room-summary">
+
+                                    <strong>
+                                        @room.Title
+                                    </strong>
+
+                                    <span>
+                                        @room.PropertyName
+                                    </span>
+
+                                </div>
+
+
+                                <label for="rejectReason"
+                                       class="reject-reason-label">
+
+                                    Lý do từ chối
+
+                                    <span>*</span>
+
+                                </label>
+
+
+                                <textarea id="rejectReason"
+                                          name="reason"
+                                          maxlength="1000"
+                                          placeholder="Ví dụ: Hình ảnh chưa rõ ràng, thông tin giá thuê chưa đầy đủ..."></textarea>
+
+
+                                <div id="rejectReasonError"
+                                     class="reject-reason-error"
+                                     hidden>
+
+                                    Vui lòng nhập lý do từ chối tin phòng.
+
+                                </div>
+
+
+                                <div class="reject-reason-footer">
+
+                                    <span>
+                                        Lý do sẽ được lưu vào lịch sử xử lý tin.
+                                    </span>
+
+                                    <span id="rejectReasonCounter">
+                                        0 / 1000
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="modal-footer">
+
+                                <button type="button"
+                                        class="review-modal-cancel"
+                                        data-bs-dismiss="modal">
+
+                                    Hủy
+
+                                </button>
+
+
+                                <button type="submit"
+                                        class="review-modal-reject">
+
+                                    ✕ Xác nhận từ chối
+
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    }
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function() {
+
+                // =====================================================
+                // IMAGE GALLERY
+                // =====================================================
+
+                const primaryImage =
+                    document.getElementById(
+                        "roomPrimaryImage"
+                    );
+
+                const thumbnails =
+                    document.querySelectorAll(
+                        ".room-thumbnail"
+                    );
+
+
+                if (primaryImage &&
+                    thumbnails.length > 0) {
+
+                    thumbnails.forEach(
+                        function(thumbnail) {
+
+                            thumbnail.addEventListener(
+                                "click",
+                                function() {
+
+                                    const imageUrl =
+                                        this.dataset.image;
+
+
+                                    if (!imageUrl) {
+                                        return;
+                                    }
+
+
+                                    primaryImage.src =
+                                        imageUrl;
+
+
+                                    thumbnails.forEach(
+                                        item =>
+                                            item.classList.remove(
+                                                "active"
+                                            )
+                                    );
+
+
+                                    this.classList.add(
+                                        "active"
+                                    );
+
+                                });
+
+                        });
+                }
+
+
+                // =====================================================
+                // REJECT VALIDATION
+                // =====================================================
+
+                const rejectForm =
+                    document.getElementById(
+                        "rejectRoomForm"
+                    );
+
+                const rejectReason =
+                    document.getElementById(
+                        "rejectReason"
+                    );
+
+                const rejectError =
+                    document.getElementById(
+                        "rejectReasonError"
+                    );
+
+                const rejectCounter =
+                    document.getElementById(
+                        "rejectReasonCounter"
+                    );
+
+
+                if (!rejectForm ||
+                    !rejectReason ||
+                    !rejectError) {
+
+                    return;
+                }
+
+
+                function updateCounter() {
+
+                    if (!rejectCounter) {
+                        return;
+                    }
+
+                    rejectCounter.textContent =
+                        `${rejectReason.value.length} / 1000`;
+
+                }
+
+
+                function clearRejectError() {
+
+                    if (
+                        rejectReason.value
+                            .trim()
+                            .length > 0
+                    ) {
+                        rejectError.hidden = true;
+
+                        rejectReason.classList
+                            .remove(
+                                "is-invalid-field"
+                            );
+                    }
+                }
+
+                rejectReason.addEventListener(
+                    "input",
+                    function() {
+
+                        updateCounter();
+
+                        clearRejectError();
+
+                    });
+
+                rejectForm.addEventListener(
+                    "submit",
+                    function(event) {
+
+                        const value =
+                            rejectReason.value.trim();
+
+
+                        if (value.length === 0) {
+
+                            event.preventDefault();
+
+                            rejectError.hidden = false;
+
+                            rejectReason.classList.add(
+                                "is-invalid-field"
+                            );
+
+                            rejectReason.focus();
+
+                            return;
+                        }
+
+
+                        rejectError.hidden = true;
+
+                        rejectReason.classList.remove(
+                            "is-invalid-field"
+                        );
+
+                    });
+                updateCounter();
+            });
+    </script>
+}

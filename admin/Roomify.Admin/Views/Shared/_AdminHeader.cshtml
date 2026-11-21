@@ -1,0 +1,128 @@
+﻿@using System.Security.Claims
+
+@{
+    var displayName =
+        User.Identity?.Name
+        ?? "Quản trị viên";
+
+    var email =
+        User.FindFirst(
+            ClaimTypes.Email
+        )?.Value
+        ?? string.Empty;
+
+    var firstLetter =
+        !string.IsNullOrWhiteSpace(displayName)
+            ? displayName[..1].ToUpper()
+            : "A";
+}
+
+
+<header class="admin-header">
+
+    <!-- MOBILE SIDEBAR TOGGLE -->
+
+    <button type="button"
+            class="sidebar-toggle"
+            id="sidebarToggle"
+            aria-label="Mở menu">
+
+        <svg viewBox="0 0 24 24"
+             aria-hidden="true">
+
+            <path d="M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h16v2H4v-2Z" />
+
+        </svg>
+
+    </button>
+
+
+    <!-- ACCOUNT -->
+
+    <div class="admin-header-actions">
+
+        <div class="dropdown">
+
+            <button type="button"
+                    class="admin-account"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+
+                <div class="admin-avatar">
+                    @firstLetter
+                </div>
+
+
+                <div class="admin-account-info">
+
+                    <strong>
+                        @displayName
+                    </strong>
+
+                    <span>
+                        Quản trị viên
+                    </span>
+
+                </div>
+
+
+                <svg class="account-chevron"
+                     viewBox="0 0 24 24"
+                     aria-hidden="true">
+
+                    <path d="m7 10 5 5 5-5H7Z" />
+
+                </svg>
+
+            </button>
+
+
+            <div class="dropdown-menu dropdown-menu-end admin-user-menu">
+
+                <div class="dropdown-user-summary">
+
+                    <strong>
+                        @displayName
+                    </strong>
+
+                    <span>
+                        @email
+                    </span>
+
+                </div>
+
+
+                <div class="dropdown-divider">
+                </div>
+
+
+                <form asp-controller="Auth"
+                      asp-action="Logout"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+
+                    <button type="submit"
+                            class="dropdown-item logout-item">
+
+                        <svg viewBox="0 0 24 24"
+                             aria-hidden="true">
+
+                            <path d="M10 4H5v16h5v-2H7V6h3V4Zm7.6 3.6L16.2 9l2 2H10v2h8.2l-2 2 1.4 1.4L22 12l-4.4-4.4Z" />
+
+                        </svg>
+
+                        Đăng xuất
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</header>

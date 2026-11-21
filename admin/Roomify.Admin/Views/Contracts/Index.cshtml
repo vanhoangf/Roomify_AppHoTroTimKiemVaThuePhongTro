@@ -1,0 +1,822 @@
+﻿@model Roomify.Admin.Models.Contracts.AdminContractsViewModel
+
+@{
+    ViewData["Title"] =
+        "Hợp đồng";
+
+    var contracts =
+        Model.Contracts;
+
+
+    var startPage =
+        contracts is null
+            ? 1
+            : Math.Max(
+                1,
+                contracts.Page - 2);
+
+
+    var endPage =
+        contracts is null
+            ? 1
+            : Math.Min(
+                contracts.TotalPages,
+                contracts.Page + 2);
+
+
+    string StatusText(
+        string status)
+    {
+        return status.ToUpperInvariant()
+            switch
+        {
+            "PENDING" =>
+                "Chờ xác nhận",
+
+            "ACTIVE" =>
+                "Đang hiệu lực",
+
+            "COMPLETED" =>
+                "Đã hoàn thành",
+
+            "CANCELLED" =>
+                "Đã hủy",
+
+            _ =>
+                status
+        };
+    }
+}
+
+
+@section Styles {
+
+    <link rel="stylesheet"
+          href="~/css/admin-contracts.css"
+          asp-append-version="true" />
+
+}
+
+
+<div class="contracts-page">
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <section class="contracts-heading">
+
+        <div>
+
+            <div class="contracts-breadcrumb">
+
+                Trang chủ
+
+                <span>›</span>
+
+                <strong>
+                    Hợp đồng
+                </strong>
+
+            </div>
+
+
+            <h1>
+                Quản lý hợp đồng
+            </h1>
+
+
+            <p>
+                Theo dõi toàn bộ hợp đồng thuê phòng trên hệ thống Roomify.
+            </p>
+        </div>
+    </section>
+
+
+    <!-- =====================================================
+         STATUS TABS
+         ===================================================== -->
+
+    <nav class="contracts-status-tabs">
+
+        <a asp-controller="Contracts"
+           asp-action="Index"
+           asp-route-search="@Model.Search"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(
+           string.IsNullOrWhiteSpace(Model.Status)
+               ? "active"
+               : "")">
+
+            Tất cả
+
+            @if (contracts is not null)
+            {
+                <span class="contracts-tab-count">
+                    @contracts.TotalContracts
+                </span>
+            }
+
+        </a>
+
+
+        <a asp-controller="Contracts"
+           asp-action="Index"
+           asp-route-status="PENDING"
+           asp-route-search="@Model.Search"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(Model.Status == "PENDING" ? "active pending" : "")">
+
+            Chờ xác nhận
+
+            @if (contracts is not null)
+            {
+                <span class="contracts-tab-count pending">
+                    @contracts.PendingContracts
+                </span>
+            }
+
+        </a>
+
+
+        <a asp-controller="Contracts"
+           asp-action="Index"
+           asp-route-status="ACTIVE"
+           asp-route-search="@Model.Search"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(Model.Status == "ACTIVE" ? "active active-status" : "")">
+
+            Đang hiệu lực
+
+            @if (contracts is not null)
+            {
+                <span class="contracts-tab-count active-status">
+                    @contracts.ActiveContracts
+                </span>
+            }
+
+        </a>
+
+
+        <a asp-controller="Contracts"
+           asp-action="Index"
+           asp-route-status="COMPLETED"
+           asp-route-search="@Model.Search"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(Model.Status == "COMPLETED" ? "active completed" : "")">
+
+            Hoàn thành
+
+            @if (contracts is not null)
+            {
+                <span class="contracts-tab-count completed">
+                    @contracts.CompletedContracts
+                </span>
+            }
+
+        </a>
+
+
+        <a asp-controller="Contracts"
+           asp-action="Index"
+           asp-route-status="CANCELLED"
+           asp-route-search="@Model.Search"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(Model.Status == "CANCELLED" ? "active cancelled" : "")">
+
+            Đã hủy
+
+            @if (contracts is not null)
+            {
+                <span class="contracts-tab-count cancelled">
+                    @contracts.CancelledContracts
+                </span>
+            }
+
+        </a>
+
+    </nav>
+
+
+    <!-- =====================================================
+         KPI
+         ===================================================== -->
+
+    <section class="contracts-kpi-grid">
+
+        <article class="contracts-kpi-card">
+
+            <span>
+                Tổng hợp đồng
+            </span>
+
+            <strong>
+                @(contracts?.TotalContracts
+                    .ToString("N0") ?? "—")
+            </strong>
+
+            <small>
+                Tất cả hợp đồng trên hệ thống
+            </small>
+
+        </article>
+
+
+        <article class="contracts-kpi-card">
+
+            <span>
+                Chờ xác nhận
+            </span>
+
+            <strong class="orange">
+                @(contracts?.PendingContracts
+                    .ToString("N0") ?? "—")
+            </strong>
+
+            <small>
+                Đang chờ sinh viên xác nhận
+            </small>
+
+        </article>
+
+
+        <article class="contracts-kpi-card">
+
+            <span>
+                Đang hiệu lực
+            </span>
+
+            <strong class="blue">
+                @(contracts?.ActiveContracts
+                    .ToString("N0") ?? "—")
+            </strong>
+
+            <small>
+                Hợp đồng đang được thực hiện
+            </small>
+
+        </article>
+
+
+        <article class="contracts-kpi-card">
+
+            <span>
+                Hoàn thành
+            </span>
+
+            <strong class="green">
+                @(contracts?.CompletedContracts
+                    .ToString("N0") ?? "—")
+            </strong>
+
+            <small>
+                Hợp đồng đã kết thúc
+            </small>
+
+        </article>
+
+
+        <article class="contracts-kpi-card">
+
+            <span>
+                Đã hủy
+            </span>
+
+            <strong class="red">
+                @(contracts?.CancelledContracts
+                    .ToString("N0") ?? "—")
+            </strong>
+
+            <small>
+                Hợp đồng đã bị hủy
+            </small>
+
+        </article>
+
+    </section>
+
+
+    <!-- =====================================================
+         FILTER
+         ===================================================== -->
+
+    <section class="contracts-filter-card">
+
+        <form asp-controller="Contracts"
+              asp-action="Index"
+              method="get">
+
+            <div class="contracts-filter-row">
+
+                <div class="contracts-search">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="M10.5 4a6.5 6.5 0 1 0 4.1 11.5L20 20.9l1.4-1.4-5.4-5.4A6.5 6.5 0 0 0 10.5 4Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z" />
+                    </svg>
+
+
+                    <input type="text"
+                           name="search"
+                           value="@Model.Search"
+                           placeholder="Mã hợp đồng, sinh viên, chủ trọ, phòng, khu trọ..." />
+
+                </div>
+
+
+                <select name="status">
+
+                    <option value="">
+                        Tất cả trạng thái
+                    </option>
+
+                    <option value="PENDING"
+                            selected="@(Model.Status == "PENDING")">
+
+                        Chờ xác nhận
+
+                    </option>
+
+                    <option value="ACTIVE"
+                            selected="@(Model.Status == "ACTIVE")">
+
+                        Đang hiệu lực
+
+                    </option>
+
+                    <option value="COMPLETED"
+                            selected="@(Model.Status == "COMPLETED")">
+
+                        Đã hoàn thành
+
+                    </option>
+
+                    <option value="CANCELLED"
+                            selected="@(Model.Status == "CANCELLED")">
+
+                        Đã hủy
+
+                    </option>
+
+                </select>
+
+
+                <input type="hidden"
+                       name="pageSize"
+                       value="@Model.PageSize" />
+
+
+                <button type="submit"
+                        class="contracts-filter-button">
+
+                    Lọc
+
+                </button>
+
+
+                <a asp-controller="Contracts"
+                   asp-action="Index"
+                   asp-route-pageSize="@Model.PageSize"
+                   class="contracts-reset-button">
+
+                    Đặt lại
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- =====================================================
+         ERROR / EMPTY
+         ===================================================== -->
+    @if (Model.HasError)
+    {
+        <section class="contracts-state">
+
+            <div class="contracts-state-icon error">
+                !
+            </div>
+
+
+            <h2>
+                Không thể tải danh sách hợp đồng
+            </h2>
+
+
+            <p>
+                @Model.ErrorMessage
+            </p>
+
+        </section>
+    }
+    else if (contracts is null ||
+             contracts.Items.Count == 0)
+    {
+        <section class="contracts-state">
+
+            <div class="contracts-state-icon">
+                #
+            </div>
+
+
+            <h2>
+                Không có hợp đồng
+            </h2>
+
+
+            <p>
+                Không tìm thấy hợp đồng phù hợp với điều kiện hiện tại.
+            </p>
+
+        </section>
+    }
+    else
+    {
+        <!-- =================================================
+             TABLE
+             ================================================= -->
+
+        <section class="contracts-table-card">
+
+            <div class="contracts-table-wrapper">
+
+                <table class="contracts-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Hợp đồng
+                            </th>
+
+                            <th>
+                                Sinh viên
+                            </th>
+
+                            <th>
+                                Chủ trọ
+                            </th>
+
+                            <th>
+                                Phòng
+                            </th>
+
+                            <th>
+                                Tiền thuê
+                            </th>
+
+                            <th>
+                                Trạng thái
+                            </th>
+
+                            <th>
+                                Thời hạn
+                            </th>
+
+                            <th>
+                                Thao tác
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @foreach (var contract in contracts.Items)
+                        {
+                            <tr class="contract-row-@contract.Status.ToLowerInvariant()">
+
+                                <!-- CONTRACT -->
+
+                                <td>
+
+                                    <div class="contract-code-cell">
+
+                                        <strong>
+                                            @contract.ContractCode
+                                        </strong>
+
+                                        <span>
+                                            #CT-@contract.ContractId
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- STUDENT -->
+
+                                <td>
+
+                                    <div class="contract-person-cell">
+
+                                        <strong title="@contract.StudentName">
+                                            @contract.StudentName
+                                        </strong>
+
+                                        <span title="@contract.StudentEmail">
+                                            @contract.StudentEmail
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- LANDLORD -->
+
+                                <td>
+
+                                    <div class="contract-person-cell">
+
+                                        <strong title="@contract.LandlordName">
+                                            @contract.LandlordName
+                                        </strong>
+
+                                        <span title="@contract.LandlordEmail">
+                                            @contract.LandlordEmail
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- ROOM -->
+
+                                <td>
+
+                                    <div class="contract-room-cell">
+
+                                        <strong title="@contract.RoomTitle">
+                                            @contract.RoomTitle
+                                        </strong>
+
+                                        <span title="@contract.PropertyName">
+                                            @contract.PropertyName
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- MONEY -->
+
+                                <td>
+
+                                    <div class="contract-money-cell">
+
+                                        <strong>
+                                            @contract.MonthlyRent.ToString("N0") đ
+                                        </strong>
+
+                                        <span>
+                                            Cọc:
+                                            @contract.DepositAmount.ToString("N0") đ
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- STATUS -->
+
+                                <td>
+
+                                    <span class="
+                                        contract-status
+                                        contract-status-@contract.Status.ToLowerInvariant()">
+
+                                        @StatusText(
+                                            contract.Status)
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- DATE -->
+
+                                <td>
+
+                                    <div class="contract-date-cell">
+
+                                        <strong>
+                                            @contract.StartDate.ToString("dd/MM/yyyy")
+                                        </strong>
+
+                                        <span>
+                                            →
+
+                                            @(contract.EndDate.HasValue
+                                                ? contract.EndDate.Value
+                                                    .ToString("dd/MM/yyyy")
+                                                : "Không xác định")
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- ACTION -->
+
+                                <td class="contract-action-column">
+
+                                    <div class="dropdown">
+
+                                        <button type="button"
+                                                class="contract-action-button"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                                title="Thao tác">
+                                            ⋮
+                                        </button>
+
+
+                                        <div class="dropdown-menu dropdown-menu-end contract-action-menu">
+
+                                            <a asp-controller="Contracts"
+                                               asp-action="Details"
+                                               asp-route-id="@contract.ContractId"
+                                               asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")"
+                                               class="dropdown-item">
+
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M12 5C7 5 3 8.1 1.5 12 3 15.9 7 19 12 19s9-3.1 10.5-7C21 8.1 17 5 12 5Zm0 12c-3.7 0-6.8-2.1-8.2-5C5.2 9.1 8.3 7 12 7s6.8 2.1 8.2 5c-1.4 2.9-4.5 5-8.2 5Zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" />
+                                                </svg>
+
+                                                Xem chi tiết
+
+                                            </a>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- =================================================
+                 FOOTER
+                 ================================================= -->
+
+            <div class="contracts-table-footer">
+
+                <div class="contracts-page-size">
+
+                    <span>
+                        Hiển thị
+                    </span>
+
+
+                    <form asp-controller="Contracts"
+                          asp-action="Index"
+                          method="get">
+
+                        <input type="hidden"
+                               name="search"
+                               value="@Model.Search" />
+
+                        <input type="hidden"
+                               name="status"
+                               value="@Model.Status" />
+
+
+                        <select name="pageSize"
+                                onchange="this.form.submit()">
+
+                            <option value="10"
+                                    selected="@(Model.PageSize == 10)">
+                                10
+                            </option>
+
+                            <option value="20"
+                                    selected="@(Model.PageSize == 20)">
+                                20
+                            </option>
+
+                            <option value="50"
+                                    selected="@(Model.PageSize == 50)">
+                                50
+                            </option>
+
+                        </select>
+
+                    </form>
+
+
+                    <span>
+                        bản ghi
+                    </span>
+
+                </div>
+
+
+                @{
+                    var from =
+                        contracts.TotalCount == 0
+                            ? 0
+                            : ((contracts.Page - 1)
+                               * contracts.PageSize) + 1;
+
+                    var to =
+                        Math.Min(
+                            contracts.Page
+                            * contracts.PageSize,
+                            contracts.TotalCount);
+                }
+
+
+                <div class="contracts-result-info">
+
+                    Hiển thị
+                    <strong>@from</strong>
+                    -
+                    <strong>@to</strong>
+
+                    trong
+
+                    <strong>
+                        @contracts.TotalCount
+                    </strong>
+
+                    kết quả
+
+                </div>
+
+
+                @if (contracts.TotalPages > 1)
+                {
+                    <nav class="contracts-pagination">
+
+                        <a asp-controller="Contracts"
+                           asp-action="Index"
+                           asp-route-search="@Model.Search"
+                           asp-route-status="@Model.Status"
+                           asp-route-page="@(contracts.Page - 1)"
+                           asp-route-pageSize="@Model.PageSize"
+                           class="@(!contracts.HasPreviousPage ? "disabled" : "")">
+
+                            ‹
+
+                        </a>
+
+
+                        @for (var pageNumber = startPage;
+                              pageNumber <= endPage;
+                              pageNumber++)
+                        {
+                            <a asp-controller="Contracts"
+                               asp-action="Index"
+                               asp-route-search="@Model.Search"
+                               asp-route-status="@Model.Status"
+                               asp-route-page="@pageNumber"
+                               asp-route-pageSize="@Model.PageSize"
+                               class="@(pageNumber == contracts.Page ? "active" : "")">
+
+                                @pageNumber
+
+                            </a>
+                        }
+
+
+                        <a asp-controller="Contracts"
+                           asp-action="Index"
+                           asp-route-search="@Model.Search"
+                           asp-route-status="@Model.Status"
+                           asp-route-page="@(contracts.Page + 1)"
+                           asp-route-pageSize="@Model.PageSize"
+                           class="@(!contracts.HasNextPage ? "disabled" : "")">
+
+                            ›
+
+                        </a>
+
+                    </nav>
+                }
+
+            </div>
+
+        </section>
+    }
+
+</div>

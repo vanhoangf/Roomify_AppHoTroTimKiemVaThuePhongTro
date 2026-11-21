@@ -30,7 +30,7 @@ public class AuthController : Controller
         {
             return RedirectToAction(
                 "Index",
-                "Home");
+                "Dashboard");
         }
 
         return View(
@@ -172,6 +172,8 @@ public class AuthController : Controller
             principal,
             properties);
 
+        await HttpContext.Session.CommitAsync(cancellationToken);
+
         // RETURN URL
         // Chỉ redirect URL nội bộ để tránh open redirect
 
@@ -181,11 +183,9 @@ public class AuthController : Controller
             return LocalRedirect(model.ReturnUrl);
         }
 
-        // Tạm thời về Home.
-        // Khi làm AD02 sẽ chuyển thành Dashboard.
         return RedirectToAction(
             "Index",
-            "Home");
+            "Dashboard");
     }
 
     // LOGOUT

@@ -1,0 +1,1130 @@
+﻿@model Roomify.Admin.Models.Reviews.AdminReviewDetailViewModel
+
+@{
+    ViewData["Title"] =
+        "Chi tiết đánh giá";
+
+    var review =
+        Model.Review;
+
+
+    string StatusText(
+        string status)
+    {
+        return status
+            .ToUpperInvariant()
+            switch
+        {
+            "VISIBLE" =>
+                "Đang hiển thị",
+
+            "HIDDEN" =>
+                "Đã ẩn",
+
+            _ =>
+                status
+        };
+    }
+}
+
+
+@section Styles {
+
+    <link rel="stylesheet"
+          href="~/css/admin-review-detail.css"
+          asp-append-version="true" />
+
+}
+
+
+<div class="review-detail-page">
+
+    @if (Model.HasError ||
+         review is null)
+    {
+        <!-- =====================================================
+         ERROR
+         ===================================================== -->
+
+        <section class="review-detail-error">
+
+            <div class="review-detail-error-icon">
+                !
+            </div>
+
+
+            <h1>
+                Không thể tải đánh giá
+            </h1>
+
+
+            <p>
+                @Model.ErrorMessage
+            </p>
+
+
+            <a href="@(Model.ReturnUrl ?? Url.Action("Index", "Reviews"))"
+               class="review-detail-primary-link">
+
+                Quay lại danh sách
+
+            </a>
+
+        </section>
+    }
+    else
+    {
+        <!-- =====================================================
+         BREADCRUMB
+         ===================================================== -->
+
+        <div class="review-detail-breadcrumb">
+
+            <a asp-controller="Dashboard"
+               asp-action="Index">
+
+                Trang chủ
+
+            </a>
+
+            <span>›</span>
+
+
+            <a href="@(Model.ReturnUrl ?? Url.Action("Index", "Reviews"))">
+
+                Đánh giá
+
+            </a>
+
+            <span>›</span>
+
+
+            <strong>
+                #RV-@review.ReviewId
+            </strong>
+
+        </div>
+
+
+        <!-- =====================================================
+         HEADING
+         ===================================================== -->
+
+        <section class="review-detail-heading">
+
+            <div>
+
+                <h1>
+                    Chi tiết đánh giá
+                </h1>
+
+
+                <p>
+                    Kiểm tra nội dung đánh giá, người gửi và thông tin phòng liên quan.
+                </p>
+
+            </div>
+
+
+            <a href="@(Model.ReturnUrl ?? Url.Action("Index", "Reviews"))"
+               class="review-detail-back">
+
+                <svg viewBox="0 0 24 24">
+                    <path d="m15 18-6-6 6-6 1.4 1.4L11.8 12l4.6 4.6L15 18Z" />
+                </svg>
+
+                Quay lại danh sách
+
+            </a>
+
+        </section>
+
+        @if (TempData["SuccessMessage"] is string successMessage)
+        {
+            <div class="review-detail-alert success">
+
+                <span>
+                    ✓
+                </span>
+
+                <div>
+                    @successMessage
+                </div>
+
+            </div>
+        }
+
+
+        @if (TempData["ErrorMessage"] is string errorMessage)
+        {
+            <div class="review-detail-alert error">
+
+                <span>
+                    !
+                </span>
+
+                <div>
+                    @errorMessage
+                </div>
+
+            </div>
+        }
+        <!-- =====================================================
+         SUMMARY
+         ===================================================== -->
+
+        <section class="review-summary-card">
+
+            <div class="review-summary-rating">
+
+                <strong>
+                    @review.Rating
+                </strong>
+
+                <span>
+                    ★
+                </span>
+
+            </div>
+
+
+            <div class="review-summary-main">
+
+                <div class="review-summary-top">
+
+                    <span class="review-code">
+                        #RV-@review.ReviewId
+                    </span>
+
+
+                    <span class="
+                        detail-review-status
+                        detail-review-status-@review.Status.ToLowerInvariant()">
+
+                        @StatusText(
+                            review.Status)
+
+                    </span>
+
+
+                    @if (Model.IsHidden)
+                    {
+                        <span class="review-moderated-label">
+                            Đã kiểm duyệt
+                        </span>
+                    }
+
+                </div>
+
+
+                <h2>
+                    @review.RoomTitle
+                </h2>
+
+
+                <div class="review-summary-meta">
+
+                    <span>
+                        Sinh viên:
+                        <strong>
+                            @review.StudentName
+                        </strong>
+                    </span>
+
+
+                    <span>
+                        @review.PropertyName
+                    </span>
+
+
+                    <span>
+                        @(review.CreatedAt
+                            .ToLocalTime()
+                            .ToString(
+                                "dd/MM/yyyy HH:mm"))
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+         MAIN GRID
+         ===================================================== -->
+
+        <div class="review-detail-grid">
+
+            <!-- =================================================
+             LEFT
+             ================================================= -->
+
+            <main class="review-detail-main">
+
+                <!-- REVIEW CONTENT -->
+
+                <section class="review-detail-card">
+
+                    <div class="review-card-heading">
+
+                        <div class="review-card-icon orange">
+                            ★
+                        </div>
+
+
+                        <div>
+
+                            <h2>
+                                Nội dung đánh giá
+                            </h2>
+
+                            <p>
+                                Điểm số và nhận xét do sinh viên gửi
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="review-rating-display">
+
+                        <div class="review-rating-number">
+                            @review.Rating
+                        </div>
+
+
+                        <div>
+
+                            <div class="review-stars">
+
+                                @for (
+                                    var star = 1;
+                                    star <= 5;
+                                    star++)
+                                {
+                                    <span class="@(
+                                          star <= review.Rating
+                                            ? "filled"
+                                            : "")">
+
+                                ★
+
+                            </span>
+                        }
+
+                    </div>
+
+
+                    <p>
+                        @review.Rating / 5 điểm
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="review-comment-box">
+
+                <span>
+                    Nhận xét
+                </span>
+
+
+                @if (string.IsNullOrWhiteSpace(
+                    review.Comment))
+                {
+                    <p class="empty-text">
+                        Sinh viên không cung cấp nhận xét.
+                    </p>
+                }
+                else
+                {
+                    <p>
+                        @review.Comment
+                    </p>
+                }
+
+            </div>
+
+        </section>
+
+
+        <!-- ROOM -->
+
+        <section class="review-detail-card">
+
+            <div class="review-card-heading">
+
+                <div class="review-card-icon blue">
+                    ▣
+                </div>
+
+
+                <div>
+
+                    <h2>
+                        Phòng được đánh giá
+                    </h2>
+
+                    <p>
+                        Thông tin phòng và khu trọ liên quan
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="review-room-box">
+
+                <div class="review-room-icon">
+                    ▣
+                </div>
+
+
+                <div class="review-room-main">
+
+                    <span>
+                        Room #@review.RoomId
+                    </span>
+
+
+                    <strong>
+                        @review.RoomTitle
+                    </strong>
+
+
+                    <small>
+                        @review.PropertyName
+                    </small>
+
+                </div>
+
+
+                <a asp-controller="Rooms"
+                   asp-action="Details"
+                   asp-route-id="@review.RoomId"
+                   asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")"
+                   class="review-view-room-link">
+
+                    Xem tin phòng
+
+                    <span>›</span>
+
+                </a>
+
+            </div>
+
+        </section>
+
+
+        <!-- CONTRACT -->
+
+        <section class="review-detail-card">
+
+            <div class="review-card-heading">
+
+                <div class="review-card-icon purple">
+                    #
+                </div>
+
+
+                <div>
+
+                    <h2>
+                        Hợp đồng liên quan
+                    </h2>
+
+                    <p>
+                        Đánh giá được tạo từ hợp đồng thuê phòng
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="review-contract-info">
+
+                <div>
+
+                    <span>
+                        Contract ID
+                    </span>
+
+                    <strong>
+                        #@review.ContractId
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Mã hợp đồng
+                    </span>
+
+                    <strong>
+                        @review.ContractCode
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Room ID
+                    </span>
+
+                    <strong>
+                        #@review.RoomId
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- MODERATION -->
+
+        <section class="review-detail-card">
+
+            <div class="review-card-heading">
+
+                <div class="review-card-icon green">
+                    ✓
+                </div>
+
+
+                <div>
+
+                    <h2>
+                        Thông tin kiểm duyệt
+                    </h2>
+
+                    <p>
+                        Trạng thái và lịch sử xử lý của Admin
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            @if (review.ModeratedAt.HasValue)
+            {
+                <div class="review-moderation-info">
+
+                    <div>
+
+                        <span>
+                            Trạng thái hiện tại
+                        </span>
+
+                        <strong>
+                            @StatusText(
+                                review.Status)
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Kiểm duyệt bởi
+                        </span>
+
+                        <strong>
+                            @(review.ModeratedByUserName
+                                ?? "Admin")
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            User ID Admin
+                        </span>
+
+                        <strong>
+                            @(
+                                review.ModeratedByUserId.HasValue
+                                    ? $"#{review.ModeratedByUserId.Value}"
+                                    : "—"
+                            )
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Thời gian kiểm duyệt
+                        </span>
+
+                        <strong>
+                            @(review.ModeratedAt.Value
+                                .ToLocalTime()
+                                .ToString(
+                                    "dd/MM/yyyy HH:mm"))
+                        </strong>
+
+                    </div>
+
+                </div>
+            }
+            else
+            {
+                <div class="review-not-moderated">
+
+                    <div>
+                        ✓
+                    </div>
+
+
+                    <section>
+
+                        <strong>
+                            Chưa có thao tác kiểm duyệt
+                        </strong>
+
+                        <p>
+                            Đánh giá đang ở trạng thái mặc định và chưa được Admin thay đổi hiển thị.
+                        </p>
+
+                    </section>
+
+                </div>
+            }
+
+        </section>
+
+    </main>
+
+
+    <!-- =================================================
+             RIGHT SIDEBAR
+             ================================================= -->
+
+    <aside class="review-detail-sidebar">
+
+        <!-- STUDENT -->
+
+        <section class="review-side-card">
+
+            <div class="review-side-heading">
+
+                <h2>
+                    Sinh viên đánh giá
+                </h2>
+
+            </div>
+
+
+            <div class="review-student-profile">
+
+                <div class="review-student-avatar">
+
+                    @(
+                        string.IsNullOrWhiteSpace(
+                            review.StudentName)
+
+                            ? "?"
+
+                            : review.StudentName[0]
+                                .ToString()
+                                .ToUpper()
+                    )
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        @review.StudentName
+                    </strong>
+
+                    <span>
+                        @review.StudentEmail
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="review-side-info">
+
+                <div>
+
+                    <span>
+                        Student ID
+                    </span>
+
+                    <strong>
+                        #@review.StudentId
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        User ID
+                    </span>
+
+                    <strong>
+                        #@review.StudentUserId
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Email
+                    </span>
+
+                    <strong>
+                        @review.StudentEmail
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- REVIEW META -->
+
+        <section class="review-side-card">
+
+            <div class="review-side-heading">
+
+                <h2>
+                    Thông tin đánh giá
+                </h2>
+
+            </div>
+
+
+            <div class="review-side-info">
+
+                <div>
+
+                    <span>
+                        Review ID
+                    </span>
+
+                    <strong>
+                        #@review.ReviewId
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Điểm
+                    </span>
+
+                    <strong class="side-rating">
+                        @review.Rating ★
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Trạng thái
+                    </span>
+
+                    <strong>
+                        @StatusText(
+                            review.Status)
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Ngày tạo
+                    </span>
+
+                    <strong>
+                        @(review.CreatedAt
+                            .ToLocalTime()
+                            .ToString(
+                                "dd/MM/yyyy HH:mm"))
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Cập nhật cuối
+                    </span>
+
+                    <strong>
+                        @(review.UpdatedAt
+                            .ToLocalTime()
+                            .ToString(
+                                "dd/MM/yyyy HH:mm"))
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ACTION PREVIEW -->
+
+        <section class="review-side-card">
+
+            <div class="review-side-heading">
+
+                <h2>
+                    Kiểm duyệt
+                </h2>
+
+            </div>
+
+
+            @if (Model.IsVisible)
+            {
+                <p class="review-action-description">
+                    Đánh giá hiện đang được hiển thị công khai.
+                </p>
+
+
+                <button type="button"
+                        class="review-hide-preview"
+                        data-bs-toggle="modal"
+                        data-bs-target="#hideReviewModal">
+
+                    Ẩn đánh giá
+
+                </button>
+
+
+                <small class="review-action-note">
+                    Đánh giá sẽ không còn hiển thị với người dùng.
+                </small>
+            }
+            else
+            {
+                <p class="review-action-description">
+                    Đánh giá hiện đang bị ẩn khỏi người dùng.
+                </p>
+
+
+                <button type="button"
+                        class="review-show-preview"
+                        data-bs-toggle="modal"
+                        data-bs-target="#showReviewModal">
+
+                    Hiển thị lại đánh giá
+
+                </button>
+
+
+                <small class="review-action-note">
+                    Đánh giá sẽ được công khai trở lại.
+                </small>
+            }
+
+        </section>
+
+    </aside>
+
+</div>
+
+@if (Model.IsVisible)
+{
+    <!-- =====================================================
+             HIDE REVIEW MODAL
+             ===================================================== -->
+
+    <div class="modal fade"
+         id="hideReviewModal"
+         tabindex="-1"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered">
+
+            <div class="modal-content review-moderation-modal">
+
+                <form asp-controller="Reviews"
+                      asp-action="Hide"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+
+                    <input type="hidden"
+                           name="id"
+                           value="@review.ReviewId" />
+
+
+                    <input type="hidden"
+                           name="returnUrl"
+                           value="@Model.ReturnUrl" />
+
+
+                    <div class="modal-header">
+
+                        <div>
+
+                            <h5 class="modal-title">
+                                Ẩn đánh giá
+                            </h5>
+
+                            <p>
+                                Đánh giá sẽ không còn hiển thị công khai.
+                            </p>
+
+                        </div>
+
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Đóng">
+                        </button>
+
+                    </div>
+
+
+                    <div class="modal-body">
+
+                        <div class="moderation-review-summary">
+
+                            <span>
+                                #RV-@review.ReviewId
+                            </span>
+
+                            <strong>
+                                @review.StudentName
+                            </strong>
+
+                            <small>
+                                @review.RoomTitle
+                            </small>
+
+                        </div>
+
+
+                        <div class="hide-review-warning">
+
+                            <div>
+                                !
+                            </div>
+
+                            <section>
+
+                                <strong>
+                                    Xác nhận ẩn đánh giá?
+                                </strong>
+
+                                <p>
+                                    Trạng thái sẽ chuyển từ
+                                    <b>Đang hiển thị</b>
+                                    sang
+                                    <b>Đã ẩn</b>.
+                                </p>
+
+                            </section>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="modal-footer">
+
+                        <button type="button"
+                                class="moderation-cancel-button"
+                                data-bs-dismiss="modal">
+
+                            Hủy
+
+                        </button>
+
+
+                        <button type="submit"
+                                class="moderation-hide-button">
+
+                            Ẩn đánh giá
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
+
+@if (Model.IsHidden)
+{
+    <!-- =====================================================
+             SHOW REVIEW MODAL
+             ===================================================== -->
+
+    <div class="modal fade"
+         id="showReviewModal"
+         tabindex="-1"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered">
+
+            <div class="modal-content review-moderation-modal">
+
+                <form asp-controller="Reviews"
+                      asp-action="Show"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+
+                    <input type="hidden"
+                           name="id"
+                           value="@review.ReviewId" />
+
+
+                    <input type="hidden"
+                           name="returnUrl"
+                           value="@Model.ReturnUrl" />
+
+
+                    <div class="modal-header">
+
+                        <div>
+
+                            <h5 class="modal-title">
+                                Hiển thị lại đánh giá
+                            </h5>
+
+                            <p>
+                                Đánh giá sẽ được công khai trở lại.
+                            </p>
+
+                        </div>
+
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Đóng">
+                        </button>
+
+                    </div>
+
+
+                    <div class="modal-body">
+
+                        <div class="moderation-review-summary">
+
+                            <span>
+                                #RV-@review.ReviewId
+                            </span>
+
+                            <strong>
+                                @review.StudentName
+                            </strong>
+
+                            <small>
+                                @review.RoomTitle
+                            </small>
+
+                        </div>
+
+
+                        <div class="show-review-info">
+
+                            <div>
+                                ✓
+                            </div>
+
+                            <section>
+
+                                <strong>
+                                    Xác nhận hiển thị lại?
+                                </strong>
+
+                                <p>
+                                    Trạng thái sẽ chuyển từ
+                                    <b>Đã ẩn</b>
+                                    sang
+                                    <b>Đang hiển thị</b>.
+                                </p>
+
+                            </section>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="modal-footer">
+
+                        <button type="button"
+                                class="moderation-cancel-button"
+                                data-bs-dismiss="modal">
+
+                            Hủy
+
+                        </button>
+
+
+                        <button type="submit"
+                                class="moderation-show-button">
+
+                            Hiển thị lại
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
+}
+
+</div>

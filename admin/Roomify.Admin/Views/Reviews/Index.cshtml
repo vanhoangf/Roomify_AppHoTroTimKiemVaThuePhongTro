@@ -1,0 +1,764 @@
+﻿@model Roomify.Admin.Models.Reviews.AdminReviewsViewModel
+
+@{
+    ViewData["Title"] = "Đánh giá";
+
+    var reviews = Model.Reviews;
+
+
+    var startPage =
+        reviews is null
+            ? 1
+            : Math.Max(
+                1,
+                reviews.Page - 2);
+
+
+    var endPage =
+        reviews is null
+            ? 1
+            : Math.Min(
+                reviews.TotalPages,
+                reviews.Page + 2);
+
+
+    string StatusText(string status)
+    {
+        return status.ToUpperInvariant() switch
+        {
+            "VISIBLE" =>
+                "Đang hiển thị",
+
+            "HIDDEN" =>
+                "Đã ẩn",
+
+            _ =>
+                status
+        };
+    }
+}
+
+
+@section Styles {
+
+    <link rel="stylesheet"
+          href="~/css/admin-reviews.css"
+          asp-append-version="true" />
+
+}
+
+
+<div class="reviews-page">
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <section class="reviews-heading">
+
+        <div>
+
+            <div class="reviews-breadcrumb">
+
+                Trang chủ
+
+                <span>›</span>
+
+                <strong>
+                    Đánh giá
+                </strong>
+
+            </div>
+
+
+            <h1>
+                Quản lý đánh giá
+            </h1>
+
+
+            <p>
+                Theo dõi và kiểm duyệt đánh giá của sinh viên về phòng trọ.
+            </p>
+        </div>
+    </section>
+
+
+    <!-- =====================================================
+         QUICK TABS
+         ===================================================== -->
+
+    <nav class="reviews-status-tabs">
+
+        <a asp-controller="Reviews"
+           asp-action="Index"
+           asp-route-search="@Model.Search"
+           asp-route-rating="@Model.Rating"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(
+           string.IsNullOrWhiteSpace(Model.Status)
+               ? "active"
+               : "")">
+
+            Tất cả
+
+            @if (reviews is not null)
+            {
+                <span class="reviews-tab-count neutral">
+                    @reviews.TotalReviews
+                </span>
+            }
+
+        </a>
+
+
+        <a asp-controller="Reviews"
+           asp-action="Index"
+           asp-route-status="VISIBLE"
+           asp-route-search="@Model.Search"
+           asp-route-rating="@Model.Rating"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(
+           Model.Status == "VISIBLE"
+               ? "active visible"
+               : "")">
+
+            Đang hiển thị
+
+            @if (reviews is not null &&
+                 reviews.VisibleReviews > 0)
+            {
+                <span class="reviews-tab-count visible">
+                    @reviews.VisibleReviews
+                </span>
+            }
+
+        </a>
+
+
+        <a asp-controller="Reviews"
+           asp-action="Index"
+           asp-route-status="HIDDEN"
+           asp-route-search="@Model.Search"
+           asp-route-rating="@Model.Rating"
+           asp-route-pageSize="@Model.PageSize"
+           class="@(
+           Model.Status == "HIDDEN"
+               ? "active hidden"
+               : "")">
+
+            Đã ẩn
+
+            @if (reviews is not null &&
+                 reviews.HiddenReviews > 0)
+            {
+                <span class="reviews-tab-count hidden">
+                    @reviews.HiddenReviews
+                </span>
+            }
+
+        </a>
+
+    </nav>
+
+
+    <!-- =====================================================
+         KPI
+         ===================================================== -->
+
+    <section class="reviews-kpi-grid">
+
+        <article class="reviews-kpi-card">
+
+            <span>
+                Tổng đánh giá
+            </span>
+
+            <strong>
+                @(reviews?.TotalReviews
+                    .ToString("N0") ?? "—")
+            </strong>
+
+            <small>
+                Tất cả đánh giá trên hệ thống
+            </small>
+
+        </article>
+
+
+        <article class="reviews-kpi-card">
+
+            <span>
+                Đang hiển thị
+            </span>
+
+            <strong class="green">
+                @(reviews?.VisibleReviews
+                    .ToString("N0") ?? "—")
+            </strong>
+
+            <small>
+                Người dùng có thể xem
+            </small>
+
+        </article>
+
+
+        <article class="reviews-kpi-card">
+
+            <span>
+                Đã ẩn
+            </span>
+
+            <strong class="red">
+                @(reviews?.HiddenReviews
+                    .ToString("N0") ?? "—")
+            </strong>
+
+            <small>
+                Đã được Admin kiểm duyệt
+            </small>
+
+        </article>
+
+
+        <article class="reviews-kpi-card">
+
+            <span>
+                Điểm trung bình
+            </span>
+
+            <div class="reviews-rating-kpi">
+
+                <strong class="orange">
+                    @(reviews is null
+                        ? "—"
+                        : reviews.AverageRating.ToString("0.0"))
+                </strong>
+
+                <span>
+                    ★
+                </span>
+
+            </div>
+
+            <small>
+                Trên thang điểm 5
+            </small>
+
+        </article>
+
+    </section>
+
+
+    <!-- =====================================================
+         FILTER
+         ===================================================== -->
+
+    <section class="reviews-filter-card">
+
+        <form asp-controller="Reviews"
+              asp-action="Index"
+              method="get">
+
+            <div class="reviews-filter-row">
+
+                <div class="reviews-search">
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="M10.5 4a6.5 6.5 0 1 0 4.1 11.5L20 20.9l1.4-1.4-5.4-5.4A6.5 6.5 0 0 0 10.5 4Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z" />
+                    </svg>
+
+
+                    <input type="text"
+                           name="search"
+                           value="@Model.Search"
+                           placeholder="Tìm sinh viên, email, phòng, khu trọ, hợp đồng..." />
+
+                </div>
+
+
+                <select name="status">
+
+                    <option value="">
+                        Tất cả trạng thái
+                    </option>
+
+                    <option value="VISIBLE"
+                            selected="@(Model.Status == "VISIBLE")">
+                        Đang hiển thị
+                    </option>
+
+                    <option value="HIDDEN"
+                            selected="@(Model.Status == "HIDDEN")">
+                        Đã ẩn
+                    </option>
+
+                </select>
+
+
+                <select name="rating">
+
+                    <option value="">
+                        Tất cả số sao
+                    </option>
+
+                    @for (var star = 5;
+                          star >= 1;
+                          star--)
+                    {
+                        <option value="@star"
+                                selected="@(Model.Rating == star)">
+                            @star sao
+                        </option>
+                    }
+
+                </select>
+
+
+                <input type="hidden"
+                       name="pageSize"
+                       value="@Model.PageSize" />
+
+
+                <button type="submit"
+                        class="reviews-filter-button">
+
+                    Lọc
+
+                </button>
+
+
+                <a asp-controller="Reviews"
+                   asp-action="Index"
+                   asp-route-pageSize="@Model.PageSize"
+                   class="reviews-reset-button">
+
+                    Đặt lại
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- =====================================================
+         ERROR
+         ===================================================== -->
+    @if (Model.HasError)
+    {
+        <section class="reviews-state">
+
+            <div class="reviews-state-icon error">
+                !
+            </div>
+
+            <h2>
+                Không thể tải danh sách đánh giá
+            </h2>
+
+            <p>
+                @Model.ErrorMessage
+            </p>
+
+        </section>
+    }
+    else if (reviews is null ||
+             reviews.Items.Count == 0)
+    {
+        <section class="reviews-state">
+
+            <div class="reviews-state-icon">
+                ★
+            </div>
+
+            <h2>
+                Không có đánh giá
+            </h2>
+
+            <p>
+                Không tìm thấy đánh giá phù hợp với điều kiện hiện tại.
+            </p>
+
+        </section>
+    }
+    else
+    {
+        <!-- =================================================
+             TABLE
+             ================================================= -->
+
+        <section class="reviews-table-card">
+
+            <div class="reviews-table-wrapper">
+
+                <table class="reviews-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Đánh giá
+                            </th>
+
+                            <th>
+                                Sinh viên
+                            </th>
+
+                            <th>
+                                Phòng
+                            </th>
+
+                            <th>
+                                Điểm
+                            </th>
+
+                            <th>
+                                Nội dung
+                            </th>
+
+                            <th>
+                                Trạng thái
+                            </th>
+
+                            <th>
+                                Ngày tạo
+                            </th>
+
+                            <th>
+                                Thao tác
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @foreach (var review in reviews.Items)
+                        {
+                            <tr class="@(
+                                review.Status == "HIDDEN"
+                                    ? "review-hidden-row"
+                                    : "")">
+
+                                <!-- REVIEW ID -->
+
+                                <td>
+
+                                    <div class="review-id-cell">
+
+                                        <strong>
+                                            #RV-@review.ReviewId
+                                        </strong>
+
+                                        <span>
+                                            @review.ContractCode
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- STUDENT -->
+
+                                <td>
+
+                                    <div class="review-student-cell">
+
+                                        <strong>
+                                            @review.StudentName
+                                        </strong>
+
+                                        <span>
+                                            @review.StudentEmail
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- ROOM -->
+
+                                <td>
+
+                                    <div class="review-room-cell">
+
+                                        <strong title="@review.RoomTitle">
+                                            @review.RoomTitle
+                                        </strong>
+
+                                        <span title="@review.PropertyName">
+                                            @review.PropertyName
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- RATING -->
+
+                                <td>
+
+                                    <div class="review-rating">
+
+                                        <strong>
+                                            @review.Rating
+                                        </strong>
+
+                                        <span>
+                                            ★
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- COMMENT -->
+
+                                <td>
+
+                                    @if (string.IsNullOrWhiteSpace(
+                                        review.Comment))
+                                    {
+                                        <span class="review-empty-comment">
+                                            Không có nhận xét
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <div class="review-comment"
+                                             title="@review.Comment">
+
+                                            @review.Comment
+
+                                        </div>
+                                    }
+
+                                </td>
+
+
+                                <!-- STATUS -->
+
+                                <td>
+
+                                    <span class="
+                                        review-status
+                                        review-status-@review.Status.ToLowerInvariant()">
+
+                                        @StatusText(review.Status)
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- CREATED -->
+
+                                <td class="review-date">
+
+                                    @(review.CreatedAt
+                                        .ToLocalTime()
+                                        .ToString("dd/MM/yyyy HH:mm"))
+
+                                </td>
+
+
+                                <!-- ACTION -->
+
+                                <td class="review-action-column">
+                                    <div class="dropdown">
+                                        <button type="button"
+                                                class="review-action-button"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                                title="Thao tác">
+                                            ⋮
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-end review-action-menu">
+                                            <a asp-controller="Reviews"
+                                               asp-action="Details"
+                                               asp-route-id="@review.ReviewId"
+                                               asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")"
+                                               class="dropdown-item">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M12 5C7 5 3 8.1 1.5 12 3 15.9 7 19 12 19s9-3.1 10.5-7C21 8.1 17 5 12 5Zm0 12c-3.7 0-6.8-2.1-8.2-5C5.2 9.1 8.3 7 12 7s6.8 2.1 8.2 5c-1.4 2.9-4.5 5-8.2 5Zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" />
+                                                </svg>
+                                                Xem chi tiết
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+
+            <!-- =============================================
+                 FOOTER
+                 ============================================= -->
+
+            <div class="reviews-table-footer">
+
+                <div class="reviews-page-size">
+
+                    <span>
+                        Hiển thị
+                    </span>
+
+
+                    <form asp-controller="Reviews"
+                          asp-action="Index"
+                          method="get">
+
+                        <input type="hidden"
+                               name="search"
+                               value="@Model.Search" />
+
+                        <input type="hidden"
+                               name="status"
+                               value="@Model.Status" />
+
+                        <input type="hidden"
+                               name="rating"
+                               value="@Model.Rating" />
+
+
+                        <select name="pageSize"
+                                onchange="this.form.submit()">
+
+                            <option value="10"
+                                    selected="@(Model.PageSize == 10)">
+                                10
+                            </option>
+
+                            <option value="20"
+                                    selected="@(Model.PageSize == 20)">
+                                20
+                            </option>
+
+                            <option value="50"
+                                    selected="@(Model.PageSize == 50)">
+                                50
+                            </option>
+
+                        </select>
+
+                    </form>
+
+
+                    <span>
+                        bản ghi
+                    </span>
+
+                </div>
+
+
+                <div class="reviews-result-info">
+
+                    Hiển thị
+
+                    <strong>
+                        @(
+                            reviews.TotalCount == 0
+                                ? 0
+                                : ((reviews.Page - 1)
+                                   * reviews.PageSize) + 1
+                        )
+
+                        -
+
+                        @Math.Min(
+                            reviews.Page
+                            * reviews.PageSize,
+                            reviews.TotalCount)
+                    </strong>
+
+                    trong tổng số
+
+                    <strong>
+                        @reviews.TotalCount.ToString("N0")
+                    </strong>
+
+                    đánh giá
+
+                </div>
+
+
+                @if (reviews.TotalPages > 1)
+                {
+                    <nav class="reviews-pagination">
+
+                        @if (reviews.HasPreviousPage)
+                        {
+                            <a asp-controller="Reviews"
+                               asp-action="Index"
+                               asp-route-page="@(reviews.Page - 1)"
+                               asp-route-pageSize="@Model.PageSize"
+                               asp-route-search="@Model.Search"
+                               asp-route-status="@Model.Status"
+                               asp-route-rating="@Model.Rating">
+
+                                ‹
+
+                            </a>
+                        }
+
+
+                        @for (
+                            var pageNumber = startPage;
+                            pageNumber <= endPage;
+                            pageNumber++)
+                        {
+                            <a asp-controller="Reviews"
+                               asp-action="Index"
+                               asp-route-page="@pageNumber"
+                               asp-route-pageSize="@Model.PageSize"
+                               asp-route-search="@Model.Search"
+                               asp-route-status="@Model.Status"
+                               asp-route-rating="@Model.Rating"
+                               class="@(
+                               pageNumber == reviews.Page
+                                   ? "active"
+                                   : "")">
+
+                        @pageNumber
+
+                    </a>
+                }
+
+
+                @if (reviews.HasNextPage)
+                {
+                    <a asp-controller="Reviews"
+                       asp-action="Index"
+                       asp-route-page="@(reviews.Page + 1)"
+                       asp-route-pageSize="@Model.PageSize"
+                       asp-route-search="@Model.Search"
+                       asp-route-status="@Model.Status"
+                       asp-route-rating="@Model.Rating">
+
+                        ›
+
+                    </a>
+                }
+
+            </nav>
+        }
+
+    </div>
+
+</section>
+    }
+
+</div>

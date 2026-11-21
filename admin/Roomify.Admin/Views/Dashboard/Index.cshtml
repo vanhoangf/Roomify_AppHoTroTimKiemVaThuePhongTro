@@ -1,0 +1,669 @@
+﻿@model Roomify.Admin.Models.Dashboard.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+@section Styles {
+    <link rel="stylesheet"
+          href="~/css/admin-dashboard.css"
+          asp-append-version="true" />
+}
+
+
+<div class="dashboard-page">
+
+    <!-- =====================================================
+         PAGE HEADER
+         ===================================================== -->
+
+    <section class="dashboard-heading">
+
+        <div>
+
+            <div class="dashboard-breadcrumb">
+                Trang chủ
+                <span>›</span>
+                Dashboard
+            </div>
+
+            <h1>
+                Tổng quan hệ thống
+            </h1>
+
+            <p>
+                Theo dõi hoạt động, số liệu thống kê và các mục cần kiểm duyệt trong ngày.
+            </p>
+
+        </div>
+    </section>
+
+
+    @if (Model.HasError)
+    {
+        <!-- =================================================
+             ERROR STATE
+             ================================================= -->
+
+        <section class="dashboard-state">
+
+            <div class="dashboard-state-icon error">
+
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2 1 21h22L12 2Zm0 4.3L19.5 19h-15L12 6.3ZM11 10v4h2v-4h-2Zm0 5.5v2h2v-2h-2Z" />
+                </svg>
+
+            </div>
+
+            <h2>
+                Không thể tải Dashboard
+            </h2>
+
+            <p>
+                @Model.ErrorMessage
+            </p>
+
+            <a asp-controller="Dashboard"
+               asp-action="Index"
+               class="dashboard-retry">
+
+                Thử lại
+
+            </a>
+
+        </section>
+    }
+    else if (Model.IsEmpty)
+    {
+        <!-- =================================================
+             EMPTY STATE
+             ================================================= -->
+
+        <section class="dashboard-state">
+
+            <div class="dashboard-state-icon">
+
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 4h16v16H4V4Zm2 2v12h12V6H6Zm2 7h2v3H8v-3Zm3-4h2v7h-2V9Zm3 2h2v5h-2v-5Z" />
+                </svg>
+
+            </div>
+
+            <h2>
+                Chưa có dữ liệu hệ thống
+            </h2>
+
+            <p>
+                Dashboard sẽ hiển thị thống kê
+                khi hệ thống bắt đầu có dữ liệu.
+            </p>
+
+        </section>
+    }
+    else if (Model.Data is not null)
+    {
+        var data = Model.Data;
+
+
+        <!-- =================================================
+             KPI
+             ================================================= -->
+
+        <section class="dashboard-kpi-grid">
+
+            <!-- USERS -->
+            <article class="kpi-card">
+
+                <div class="kpi-card-header">
+
+                    <span>
+                        Tổng người dùng
+                    </span>
+
+                    <div class="kpi-icon blue">
+
+                        <svg viewBox="0 0 24 24">
+                            <path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3ZM8 11c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3Zm8 2c-2 0-6 1-6 3v3h12v-3c0-2-4-3-6-3ZM8 13c-2 0-6 1-6 3v3h2v-3c0-1 .3-1.8.9-2.5C10 13.2 9 13 8 13Z" />
+                        </svg>
+
+                    </div>
+
+                </div>
+
+                <strong class="kpi-value">
+                    @data.TotalUsers.ToString("N0")
+                </strong>
+
+                <div class="kpi-meta success">
+                    @data.ActiveUsers.ToString("N0")
+                    tài khoản đang hoạt động
+                </div>
+
+            </article>
+
+
+            <!-- ROOMS -->
+            <article class="kpi-card">
+
+                <div class="kpi-card-header">
+
+                    <span>
+                        Phòng đăng tin
+                    </span>
+
+                    <div class="kpi-icon teal">
+
+                        <svg viewBox="0 0 24 24">
+                            <path d="M3 21V3h18v18H3Zm2-2h14V5H5v14Zm2-2v-5h4v5H7Zm6 0V7h4v10h-4Z" />
+                        </svg>
+
+                    </div>
+
+                </div>
+
+                <strong class="kpi-value">
+                    @data.PublishedRooms.ToString("N0")
+                </strong>
+
+                <div class="kpi-meta">
+                    @data.TotalRooms.ToString("N0")
+                    phòng trong hệ thống
+                </div>
+
+            </article>
+
+
+            <!-- CONTRACT -->
+            <article class="kpi-card">
+
+                <div class="kpi-card-header">
+
+                    <span>
+                        Hợp đồng đang hoạt động
+                    </span>
+
+                    <div class="kpi-icon indigo">
+
+                        <svg viewBox="0 0 24 24">
+                            <path d="M5 2h10l4 4v16H5V2Zm2 2v16h10V7h-3V4H7Zm2 6h6v2H9v-2Zm0 4h6v2H9v-2Z" />
+                        </svg>
+
+                    </div>
+
+                </div>
+
+                <strong class="kpi-value">
+                    @data.ActiveContracts.ToString("N0")
+                </strong>
+
+                <div class="kpi-meta">
+                    @data.TotalContracts.ToString("N0")
+                    hợp đồng tổng cộng
+                </div>
+
+            </article>
+
+
+            <!-- REPORT -->
+            <article class="kpi-card">
+
+                <div class="kpi-card-header">
+
+                    <span>
+                        Báo cáo chưa xử lý
+                    </span>
+
+                    <div class="kpi-icon red">
+
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 2 1 21h22L12 2Zm0 4.3L19.5 19h-15L12 6.3ZM11 10v4h2v-4h-2Zm0 5.5v2h2v-2h-2Z" />
+                        </svg>
+
+                    </div>
+
+                </div>
+
+                <strong class="kpi-value">
+                    @data.OpenReports.ToString("N0")
+                </strong>
+
+                <div class="kpi-meta warning">
+                    Đang chờ Admin xử lý
+                </div>
+
+            </article>
+
+        </section>
+
+
+        <!-- =================================================
+             MAIN CHART ROW
+             ================================================= -->
+
+        <section class="dashboard-main-grid">
+
+            <!-- USERS -->
+            <article class="dashboard-card">
+
+                <div class="dashboard-card-header">
+
+                    <div>
+                        <h2>
+                            Cơ cấu người dùng
+                        </h2>
+
+                        <p>
+                            Phân bố tài khoản hiện có
+                            trong hệ thống
+                        </p>
+                    </div>
+
+                    <span class="dashboard-tag">
+                        Tổng @data.TotalUsers.ToString("N0")
+                    </span>
+
+                </div>
+
+
+                <div class="user-stat-list">
+
+                    <div class="horizontal-stat">
+
+                        <div class="horizontal-stat-label">
+                            <span>Sinh viên</span>
+
+                            <strong>
+                                @data.TotalStudents.ToString("N0")
+                            </strong>
+                        </div>
+
+                        <div class="horizontal-stat-track">
+                            <span style="width:@Model.StudentPercentage.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></span>
+                        </div>
+
+                        <small>
+                            @Model.StudentPercentage%
+                            tổng tài khoản
+                        </small>
+
+                    </div>
+
+
+                    <div class="horizontal-stat landlord">
+
+                        <div class="horizontal-stat-label">
+                            <span>Chủ trọ</span>
+
+                            <strong>
+                                @data.TotalLandlords.ToString("N0")
+                            </strong>
+                        </div>
+
+                        <div class="horizontal-stat-track">
+                            <span style="width:@Model.LandlordPercentage.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></span>
+                        </div>
+
+                        <small>
+                            @Model.LandlordPercentage%
+                            tổng tài khoản
+                        </small>
+
+                    </div>
+
+
+                    <div class="account-summary-grid">
+
+                        <div>
+                            <span>Đang hoạt động</span>
+
+                            <strong>
+                                @data.ActiveUsers.ToString("N0")
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Bị khóa</span>
+
+                            <strong>
+                                @data.LockedUsers.ToString("N0")
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Sinh viên xác minh</span>
+
+                            <strong>
+                                @data.VerifiedStudents.ToString("N0")
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Chủ trọ xác minh</span>
+
+                            <strong>
+                                @data.VerifiedLandlords.ToString("N0")
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- ROOM STATUS -->
+            <article class="dashboard-card">
+
+                <div class="dashboard-card-header">
+
+                    <div>
+
+                        <h2>
+                            Trạng thái tin phòng
+                        </h2>
+
+                        <p>
+                            Phân bố theo ListingStatus
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                @{
+                    var publishedDegree =
+                        Model.PublishedRoomPercentage * 3.6;
+
+                    var pendingDegree =
+                        publishedDegree
+                        + Model.PendingRoomPercentage * 3.6;
+
+                    var rejectedDegree =
+                        pendingDegree
+                        + Model.RejectedRoomPercentage * 3.6;
+                }
+
+                <div class="room-status-content">
+
+                    <div class="donut-wrap">
+
+                        <div class="dashboard-donut"
+                             style="
+                            --published:@publishedDegree.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)deg;
+                            --pending:@pendingDegree.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)deg;
+                            --rejected:@rejectedDegree.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)deg;
+                            ">
+
+                            <div class="donut-center">
+
+                                <strong>
+                                    @data.TotalRooms.ToString("N0")
+                                </strong>
+
+                                <span>
+                                    phòng
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="chart-legend">
+
+                        <div>
+
+                            <span class="legend-dot published"></span>
+
+                            <span>Đã đăng</span>
+
+                            <strong>
+                                @data.PublishedRooms
+                            </strong>
+
+                        </div>
+
+                        <div>
+
+                            <span class="legend-dot pending"></span>
+
+                            <span>Chờ duyệt</span>
+
+                            <strong>
+                                @data.PendingRooms
+                            </strong>
+
+                        </div>
+
+                        <div>
+
+                            <span class="legend-dot rejected"></span>
+
+                            <span>Từ chối</span>
+
+                            <strong>
+                                @data.RejectedRooms
+                            </strong>
+
+                        </div>
+
+                        @if (Model.OtherRoomStatuses > 0)
+                        {
+                            <div>
+
+                                <span class="legend-dot other"></span>
+
+                                <span>Khác</span>
+
+                                <strong>
+                                    @Model.OtherRoomStatuses
+                                </strong>
+
+                            </div>
+                        }
+
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+        <!-- =================================================
+             DETAIL CARDS
+             ================================================= -->
+
+        <section class="dashboard-detail-grid">
+
+            <!-- VERIFICATION -->
+            <article class="dashboard-card">
+
+                <div class="dashboard-card-header">
+
+                    <div>
+
+                        <h2>
+                            Xác minh tài khoản
+                        </h2>
+
+                        <p>
+                            Tình trạng xác minh hồ sơ
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="metric-row">
+
+                    <div>
+
+                        <span>
+                            Sinh viên
+                        </span>
+
+                        <strong>
+                            @data.VerifiedStudents
+                            /
+                            @data.TotalStudents
+                        </strong>
+
+                    </div>
+
+                    <span class="metric-percent">
+                        @Model.VerifiedStudentPercentage%
+                    </span>
+
+                </div>
+
+
+                <div class="metric-row">
+
+                    <div>
+
+                        <span>
+                            Chủ trọ
+                        </span>
+
+                        <strong>
+                            @data.VerifiedLandlords
+                            /
+                            @data.TotalLandlords
+                        </strong>
+
+                    </div>
+
+                    <span class="metric-percent">
+                        @Model.VerifiedLandlordPercentage%
+                    </span>
+
+                </div>
+
+            </article>
+
+
+            <!-- REPORT -->
+            <article class="dashboard-card">
+
+                <div class="dashboard-card-header">
+
+                    <div>
+
+                        <h2>
+                            Xử lý báo cáo
+                        </h2>
+
+                        <p>
+                            Báo cáo vi phạm trong hệ thống
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="mini-stat-grid">
+
+                    <div class="mini-stat warning">
+
+                        <span>
+                            Chưa xử lý
+                        </span>
+
+                        <strong>
+                            @data.OpenReports
+                        </strong>
+
+                    </div>
+
+                    <div class="mini-stat success">
+
+                        <span>
+                            Đã xử lý
+                        </span>
+
+                        <strong>
+                            @data.ResolvedReports
+                        </strong>
+
+                    </div>
+
+                    <div class="mini-stat muted">
+
+                        <span>
+                            Từ chối
+                        </span>
+
+                        <strong>
+                            @data.RejectedReports
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- PAYMENT -->
+            <article class="dashboard-card">
+
+                <div class="dashboard-card-header">
+
+                    <div>
+
+                        <h2>
+                            Thanh toán
+                        </h2>
+
+                        <p>
+                            Tổng quan giao dịch
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="payment-total">
+
+                    <span>
+                        Tổng tiền đã thanh toán
+                    </span>
+
+                    <strong>
+                        @data.TotalPaidAmount.ToString("N0")
+                        ₫
+                    </strong>
+
+                </div>
+
+
+                <div class="payment-meta">
+
+                    <span>
+                        @data.PaidPayments
+                        đã thanh toán
+                    </span>
+
+                    <span>
+                        @data.PendingPayments
+                        đang chờ
+                    </span>
+
+                </div>
+
+            </article>
+
+        </section>
+
+    }
+
+</div>

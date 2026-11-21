@@ -199,6 +199,10 @@ builder.Services.AddScoped<IAdminRoomService, AdminRoomService>();
 builder.Services.AddScoped<IAdminReportService, AdminReportService>();
 builder.Services.AddScoped<IAdminCatalogService, AdminCatalogService>();
 builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
+builder.Services.AddScoped<IAdminReviewService, AdminReviewService>();
+builder.Services.AddScoped<IAdminContractService, AdminContractService>();
+builder.Services.AddScoped<IAdminPaymentService, AdminPaymentService>();
+builder.Services.AddScoped<IAdminStatisticsService, AdminStatisticsService>();
 //AUTHENTICATION - JWT BEARER
 
 builder.Services
