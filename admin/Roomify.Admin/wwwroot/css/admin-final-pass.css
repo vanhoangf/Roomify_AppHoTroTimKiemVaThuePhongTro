@@ -1,0 +1,260 @@
+﻿
+/* =========================================================
+   PAGE WRAPPER
+   ========================================================= */
+
+.dashboard-page,
+.users-page,
+.rooms-page,
+.reports-page,
+.reviews-page,
+.catalog-page,
+.contracts-page,
+.payments-page,
+.statistics-page {
+    width: 100%;
+    padding-bottom: 40px;
+}
+
+
+/* =========================================================
+   PAGE HEADING
+   ========================================================= */
+
+.dashboard-heading,
+.users-heading,
+.rooms-heading,
+.reports-heading,
+.reviews-heading,
+.catalog-heading,
+.contracts-heading,
+.payments-heading,
+.statistics-heading {
+    min-height: 102px;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+
+/* =========================================================
+   BREADCRUMB
+   ========================================================= */
+
+.dashboard-breadcrumb,
+.users-breadcrumb,
+.rooms-breadcrumb,
+.reports-breadcrumb,
+.reviews-breadcrumb,
+.catalog-breadcrumb,
+.contracts-breadcrumb,
+.payments-breadcrumb,
+.statistics-breadcrumb {
+    margin-bottom: 8px;
+    color: #78869a;
+    font-size: 11px;
+    line-height: 16px;
+}
+
+
+    .dashboard-breadcrumb span,
+    .users-breadcrumb span,
+    .rooms-breadcrumb span,
+    .reports-breadcrumb span,
+    .reviews-breadcrumb span,
+    .catalog-breadcrumb span,
+    .contracts-breadcrumb span,
+    .payments-breadcrumb span,
+    .statistics-breadcrumb span {
+        margin: 0 5px;
+        color: #b0bac7;
+    }
+
+
+/* =========================================================
+   TITLE
+   ========================================================= */
+
+.dashboard-heading h1,
+.users-heading h1,
+.rooms-heading h1,
+.reports-heading h1,
+.reviews-heading h1,
+.catalog-heading h1,
+.contracts-heading h1,
+.payments-heading h1,
+.statistics-heading h1 {
+    margin: 0;
+    color: #10213c;
+    font-size: 30px;
+    line-height: 36px;
+    font-weight: 750;
+    letter-spacing: -.6px;
+}
+
+
+/* =========================================================
+   SUBTITLE
+   ========================================================= */
+
+.dashboard-heading p,
+.users-heading p,
+.rooms-heading p,
+.reports-heading p,
+.reviews-heading p,
+.catalog-heading p,
+.contracts-heading p,
+.payments-heading p,
+.statistics-heading p {
+    margin: 6px 0 0;
+    color: #748197;
+    font-size: 12px;
+    line-height: 18px;
+}
+
+
+/* =========================================================
+   SURFACE
+   ========================================================= */
+
+.kpi-card,
+.users-kpi-card,
+.rooms-kpi-card,
+.reports-kpi-card,
+.reviews-kpi-card,
+.catalog-kpi-card,
+.contracts-kpi-card,
+.payments-kpi-card,
+.statistics-overview-card,
+.statistics-period-grid article,
+.statistics-breakdown-card,
+.statistics-chart-card {
+    border: 1px solid #dfe5ee;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: none;
+}
+
+
+/* =========================================================
+   FILTER SURFACE
+   ========================================================= */
+
+.users-filter-card,
+.rooms-filter-card,
+.reports-filter-card,
+.reviews-filter-card,
+.catalog-filter-card,
+.contracts-filter-card,
+.payments-filter-card,
+.statistics-range-card {
+    border: 1px solid #dfe5ee;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: none;
+}
+
+
+/* =========================================================
+   TABLE SURFACE
+   ========================================================= */
+
+.users-table-card,
+.rooms-table-card,
+.reports-table-card,
+.reviews-table-card,
+.catalog-table-card,
+.contracts-table-card,
+.payments-table-card {
+    border: 1px solid #dfe5ee;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: none;
+}
+
+
+/* =========================================================
+   CONTROLS
+   ========================================================= */
+
+.users-filter-main input,
+.users-filter-main select,
+.rooms-filter-main input,
+.rooms-filter-main select,
+.reports-filter-row input,
+.reports-filter-row select,
+.reviews-filter-row input,
+.reviews-filter-row select,
+.catalog-filter-row input,
+.catalog-filter-row select,
+.contracts-filter-row input,
+.contracts-filter-row select,
+.payments-filter-row input,
+.payments-filter-row select {
+    height: 42px;
+    border-radius: 9px;
+}
+
+
+/* =========================================================
+   PRIMARY FILTER BUTTONS
+   ========================================================= */
+
+.users-filter-button,
+.rooms-filter-button,
+.reports-filter-button,
+.reviews-filter-button,
+.catalog-filter-button,
+.contracts-filter-button,
+.payments-filter-button {
+    height: 42px;
+    border-radius: 9px;
+    background: #1764df;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   RESET BUTTONS
+   ========================================================= */
+
+.users-reset-button,
+.rooms-reset-button,
+.reports-reset-button,
+.reviews-reset-button,
+.catalog-reset-button,
+.contracts-reset-button,
+.payments-reset-button {
+    height: 42px;
+    border: 1px solid #dbe3ec;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #65748a;
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 800px) {
+
+    .dashboard-heading,
+    .users-heading,
+    .rooms-heading,
+    .reports-heading,
+    .reviews-heading,
+    .catalog-heading,
+    .contracts-heading,
+    .payments-heading,
+    .statistics-heading {
+        min-height: auto;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

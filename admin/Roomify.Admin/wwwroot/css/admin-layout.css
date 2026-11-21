@@ -198,11 +198,38 @@ a.admin-nav-link:hover {
     border-bottom: 1px solid var(--admin-border);
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 20px;
 }
 
+/* =========================================================
+   SIDEBAR TOGGLE
+   ========================================================= */
 
+.sidebar-toggle {
+    display: none;
+    width: 38px;
+    height: 38px;
+    margin-right: auto;
+    border: 1px solid #dce3ec;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #586a82;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+    .sidebar-toggle svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+    }
+
+    .sidebar-toggle:hover {
+        background: #f4f7fb;
+        color: #1764df;
+    }
 /* =========================================================
    SEARCH
    ========================================================= */
@@ -480,6 +507,10 @@ a.admin-nav-link:hover {
 
     .header-search {
         width: min( 360px, 48vw );
+    }
+
+    .sidebar-toggle {
+        display: flex;
     }
 }
 

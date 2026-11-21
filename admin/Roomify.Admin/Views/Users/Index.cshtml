@@ -81,39 +81,6 @@
             </p>
 
         </div>
-
-
-        <div class="users-heading-actions">
-
-            <button type="button"
-                    class="users-secondary-button"
-                    disabled
-                    title="Backend chưa hỗ trợ xuất Excel">
-
-                <svg viewBox="0 0 24 24">
-                    <path d="M11 3h2v9l3-3 1.4 1.4L12 15.8l-5.4-5.4L8 9l3 3V3ZM5 18h14v2H5v-2Z" />
-                </svg>
-
-                Xuất file Excel
-
-            </button>
-
-
-            <button type="button"
-                    class="users-primary-button"
-                    disabled
-                    title="Backend hiện chưa hỗ trợ Admin tạo người dùng">
-
-                <svg viewBox="0 0 24 24">
-                    <path d="M15 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4Zm0-6a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM6 13v-3H4v3H1v2h3v3h2v-3h3v-2H6Zm9 1c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4Z" />
-                </svg>
-
-                Thêm người dùng
-
-            </button>
-
-        </div>
-
     </section>
 
 
@@ -516,12 +483,6 @@
                     <thead>
 
                         <tr>
-
-                            <th class="checkbox-column">
-                                <input type="checkbox"
-                                       disabled />
-                            </th>
-
                             <th>
                                 NGƯỜI DÙNG
                             </th>
@@ -556,30 +517,14 @@
                         @foreach (var user in users.Items)
                         {
                             <tr>
-
-                                <td class="checkbox-column">
-                                    <input type="checkbox"
-                                           disabled />
-                                </td>
-
-
                                 <td>
-
                                     <div class="user-cell">
-
                                         <div class="user-avatar">
-
-                                            @if (!string.IsNullOrWhiteSpace(
-                                                user.AvatarUrl))
-                                            {
-                                                <img src="@user.AvatarUrl"
-                                                     alt="@user.FullName" />
-                                            }
-                                            else
-                                            {
-                                                @Initials(user.FullName)
-                                            }
-
+                                            <span class="user-avatar-fallback">
+                                                @(string.IsNullOrWhiteSpace(user.FullName)
+                                                    ? "?"
+                                                    : user.FullName[..1].ToUpper())
+                                            </span>
                                         </div>
 
 
