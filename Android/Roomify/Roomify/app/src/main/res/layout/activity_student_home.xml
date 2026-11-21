@@ -1,0 +1,502 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/studentHomeRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/surface_bg">
+
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/homeToolbar"
+        android:layout_width="0dp"
+        android:layout_height="64dp"
+        android:background="@color/surface_white"
+        android:paddingStart="16dp"
+        android:paddingEnd="12dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/imgHeaderLogo"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:contentDescription="Roomify"
+            android:scaleType="fitCenter"
+            android:src="@drawable/roomify_logo"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <TextView
+            android:id="@+id/tvHeaderTitle"
+            style="@style/TextAppearance.Roomify.Section"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Roomify"
+            android:textColor="@color/primary_blue"
+            android:textSize="20sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <ImageButton
+            android:id="@+id/btnNotifications"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Thông báo"
+            android:padding="12dp"
+            android:src="@android:drawable/ic_dialog_email"
+            app:tint="@color/text_primary"
+            app:layout_constraintEnd_toStartOf="@id/btnLogout"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <ImageButton
+            android:id="@+id/btnLogout"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Đăng xuất"
+            android:padding="12dp"
+            android:src="@drawable/ic_logout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <!-- ===================================================== -->
+    <!-- SCROLL CONTENT -->
+    <!-- ===================================================== -->
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/studentHomeScroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/homeToolbar"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingTop="24dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="32dp">
+
+
+            <!-- ================================================= -->
+            <!-- HERO -->
+            <!-- ================================================= -->
+
+            <TextView
+                style="@style/TextAppearance.Roomify.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="CHÀO MỪNG ĐẾN VỚI ROOMIFY"
+                android:textColor="@color/primary_blue" />
+
+            <TextView
+                style="@style/TextAppearance.Roomify.Large"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Tìm căn phòng phù hợp với bạn"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                style="@style/TextAppearance.Roomify.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="7dp"
+                android:lineSpacingExtra="2dp"
+                android:text="Khám phá phòng trọ theo khu vực, mức giá và nhu cầu sinh hoạt của bạn."
+                android:textColor="@color/text_secondary" />
+
+
+            <!-- ================================================= -->
+            <!-- SEARCH -->
+            <!-- ================================================= -->
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardSearch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/surface_white"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/stroke_border"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="58dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:contentDescription="Tìm kiếm"
+                        android:src="@android:drawable/ic_menu_search"
+                        app:tint="@color/primary_blue" />
+
+                    <TextView
+                        style="@style/TextAppearance.Roomify.Body"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:text="Tìm phòng, khu vực..."
+                        android:textColor="@color/text_muted" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!-- ================================================= -->
+            <!-- NEW ROOMS HEADER -->
+            <!-- ================================================= -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextAppearance.Roomify.Section"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Phòng mới đăng"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        style="@style/TextAppearance.Roomify.Caption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:text="Các phòng vừa được cập nhật"
+                        android:textColor="@color/text_muted" />
+
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSeeAllRooms"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="44dp"
+                    android:text="Xem tất cả"
+                    android:textAllCaps="false"
+                    android:textColor="@color/primary_blue" />
+
+                <!-- ID giữ lại cho Kotlin -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRefreshRooms"
+                    android:layout_width="1dp"
+                    android:layout_height="1dp"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+
+            <ProgressBar
+                android:id="@+id/progressRooms"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="22dp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvConnectionWarning"
+                style="@style/TextAppearance.Roomify.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@color/surface_light"
+                android:padding="12dp"
+                android:textColor="@color/status_error"
+                android:visibility="gone" />
+
+
+            <!-- ================================================= -->
+            <!-- ROOM CAROUSEL -->
+            <!-- ================================================= -->
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvRooms"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:clipToPadding="false"
+                android:nestedScrollingEnabled="false"
+                android:overScrollMode="never"
+                android:paddingEnd="12dp"
+                android:scrollbars="none"
+                android:visibility="gone" />
+
+
+            <!-- ================================================= -->
+            <!-- EMPTY / ERROR -->
+            <!-- ================================================= -->
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardRoomEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                app:cardBackgroundColor="@color/surface_white"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/stroke_border"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <TextView
+                        android:id="@+id/tvRoomState"
+                        style="@style/TextAppearance.Roomify.Body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="Danh sách phòng chưa được tải."
+                        android:textColor="@color/text_muted" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnRetryRooms"
+                        style="@style/Widget.Roomify.Button.Primary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="Thử lại"
+                        android:textAllCaps="false"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!-- ================================================= -->
+            <!-- MAP SECTION -->
+            <!-- ================================================= -->
+
+            <TextView
+                style="@style/TextAppearance.Roomify.Section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:text="Khám phá theo bản đồ"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                style="@style/TextAppearance.Roomify.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="Xem trực quan vị trí các phòng đang có trên Roomify."
+                android:textColor="@color/text_muted" />
+
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                app:cardBackgroundColor="@color/surface_white"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/stroke_border"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- MAP PREVIEW -->
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="150dp"
+                        android:background="@color/surface_light">
+
+                        <ImageView
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="Bản đồ"
+                            android:padding="14dp"
+                            android:src="@drawable/ic_map"
+                            app:tint="@color/primary_blue" />
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="top|start"
+                            android:layout_margin="14dp"
+                            app:cardBackgroundColor="@color/surface_white"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="2dp">
+
+                            <TextView
+                                style="@style/TextAppearance.Roomify.Caption"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:paddingStart="12dp"
+                                android:paddingTop="8dp"
+                                android:paddingEnd="12dp"
+                                android:paddingBottom="8dp"
+                                android:text="Phòng trọ trên bản đồ"
+                                android:textColor="@color/text_primary" />
+
+                        </com.google.android.material.card.MaterialCardView>
+
+                    </FrameLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <TextView
+                            style="@style/TextAppearance.Roomify.CardTitle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Tìm phòng theo vị trí"
+                            android:textColor="@color/text_primary"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            style="@style/TextAppearance.Roomify.Body"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:lineSpacingExtra="2dp"
+                            android:text="Xem các phòng được đánh dấu trên bản đồ và mở nhanh chi tiết phòng."
+                            android:textColor="@color/text_secondary" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnRoomMap"
+                            style="@style/Widget.Roomify.Button.Primary"
+                            android:layout_width="match_parent"
+                            android:layout_height="54dp"
+                            android:layout_marginTop="16dp"
+                            android:text="Xem bản đồ phòng trọ"
+                            android:textAllCaps="false"
+                            app:cornerRadius="14dp"
+                            app:icon="@drawable/ic_map"
+                            app:iconGravity="textStart"
+                            app:iconPadding="8dp"
+                            app:iconSize="20dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!-- ================================================= -->
+            <!-- INFO -->
+            <!-- ================================================= -->
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                app:cardBackgroundColor="@color/surface_light"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <TextView
+                        style="@style/TextAppearance.Roomify.CardTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Tìm phòng dễ dàng hơn"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        style="@style/TextAppearance.Roomify.Body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="7dp"
+                        android:lineSpacingExtra="2dp"
+                        android:text="Xem ảnh thực tế, tiện nghi, chi phí và liên hệ chủ trọ trực tiếp khi tìm được phòng phù hợp."
+                        android:textColor="@color/text_secondary" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+
+    <!-- ===================================================== -->
+    <!-- BOTTOM NAV -->
+    <!-- ===================================================== -->
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:minHeight="68dp"
+        android:background="@color/surface_white"
+        android:elevation="8dp"
+        app:itemActiveIndicatorStyle="@style/Widget.Roomify.StudentNav.ActiveIndicator"
+        app:itemIconSize="22dp"
+        app:itemIconTint="@color/student_nav_tint"
+        app:itemPaddingBottom="2dp"
+        app:itemPaddingTop="2dp"
+        app:itemTextAppearanceActive="@style/TextAppearance.Roomify.NavActive"
+        app:itemTextAppearanceInactive="@style/TextAppearance.Roomify.NavInactive"
+        app:itemTextColor="@color/student_nav_tint"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/menu_student_bottom"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

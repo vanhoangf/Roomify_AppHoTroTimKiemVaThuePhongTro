@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="student_nav_active">#155CC9</color>
+    <color name="student_nav_inactive">#6E7F98</color>
+    <color name="student_nav_disabled">#A9B4C4</color>
+    <color name="student_nav_indicator">#EAF2FF</color>
+</resources>

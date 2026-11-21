@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- MAU CO BAN -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- ROOMIFY BRAND -->
+    <color name="primary_blue">#004AC6</color>
+    <color name="brand_blue">#2563EB</color>
+
+    <!-- BACKGROUND / SURFACE -->
+    <color name="surface_bg">#F8F9FF</color>
+    <color name="surface_light">#EFF4FF</color>
+    <color name="chip_bg">#E5EEFF</color>
+    <color name="surface_white">#FFFFFF</color>
+
+    <!-- TEXT -->
+    <color name="text_primary">#0B1C30</color>
+    <color name="text_secondary">#434655</color>
+    <color name="text_muted">#737686</color>
+
+    <!-- BORDER -->
+    <color name="stroke_border">#E2E8F0</color>
+
+    <!-- STATUS -->
+    <color name="status_success">#006B5F</color>
+    <color name="status_error">#EF4444</color>
+
+</resources>
