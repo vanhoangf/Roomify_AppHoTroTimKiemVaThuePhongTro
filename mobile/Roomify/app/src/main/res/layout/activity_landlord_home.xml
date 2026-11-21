@@ -381,12 +381,6 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <TextView
-                style="@style/TextAppearance.Roomify.Caption"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Các chức năng sẽ được kích hoạt khi hoàn thiện từng màn hình Landlord." />
 
         </LinearLayout>
 
@@ -396,14 +390,19 @@
         android:id="@+id/bottomNavigationLandlord"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:minHeight="68dp"
         android:background="@color/surface_white"
         android:elevation="8dp"
+
+        app:menu="@menu/menu_landlord_bottom"
+        app:labelVisibilityMode="labeled"
+
+        app:itemIconSize="22dp"
         app:itemIconTint="@color/landlord_nav_tint"
         app:itemTextColor="@color/landlord_nav_tint"
-        app:labelVisibilityMode="labeled"
-        app:menu="@menu/menu_landlord_bottom"
+
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

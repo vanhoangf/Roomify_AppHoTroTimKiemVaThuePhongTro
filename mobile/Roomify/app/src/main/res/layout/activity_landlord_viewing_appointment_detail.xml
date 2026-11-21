@@ -230,6 +230,13 @@
                 android:layout_marginTop="28dp"
                 android:orientation="vertical">
 
+                <TextView
+                    style="@style/TextAppearance.Roomify.Section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="Xử lý lịch xem" />
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnConfirm"
                     style="@style/Widget.Roomify.Button.Primary"
@@ -264,7 +271,8 @@
                     android:layout_height="52dp"
                     android:layout_marginTop="10dp"
                     android:text="Từ chối lịch xem"
-                    android:textAllCaps="false" />
+                    android:textAllCaps="false"
+                    android:textColor="@color/status_error" />
 
             </LinearLayout>
 

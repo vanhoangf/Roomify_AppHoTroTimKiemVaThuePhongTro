@@ -384,20 +384,20 @@
                 android:layout_marginTop="10dp"
                 android:text="Chưa có tiện ích" />
 
+            <!-- ROOM MANAGEMENT -->
             <TextView
                 style="@style/TextAppearance.Roomify.Section"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="26dp"
-                android:text="Thông tin hệ thống" />
-
+                android:text="Quản lý phòng trọ" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLandlordManageImages"
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="12dp"
                 android:text="Quản lý ảnh phòng"
                 android:textAllCaps="false" />
 
@@ -406,7 +406,7 @@
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="12dp"
                 android:text="Đổi trạng thái phòng"
                 android:textAllCaps="false" />
 
@@ -421,12 +421,19 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLandlordEditRoom"
-                style="@style/Widget.Roomify.Button.Primary"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:layout_marginTop="12dp"
                 android:text="Chỉnh sửa phòng"
                 android:textAllCaps="false" />
+
+            <TextView
+                style="@style/TextAppearance.Roomify.Section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="26dp"
+                android:text="Thông tin hệ thống" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"

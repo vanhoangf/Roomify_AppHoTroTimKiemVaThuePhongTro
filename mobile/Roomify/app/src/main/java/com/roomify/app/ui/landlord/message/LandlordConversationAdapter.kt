@@ -4,14 +4,13 @@ import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-
+import com.roomify.app.R
 import com.roomify.app.data.remote.dto.messaging.ConversationResponse
 import com.roomify.app.databinding.ItemLandlordConversationBinding
-
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -19,17 +18,14 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 class LandlordConversationAdapter(
-    private val onClick:
-        (ConversationResponse) -> Unit
+    private val onClick: (ConversationResponse) -> Unit
 ) : ListAdapter<
         ConversationResponse,
         LandlordConversationAdapter.ViewHolder
         >(DiffCallback) {
 
     private val vietnamZone =
-        ZoneId.of(
-            "Asia/Ho_Chi_Minh"
-        )
+        ZoneId.of("Asia/Ho_Chi_Minh")
 
     inner class ViewHolder(
         private val binding:
@@ -42,17 +38,26 @@ class LandlordConversationAdapter(
             item: ConversationResponse
         ) {
 
-            binding.tvStudentName.text =
+            val studentName =
                 item.studentName
                     .ifBlank {
                         "Sinh viên"
                     }
 
+            val hasUnread =
+                item.unreadCount > 0
+
+            binding.tvStudentName.text =
+                studentName
+
             binding.tvRoomTitle.text =
                 item.roomTitle
+                    .ifBlank {
+                        "Phòng Roomify"
+                    }
 
             binding.tvAvatar.text =
-                item.studentName
+                studentName
                     .trim()
                     .firstOrNull()
                     ?.uppercase()
@@ -65,15 +70,18 @@ class LandlordConversationAdapter(
                         .equals(
                             "IMAGE",
                             ignoreCase = true
-                        ) ->
-                        "[Hình ảnh]"
+                        ) -> {
+                        "Đã gửi một hình ảnh"
+                    }
 
                     !item.lastMessage
-                        .isNullOrBlank() ->
+                        .isNullOrBlank() -> {
                         item.lastMessage
+                    }
 
-                    else ->
+                    else -> {
                         "Chưa có tin nhắn."
+                    }
                 }
 
             binding.tvTime.text =
@@ -81,9 +89,6 @@ class LandlordConversationAdapter(
                     item.lastMessageAt
                         ?: item.createdAt
                 )
-
-            val hasUnread =
-                item.unreadCount > 0
 
             binding.tvUnreadCount.visibility =
                 if (hasUnread) {
@@ -118,6 +123,38 @@ class LandlordConversationAdapter(
                     Typeface.NORMAL
                 }
             )
+
+            val context =
+                binding.root.context
+
+            binding.cardConversation.strokeColor =
+                ContextCompat.getColor(
+                    context,
+                    if (hasUnread) {
+                        R.color.primary_blue
+                    } else {
+                        R.color.stroke_border
+                    }
+                )
+
+            binding.cardConversation.strokeWidth =
+                if (hasUnread) {
+                    2
+                } else {
+                    1
+                }
+
+            binding.cardConversation
+                .setCardBackgroundColor(
+                    ContextCompat.getColor(
+                        context,
+                        if (hasUnread) {
+                            R.color.surface_light
+                        } else {
+                            R.color.surface_white
+                        }
+                    )
+                )
 
             binding.cardConversation
                 .setOnClickListener {
@@ -169,9 +206,7 @@ class LandlordConversationAdapter(
             runCatching {
 
                 Instant
-                    .parse(
-                        value
-                    )
+                    .parse(value)
                     .atZone(
                         vietnamZone
                     )
@@ -179,9 +214,7 @@ class LandlordConversationAdapter(
             }.recoverCatching {
 
                 OffsetDateTime
-                    .parse(
-                        value
-                    )
+                    .parse(value)
                     .atZoneSameInstant(
                         vietnamZone
                     )
@@ -189,13 +222,9 @@ class LandlordConversationAdapter(
             }.recoverCatching {
 
                 LocalDateTime
-                    .parse(
-                        value
-                    )
+                    .parse(value)
                     .atZone(
-                        ZoneId.of(
-                            "UTC"
-                        )
+                        ZoneId.of("UTC")
                     )
                     .withZoneSameInstant(
                         vietnamZone
@@ -216,24 +245,34 @@ class LandlordConversationAdapter(
                 )
                 .toLocalDate()
 
-        return if (
-            dateTime.toLocalDate() ==
-            today
+        val yesterday =
+            today.minusDays(1)
+
+        return when (
+            dateTime.toLocalDate()
         ) {
 
-            dateTime.format(
-                DateTimeFormatter.ofPattern(
-                    "HH:mm"
+            today -> {
+                dateTime.format(
+                    DateTimeFormatter
+                        .ofPattern(
+                            "HH:mm"
+                        )
                 )
-            )
+            }
 
-        } else {
+            yesterday -> {
+                "Hôm qua"
+            }
 
-            dateTime.format(
-                DateTimeFormatter.ofPattern(
-                    "dd/MM"
+            else -> {
+                dateTime.format(
+                    DateTimeFormatter
+                        .ofPattern(
+                            "dd/MM"
+                        )
                 )
-            )
+            }
         }
     }
 

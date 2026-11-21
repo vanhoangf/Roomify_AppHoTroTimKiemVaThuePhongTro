@@ -144,6 +144,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:layout_marginTop="10dp"
+                android:textColor="@color/status_error"
                 android:text="Từ chối lịch xem"
                 android:textAllCaps="false" />
 

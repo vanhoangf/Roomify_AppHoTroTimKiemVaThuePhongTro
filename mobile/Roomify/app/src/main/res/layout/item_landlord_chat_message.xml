@@ -12,11 +12,11 @@
         android:id="@+id/tvMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:maxWidth="290dp"
-        android:paddingStart="14dp"
-        android:paddingTop="10dp"
-        android:paddingEnd="14dp"
-        android:paddingBottom="10dp"
+        android:maxWidth="292dp"
+        android:paddingStart="15dp"
+        android:paddingTop="11dp"
+        android:paddingEnd="15dp"
+        android:paddingBottom="11dp"
         android:text="Tin nhắn"
         android:textSize="15sp" />
 
@@ -25,7 +25,8 @@
         style="@style/TextAppearance.Roomify.Caption"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="3dp"
-        android:text="20:15" />
+        android:layout_marginTop="4dp"
+        android:text="20:15"
+        android:textColor="@color/text_muted" />
 
 </LinearLayout>

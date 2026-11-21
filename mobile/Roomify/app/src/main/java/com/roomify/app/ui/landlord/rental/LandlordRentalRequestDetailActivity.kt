@@ -357,7 +357,10 @@ class LandlordRentalRequestDetailActivity :
         )
 
         bindActions(
-            status
+            status =
+                status,
+            durationMonths =
+                request.durationMonths
         )
     }
 
@@ -418,21 +421,56 @@ class LandlordRentalRequestDetailActivity :
     // ============================================================
 
     private fun bindActions(
-        status: String
+        status: String,
+        durationMonths: Int?
     ) {
 
+        val isPending =
+            status == "PENDING"
+
+        val isApproved =
+            status == "APPROVED"
+
         binding.actionContainer.isVisible =
-            status == "PENDING" ||
-                    status == "APPROVED"
+            isPending ||
+                    isApproved
 
         binding.btnApprove.isVisible =
-            status == "PENDING"
+            isPending
 
         binding.btnReject.isVisible =
-            status == "PENDING"
+            isPending
 
         binding.btnCreateContract.isVisible =
-            status == "APPROVED"
+            isApproved
+
+        if (isApproved) {
+
+            val validDuration =
+                durationMonths != null &&
+                        durationMonths > 0
+
+            binding.btnCreateContract.isEnabled =
+                validDuration
+
+            binding.btnCreateContract.text =
+                if (validDuration) {
+
+                    "Tạo hợp đồng"
+
+                } else {
+
+                    "Thiếu thời hạn thuê"
+                }
+
+        } else {
+
+            binding.btnCreateContract.isEnabled =
+                true
+
+            binding.btnCreateContract.text =
+                "Tạo hợp đồng"
+        }
     }
 
     // ============================================================

@@ -358,32 +358,41 @@ class LandlordPaymentDetailActivity :
                     )
 
         bindStatus(
-            payment.status
+            payment
         )
     }
 
     private fun bindStatus(
-        value: String
+        payment: PaymentResponse
     ) {
 
         val status =
-            value.uppercase(
+            payment.status.uppercase(
                 Locale.ROOT
             )
 
+        val submitted =
+            !payment.paymentMethod
+                .isNullOrBlank()
+
         binding.tvStatus.text =
-            when (status) {
+            when {
 
-                "PENDING" ->
-                    "Chờ xử lý"
+                status == "PENDING" &&
+                        !submitted ->
+                    "Chờ sinh viên thanh toán"
 
-                "PAID" ->
+                status == "PENDING" &&
+                        submitted ->
+                    "Chờ xác nhận thanh toán"
+
+                status == "PAID" ->
                     "Đã thanh toán"
 
-                "FAILED" ->
+                status == "FAILED" ->
                     "Đã từ chối"
 
-                "CANCELLED" ->
+                status == "CANCELLED" ->
                     "Đã hủy"
 
                 else ->
@@ -414,15 +423,27 @@ class LandlordPaymentDetailActivity :
         val pending =
             status == "PENDING"
 
+        /*
+         * Landlord chỉ được Confirm / Reject
+         * sau khi Student đã gửi PaymentMethod.
+         */
+        val canReview =
+            pending &&
+                    submitted
+
         binding.actionContainer.isVisible =
             pending
 
         binding.btnConfirm.isVisible =
-            pending
+            canReview
 
         binding.btnReject.isVisible =
-            pending
+            canReview
 
+        /*
+         * Landlord vẫn có quyền hủy khoản thanh toán
+         * khi đang PENDING, kể cả Student chưa submit.
+         */
         binding.btnCancel.isVisible =
             pending
     }

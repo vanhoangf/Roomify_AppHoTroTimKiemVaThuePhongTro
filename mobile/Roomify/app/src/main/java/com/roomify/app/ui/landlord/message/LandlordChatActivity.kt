@@ -1,20 +1,29 @@
 package com.roomify.app.ui.landlord.message
 
 import android.os.Bundle
+import android.view.View
+import android.widget.ImageButton
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
-
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.progressindicator.CircularProgressIndicator
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
+
+import com.roomify.app.R
 
 import com.roomify.app.data.remote.api.LandlordMessagingApi
 import com.roomify.app.data.remote.common.ApiResult
 import com.roomify.app.data.remote.network.RetrofitClient
 import com.roomify.app.data.repository.LandlordMessagingRepository
-import com.roomify.app.databinding.ActivityLandlordChatBinding
 import com.roomify.app.ui.common.RoleSessionGuard
 
 import kotlinx.coroutines.CancellationException
@@ -23,17 +32,48 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-class LandlordChatActivity :
-    AppCompatActivity() {
+class LandlordChatActivity : AppCompatActivity() {
 
     companion object {
-
         const val EXTRA_CONVERSATION_ID =
             "extra_landlord_conversation_id"
     }
 
-    private lateinit var binding:
-            ActivityLandlordChatBinding
+    private lateinit var landlordChatRoot: View
+
+    private lateinit var btnBack: ImageButton
+
+    private lateinit var tvStudentAvatar: TextView
+    private lateinit var tvStudentName: TextView
+    private lateinit var tvRoomTitle: TextView
+
+    private lateinit var rvMessages: RecyclerView
+
+    private lateinit var messageInputContainer: LinearLayout
+
+    private lateinit var progressMessages:
+            CircularProgressIndicator
+
+    private lateinit var messageStateContainer:
+            LinearLayout
+
+    private lateinit var tvMessageStateTitle:
+            TextView
+
+    private lateinit var tvMessageStateDescription:
+            TextView
+
+    private lateinit var btnRetryMessages:
+            MaterialButton
+
+    private lateinit var tilMessage:
+            TextInputLayout
+
+    private lateinit var edtMessage:
+            TextInputEditText
+
+    private lateinit var btnSend:
+            MaterialButton
 
     private lateinit var repository:
             LandlordMessagingRepository
@@ -45,8 +85,7 @@ class LandlordChatActivity :
         0L
 
     private var refreshJob:
-            Job? =
-        null
+            Job? = null
 
     private var isSending =
         false
@@ -57,18 +96,13 @@ class LandlordChatActivity :
     override fun onCreate(
         savedInstanceState: Bundle?
     ) {
-        super.onCreate(
-            savedInstanceState
-        )
-
-        binding =
-            ActivityLandlordChatBinding.inflate(
-                layoutInflater
-            )
+        super.onCreate(savedInstanceState)
 
         setContentView(
-            binding.root
+            R.layout.activity_landlord_chat
         )
+
+        bindViews()
 
         conversationId =
             intent.getLongExtra(
@@ -76,9 +110,7 @@ class LandlordChatActivity :
                 0L
             )
 
-        if (
-            conversationId <= 0L
-        ) {
+        if (conversationId <= 0L) {
 
             Toast.makeText(
                 this,
@@ -87,7 +119,6 @@ class LandlordChatActivity :
             ).show()
 
             finish()
-
             return
         }
 
@@ -97,27 +128,124 @@ class LandlordChatActivity :
         setupActions()
 
         loadConversation()
+
         loadMessages(
             scrollToBottom = true
         )
     }
 
+    private fun bindViews() {
+
+        landlordChatRoot =
+            findViewById(
+                R.id.landlordChatRoot
+            )
+
+        messageInputContainer =
+            findViewById(
+                R.id.messageInputContainer
+            )
+
+        btnBack =
+            findViewById(
+                R.id.btnBack
+            )
+
+        tvStudentAvatar =
+            findViewById(
+                R.id.tvStudentAvatar
+            )
+
+        tvStudentName =
+            findViewById(
+                R.id.tvStudentName
+            )
+
+        tvRoomTitle =
+            findViewById(
+                R.id.tvRoomTitle
+            )
+
+        rvMessages =
+            findViewById(
+                R.id.rvMessages
+            )
+
+        progressMessages =
+            findViewById(
+                R.id.progressMessages
+            )
+
+        messageStateContainer =
+            findViewById(
+                R.id.messageStateContainer
+            )
+
+        tvMessageStateTitle =
+            findViewById(
+                R.id.tvMessageStateTitle
+            )
+
+        tvMessageStateDescription =
+            findViewById(
+                R.id.tvMessageStateDescription
+            )
+
+        btnRetryMessages =
+            findViewById(
+                R.id.btnRetryMessages
+            )
+
+        tilMessage =
+            findViewById(
+                R.id.tilMessage
+            )
+
+        edtMessage =
+            findViewById(
+                R.id.edtMessage
+            )
+
+        btnSend =
+            findViewById(
+                R.id.btnSend
+            )
+    }
+
     private fun setupInsets() {
 
         ViewCompat.setOnApplyWindowInsetsListener(
-            binding.landlordChatRoot
+            landlordChatRoot
         ) { view, insets ->
 
-            val bars =
+            val statusBars =
                 insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars()
+                    WindowInsetsCompat.Type.statusBars()
                 )
 
+            val navigationBars =
+                insets.getInsets(
+                    WindowInsetsCompat.Type.navigationBars()
+                )
+
+            val density =
+                resources.displayMetrics.density
+
+            fun dp(value: Int): Int =
+                (value * density).toInt()
+
             view.setPadding(
-                bars.left,
-                bars.top,
-                bars.right,
-                bars.bottom
+                0,
+                statusBars.top,
+                0,
+                0
+            )
+
+            messageInputContainer.setPadding(
+                dp(12),
+                dp(10),
+                dp(12),
+                dp(10) + navigationBars.bottom
             )
 
             insets
@@ -143,35 +271,38 @@ class LandlordChatActivity :
         adapter =
             LandlordChatMessagesAdapter()
 
-        binding.rvMessages.apply {
+        rvMessages.layoutManager =
+            LinearLayoutManager(
+                this
+            ).apply {
 
-            layoutManager =
-                LinearLayoutManager(
-                    this@LandlordChatActivity
-                ).apply {
+                stackFromEnd = true
+            }
 
-                    stackFromEnd =
-                        true
-                }
-
-            adapter =
-                this@LandlordChatActivity
-                    .adapter
-        }
+        rvMessages.adapter =
+            adapter
     }
 
     private fun setupActions() {
 
-        binding.btnBack
+        btnBack.setOnClickListener {
+            finish()
+        }
+
+        btnSend.setOnClickListener {
+            sendMessage()
+        }
+
+        btnRetryMessages
             .setOnClickListener {
 
-                finish()
-            }
+                initialLoad = true
 
-        binding.btnSend
-            .setOnClickListener {
+                loadConversation()
 
-                sendMessage()
+                loadMessages(
+                    scrollToBottom = true
+                )
             }
     }
 
@@ -183,9 +314,10 @@ class LandlordChatActivity :
 
                 when (
                     val result =
-                        repository.getConversation(
-                            conversationId
-                        )
+                        repository
+                            .getConversation(
+                                conversationId
+                            )
                 ) {
 
                     is ApiResult.Success -> {
@@ -194,32 +326,53 @@ class LandlordChatActivity :
                             ?.let {
                                     conversation ->
 
-                                binding.tvStudentName.text =
-                                    conversation.studentName
+                                val studentName =
+                                    conversation
+                                        .studentName
+                                        .ifBlank {
+                                            "Sinh viên"
+                                        }
 
-                                binding.tvRoomTitle.text =
-                                    conversation.roomTitle
+                                tvStudentName.text =
+                                    studentName
+
+                                tvRoomTitle.text =
+                                    conversation
+                                        .roomTitle
+                                        .ifBlank {
+                                            "Phòng Roomify"
+                                        }
+
+                                tvStudentAvatar.text =
+                                    studentName
+                                        .trim()
+                                        .firstOrNull()
+                                        ?.uppercase()
+                                        ?: "S"
                             }
                     }
 
                     is ApiResult.Error -> {
 
-                        Toast.makeText(
-                            this@LandlordChatActivity,
-                            result.exception.message
-                                ?: "Không thể tải thông tin cuộc trò chuyện.",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        if (initialLoad) {
+
+                            Toast.makeText(
+                                this@LandlordChatActivity,
+                                result
+                                    .exception
+                                    .message
+                                    ?: "Không thể tải thông tin cuộc trò chuyện.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                     }
 
-                    ApiResult.Loading ->
-                        Unit
+                    ApiResult.Loading -> Unit
                 }
 
             } catch (
                 e: CancellationException
             ) {
-
                 throw e
             }
         }
@@ -229,12 +382,8 @@ class LandlordChatActivity :
         scrollToBottom: Boolean
     ) {
 
-        if (
-            initialLoad
-        ) {
-
-            binding.progressMessages.isVisible =
-                true
+        if (initialLoad) {
+            showLoading()
         }
 
         lifecycleScope.launch {
@@ -243,15 +392,17 @@ class LandlordChatActivity :
 
                 when (
                     val result =
-                        repository.getMessages(
-                            conversationId
-                        )
+                        repository
+                            .getMessages(
+                                conversationId
+                            )
                 ) {
 
                     is ApiResult.Success -> {
 
                         val messages =
-                            result.data.orEmpty()
+                            result.data
+                                .orEmpty()
 
                         adapter.submitList(
                             messages
@@ -262,11 +413,19 @@ class LandlordChatActivity :
                                 messages.isNotEmpty()
                             ) {
 
-                                binding.rvMessages
+                                rvMessages
                                     .scrollToPosition(
                                         messages.lastIndex
                                     )
                             }
+                        }
+
+                        if (
+                            messages.isEmpty()
+                        ) {
+                            showEmpty()
+                        } else {
+                            showMessages()
                         }
 
                         markAsRead()
@@ -278,17 +437,16 @@ class LandlordChatActivity :
                             adapter.itemCount == 0
                         ) {
 
-                            Toast.makeText(
-                                this@LandlordChatActivity,
-                                result.exception.message
-                                    ?: "Không thể tải tin nhắn.",
-                                Toast.LENGTH_LONG
-                            ).show()
+                            showMessageError(
+                                result
+                                    .exception
+                                    .message
+                                    ?: "Không thể tải tin nhắn."
+                            )
                         }
                     }
 
-                    ApiResult.Loading ->
-                        Unit
+                    ApiResult.Loading -> Unit
                 }
 
             } catch (
@@ -297,13 +455,26 @@ class LandlordChatActivity :
 
                 throw e
 
+            } catch (
+                e: Exception
+            ) {
+
+                if (
+                    adapter.itemCount == 0
+                ) {
+
+                    showMessageError(
+                        e.message
+                            ?: "Không thể tải tin nhắn."
+                    )
+                }
+
             } finally {
 
-                binding.progressMessages.isVisible =
-                    false
+                progressMessages
+                    .isVisible = false
 
-                initialLoad =
-                    false
+                initialLoad = false
             }
         }
     }
@@ -337,20 +508,18 @@ class LandlordChatActivity :
             return
         }
 
-        binding.tilMessage.error =
+        tilMessage.error =
             null
 
         val content =
-            binding.edtMessage.text
+            edtMessage.text
                 ?.toString()
                 ?.trim()
                 .orEmpty()
 
-        if (
-            content.isBlank()
-        ) {
+        if (content.isBlank()) {
 
-            binding.tilMessage.error =
+            tilMessage.error =
                 "Vui lòng nhập tin nhắn."
 
             return
@@ -360,7 +529,7 @@ class LandlordChatActivity :
             content.length > 2000
         ) {
 
-            binding.tilMessage.error =
+            tilMessage.error =
                 "Tin nhắn tối đa 2000 ký tự."
 
             return
@@ -376,18 +545,22 @@ class LandlordChatActivity :
 
                 when (
                     val result =
-                        repository.sendMessage(
-                            conversationId =
-                                conversationId,
-                            content =
-                                content
-                        )
+                        repository
+                            .sendMessage(
+                                conversationId =
+                                    conversationId,
+                                content =
+                                    content
+                            )
                 ) {
 
                     is ApiResult.Success -> {
 
-                        binding.edtMessage
+                        edtMessage
                             .setText("")
+
+                        tilMessage.error =
+                            null
 
                         loadMessages(
                             scrollToBottom = true
@@ -398,14 +571,15 @@ class LandlordChatActivity :
 
                         Toast.makeText(
                             this@LandlordChatActivity,
-                            result.exception.message
+                            result
+                                .exception
+                                .message
                                 ?: "Không thể gửi tin nhắn.",
                             Toast.LENGTH_LONG
                         ).show()
                     }
 
-                    ApiResult.Loading ->
-                        Unit
+                    ApiResult.Loading -> Unit
                 }
 
             } catch (
@@ -441,18 +615,86 @@ class LandlordChatActivity :
         isSending =
             value
 
-        binding.btnSend.isEnabled =
+        btnSend.isEnabled =
             !value
 
-        binding.edtMessage.isEnabled =
+        edtMessage.isEnabled =
             !value
 
-        binding.btnSend.text =
+        btnSend.text =
             if (value) {
                 "..."
             } else {
                 "Gửi"
             }
+    }
+
+    private fun showLoading() {
+
+        progressMessages
+            .isVisible = true
+
+        rvMessages
+            .isVisible = false
+
+        messageStateContainer
+            .isVisible = false
+    }
+
+    private fun showMessages() {
+
+        progressMessages
+            .isVisible = false
+
+        messageStateContainer
+            .isVisible = false
+
+        rvMessages
+            .isVisible = true
+    }
+
+    private fun showEmpty() {
+
+        progressMessages
+            .isVisible = false
+
+        rvMessages
+            .isVisible = false
+
+        messageStateContainer
+            .isVisible = true
+
+        tvMessageStateTitle.text =
+            "Chưa có tin nhắn"
+
+        tvMessageStateDescription.text =
+            "Hãy gửi lời chào để bắt đầu cuộc trò chuyện với sinh viên."
+
+        btnRetryMessages
+            .isVisible = false
+    }
+
+    private fun showMessageError(
+        message: String
+    ) {
+
+        progressMessages
+            .isVisible = false
+
+        rvMessages
+            .isVisible = false
+
+        messageStateContainer
+            .isVisible = true
+
+        tvMessageStateTitle.text =
+            "Không thể tải tin nhắn"
+
+        tvMessageStateDescription.text =
+            message
+
+        btnRetryMessages
+            .isVisible = true
     }
 
     private fun startAutoRefresh() {
@@ -462,9 +704,7 @@ class LandlordChatActivity :
         refreshJob =
             lifecycleScope.launch {
 
-                while (
-                    isActive
-                ) {
+                while (isActive) {
 
                     delay(
                         5000L
@@ -478,32 +718,33 @@ class LandlordChatActivity :
     }
 
     override fun onResume() {
+
         super.onResume()
 
         if (
             ::repository.isInitialized
         ) {
-
             startAutoRefresh()
         }
     }
 
     override fun onPause() {
+
         super.onPause()
 
         refreshJob?.cancel()
-
-        refreshJob =
-            null
+        refreshJob = null
     }
 
     override fun onStart() {
+
         super.onStart()
 
         RoleSessionGuard.verify(
             activity = this,
             expectedRole = "LANDLORD",
-            onNetworkError = { message ->
+            onNetworkError = {
+                    message ->
 
                 Toast.makeText(
                     this,

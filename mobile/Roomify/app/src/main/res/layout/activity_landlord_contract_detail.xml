@@ -191,6 +191,13 @@
                 android:orientation="vertical"
                 android:visibility="gone">
 
+                <TextView
+                    style="@style/TextAppearance.Roomify.Section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="Quản lý hợp đồng" />
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnCreatePayment"
                     style="@style/Widget.Roomify.Button.Primary"
@@ -206,14 +213,15 @@
                     android:layout_width="match_parent"
                     android:layout_height="54dp"
                     android:layout_marginTop="10dp"
-                    android:text="Xem các khoản thanh toán"
+                    android:text="Mở quản lý thanh toán"
                     android:textAllCaps="false" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnComplete"
-                    style="@style/Widget.Roomify.Button.Primary"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="54dp"
+                    android:layout_marginTop="10dp"
                     android:text="Hoàn thành hợp đồng"
                     android:textAllCaps="false"
                     android:visibility="gone" />

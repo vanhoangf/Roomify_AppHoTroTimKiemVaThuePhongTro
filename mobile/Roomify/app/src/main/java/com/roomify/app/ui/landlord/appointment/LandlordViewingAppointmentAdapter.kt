@@ -82,8 +82,7 @@ class LandlordViewingAppointmentAdapter(
     ) {
 
         fun bind(
-            item:
-            ViewingAppointmentResponse
+            item: ViewingAppointmentResponse
         ) {
 
             binding.tvLandlordStudentName.text =
@@ -113,10 +112,8 @@ class LandlordViewingAppointmentAdapter(
                     }
                     ?: "SĐT: Chưa cập nhật"
 
-            binding.tvLandlordStudentNote
-                .isVisible =
-                !item.note
-                    .isNullOrBlank()
+            binding.tvLandlordStudentNote.isVisible =
+                !item.note.isNullOrBlank()
 
             binding.tvLandlordStudentNote.text =
                 "Ghi chú: ${item.note.orEmpty()}"
@@ -125,6 +122,14 @@ class LandlordViewingAppointmentAdapter(
                 item.status.uppercase(
                     Locale.ROOT
                 )
+
+            // =====================================================
+            // ACTION VISIBILITY
+            // =====================================================
+
+            binding.actionContainer.isVisible =
+                status == "PENDING" ||
+                        status == "PROPOSED"
 
             binding.btnConfirm.isVisible =
                 status == "PENDING"
@@ -136,13 +141,22 @@ class LandlordViewingAppointmentAdapter(
                 status == "PENDING" ||
                         status == "PROPOSED"
 
+            /*
+             * Hoàn thành lịch xem chỉ xử lý trong màn Detail.
+             * Không hiện nút này ở item danh sách.
+             */
+            binding.btnComplete.isVisible =
+                false
+
+            // =====================================================
+            // PROPOSED TIME
+            // =====================================================
+
             val proposedVisible =
                 status == "PROPOSED" &&
-                        !item.proposedAt
-                            .isNullOrBlank()
+                        !item.proposedAt.isNullOrBlank()
 
-            binding.proposedContainer
-                .isVisible =
+            binding.proposedContainer.isVisible =
                 proposedVisible
 
             if (proposedVisible) {
@@ -153,9 +167,17 @@ class LandlordViewingAppointmentAdapter(
                     )
             }
 
+            // =====================================================
+            // STATUS
+            // =====================================================
+
             bindStatus(
                 status
             )
+
+            // =====================================================
+            // CLICK EVENTS
+            // =====================================================
 
             binding.cardLandlordAppointment
                 .setOnClickListener {
@@ -164,19 +186,29 @@ class LandlordViewingAppointmentAdapter(
                         item
                     )
                 }
+
             binding.btnConfirm
                 .setOnClickListener {
-                    onConfirm(item)
+
+                    onConfirm(
+                        item
+                    )
                 }
 
             binding.btnPropose
                 .setOnClickListener {
-                    onPropose(item)
+
+                    onPropose(
+                        item
+                    )
                 }
 
             binding.btnReject
                 .setOnClickListener {
-                    onReject(item)
+
+                    onReject(
+                        item
+                    )
                 }
         }
 
@@ -191,13 +223,13 @@ class LandlordViewingAppointmentAdapter(
                         "Chờ xác nhận"
 
                     "PROPOSED" ->
-                        "Đã đề xuất giờ"
+                        "Chờ sinh viên phản hồi"
 
                     "CONFIRMED" ->
                         "Đã xác nhận"
 
                     "CANCELLED" ->
-                        "Đã hủy"
+                        "Sinh viên đã hủy"
 
                     "REJECTED" ->
                         "Đã từ chối"
@@ -237,6 +269,10 @@ class LandlordViewingAppointmentAdapter(
         }
     }
 
+    // ============================================================
+    // DATE TIME
+    // ============================================================
+
     private fun formatDateTime(
         value: String?
     ): String {
@@ -247,18 +283,23 @@ class LandlordViewingAppointmentAdapter(
 
         val instant =
             runCatching {
+
                 Instant.parse(
                     value
                 )
+
             }.getOrNull()
                 ?: runCatching {
+
                     OffsetDateTime
                         .parse(
                             value
                         )
                         .toInstant()
+
                 }.getOrNull()
                 ?: runCatching {
+
                     LocalDateTime
                         .parse(
                             value
@@ -266,6 +307,7 @@ class LandlordViewingAppointmentAdapter(
                         .toInstant(
                             ZoneOffset.UTC
                         )
+
                 }.getOrNull()
 
         return if (instant != null) {
@@ -291,10 +333,8 @@ class LandlordViewingAppointmentAdapter(
                         >() {
 
                 override fun areItemsTheSame(
-                    oldItem:
-                    ViewingAppointmentResponse,
-                    newItem:
-                    ViewingAppointmentResponse
+                    oldItem: ViewingAppointmentResponse,
+                    newItem: ViewingAppointmentResponse
                 ): Boolean {
 
                     return oldItem.appointmentId ==
@@ -302,10 +342,8 @@ class LandlordViewingAppointmentAdapter(
                 }
 
                 override fun areContentsTheSame(
-                    oldItem:
-                    ViewingAppointmentResponse,
-                    newItem:
-                    ViewingAppointmentResponse
+                    oldItem: ViewingAppointmentResponse,
+                    newItem: ViewingAppointmentResponse
                 ): Boolean {
 
                     return oldItem ==

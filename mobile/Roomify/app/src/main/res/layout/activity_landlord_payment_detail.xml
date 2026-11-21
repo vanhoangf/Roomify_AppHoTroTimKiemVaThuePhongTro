@@ -222,6 +222,13 @@
                 android:orientation="vertical"
                 android:visibility="gone">
 
+                <TextView
+                    style="@style/TextAppearance.Roomify.Section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="Xử lý thanh toán" />
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnConfirm"
                     style="@style/Widget.Roomify.Button.Primary"

@@ -99,7 +99,7 @@ class LandlordPaymentAdapter(
                     ?: "Không có hạn thanh toán"
 
             bindStatus(
-                item.status
+                item
             )
 
             binding.cardPayment
@@ -112,27 +112,36 @@ class LandlordPaymentAdapter(
         }
 
         private fun bindStatus(
-            value: String
+            item: PaymentResponse
         ) {
 
             val status =
-                value.uppercase(
+                item.status.uppercase(
                     Locale.ROOT
                 )
 
+            val submitted =
+                !item.paymentMethod
+                    .isNullOrBlank()
+
             binding.chipStatus.text =
-                when (status) {
+                when {
 
-                    "PENDING" ->
-                        "Chờ xử lý"
+                    status == "PENDING" &&
+                            !submitted ->
+                        "Chờ sinh viên"
 
-                    "PAID" ->
+                    status == "PENDING" &&
+                            submitted ->
+                        "Chờ xác nhận"
+
+                    status == "PAID" ->
                         "Đã thanh toán"
 
-                    "FAILED" ->
+                    status == "FAILED" ->
                         "Đã từ chối"
 
-                    "CANCELLED" ->
+                    status == "CANCELLED" ->
                         "Đã hủy"
 
                     else ->

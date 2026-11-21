@@ -4,15 +4,13 @@ import android.graphics.Color
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
-
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-
 import com.roomify.app.R
 import com.roomify.app.data.remote.dto.messaging.MessageResponse
 import com.roomify.app.databinding.ItemLandlordChatMessageBinding
-
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -48,15 +46,18 @@ class LandlordChatMessagesAdapter :
                         .equals(
                             "IMAGE",
                             ignoreCase = true
-                        ) ->
+                        ) -> {
                         "[Hình ảnh]"
+                    }
 
                     !item.content
-                        .isNullOrBlank() ->
+                        .isNullOrBlank() -> {
                         item.content
+                    }
 
-                    else ->
+                    else -> {
                         ""
+                    }
                 }
 
             binding.tvTime.text =
@@ -64,7 +65,9 @@ class LandlordChatMessagesAdapter :
                     item.sentAt
                 )
 
-            if (item.isMine) {
+            if (
+                item.isMine
+            ) {
 
                 binding.messageRoot.gravity =
                     Gravity.END
@@ -74,9 +77,18 @@ class LandlordChatMessagesAdapter :
                         R.drawable.bg_message_mine
                     )
 
-                binding.tvMessage.setTextColor(
-                    Color.WHITE
-                )
+                binding.tvMessage
+                    .setTextColor(
+                        Color.WHITE
+                    )
+
+                binding.tvTime
+                    .setTextColor(
+                        ContextCompat.getColor(
+                            binding.root.context,
+                            R.color.text_muted
+                        )
+                    )
 
             } else {
 
@@ -88,9 +100,21 @@ class LandlordChatMessagesAdapter :
                         R.drawable.bg_message_other
                     )
 
-                binding.tvMessage.setTextColor(
-                    Color.BLACK
-                )
+                binding.tvMessage
+                    .setTextColor(
+                        ContextCompat.getColor(
+                            binding.root.context,
+                            R.color.text_primary
+                        )
+                    )
+
+                binding.tvTime
+                    .setTextColor(
+                        ContextCompat.getColor(
+                            binding.root.context,
+                            R.color.text_muted
+                        )
+                    )
             }
         }
     }
@@ -129,9 +153,7 @@ class LandlordChatMessagesAdapter :
             runCatching {
 
                 Instant
-                    .parse(
-                        value
-                    )
+                    .parse(value)
                     .atZone(
                         vietnamZone
                     )
@@ -139,9 +161,7 @@ class LandlordChatMessagesAdapter :
             }.recoverCatching {
 
                 OffsetDateTime
-                    .parse(
-                        value
-                    )
+                    .parse(value)
                     .atZoneSameInstant(
                         vietnamZone
                     )
@@ -149,13 +169,9 @@ class LandlordChatMessagesAdapter :
             }.recoverCatching {
 
                 LocalDateTime
-                    .parse(
-                        value
-                    )
+                    .parse(value)
                     .atZone(
-                        ZoneId.of(
-                            "UTC"
-                        )
+                        ZoneId.of("UTC")
                     )
                     .withZoneSameInstant(
                         vietnamZone
@@ -169,11 +185,32 @@ class LandlordChatMessagesAdapter :
                         " "
                     )
 
-        return dateTime.format(
-            DateTimeFormatter.ofPattern(
-                "dd/MM • HH:mm"
+        val today =
+            java.time.ZonedDateTime
+                .now(
+                    vietnamZone
+                )
+                .toLocalDate()
+
+        return if (
+            dateTime.toLocalDate() ==
+            today
+        ) {
+
+            dateTime.format(
+                DateTimeFormatter.ofPattern(
+                    "HH:mm"
+                )
             )
-        )
+
+        } else {
+
+            dateTime.format(
+                DateTimeFormatter.ofPattern(
+                    "dd/MM • HH:mm"
+                )
+            )
+        }
     }
 
     companion object {
