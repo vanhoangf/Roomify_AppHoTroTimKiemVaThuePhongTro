@@ -200,6 +200,7 @@ builder.Services.AddScoped<IAdminReportService, AdminReportService>();
 builder.Services.AddScoped<IAdminCatalogService, AdminCatalogService>();
 builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 builder.Services.AddScoped<IAdminReviewService, AdminReviewService>();
+builder.Services.AddScoped<IAdminContractService, AdminContractService>();
 //AUTHENTICATION - JWT BEARER
 
 builder.Services

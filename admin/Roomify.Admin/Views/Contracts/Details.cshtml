@@ -1,0 +1,954 @@
+﻿@model Roomify.Admin.Models.Contracts.AdminContractDetailViewModel
+
+@{
+    ViewData["Title"] =
+        "Chi tiết hợp đồng";
+
+    var contract =
+        Model.Contract;
+
+
+    string StatusText(string status)
+    {
+        return status.ToUpperInvariant()
+            switch
+        {
+            "PENDING" =>
+                "Chờ xác nhận",
+
+            "ACTIVE" =>
+                "Đang hiệu lực",
+
+            "COMPLETED" =>
+                "Đã hoàn thành",
+
+            "CANCELLED" =>
+                "Đã hủy",
+
+            _ =>
+                status
+        };
+    }
+}
+
+
+@section Styles {
+
+    <link rel="stylesheet"
+          href="~/css/admin-contract-detail.css"
+          asp-append-version="true" />
+
+}
+
+
+<div class="contract-detail-page">
+
+    @if (Model.HasError ||
+         contract is null)
+    {
+        <section class="contract-detail-error">
+
+            <div class="contract-detail-error-icon">
+                !
+            </div>
+
+
+            <h1>
+                Không thể tải hợp đồng
+            </h1>
+
+
+            <p>
+                @Model.ErrorMessage
+            </p>
+
+
+            <a href="@(Model.ReturnUrl ?? Url.Action("Index", "Contracts"))"
+               class="contract-detail-primary-link">
+
+                Quay lại danh sách
+
+            </a>
+
+        </section>
+    }
+    else
+    {
+        <!-- BREADCRUMB -->
+
+        <div class="contract-detail-breadcrumb">
+
+            <a asp-controller="Dashboard"
+               asp-action="Index">
+
+                Trang chủ
+
+            </a>
+
+            <span>›</span>
+
+
+            <a href="@(Model.ReturnUrl ?? Url.Action("Index", "Contracts"))">
+
+                Hợp đồng
+
+            </a>
+
+            <span>›</span>
+
+
+            <strong>
+                @contract.ContractCode
+            </strong>
+
+        </div>
+
+
+        <!-- HEADING -->
+
+        <section class="contract-detail-heading">
+
+            <div>
+
+                <h1>
+                    Chi tiết hợp đồng
+                </h1>
+
+
+                <p>
+                    Theo dõi thông tin và trạng thái hợp đồng thuê phòng.
+                </p>
+
+            </div>
+
+
+            <a href="@(Model.ReturnUrl ?? Url.Action("Index", "Contracts"))"
+               class="contract-detail-back">
+
+                <svg viewBox="0 0 24 24">
+                    <path d="m15 18-6-6 6-6 1.4 1.4L11.8 12l4.6 4.6L15 18Z" />
+                </svg>
+
+                Quay lại danh sách
+
+            </a>
+
+        </section>
+
+
+        <!-- SUMMARY -->
+
+        <section class="contract-summary-card">
+
+            <div class="contract-summary-icon">
+                #
+            </div>
+
+
+            <div class="contract-summary-main">
+
+                <div class="contract-summary-top">
+
+                    <span class="contract-code">
+                        @contract.ContractCode
+                    </span>
+
+
+                    <span class="
+                        detail-contract-status
+                        detail-contract-status-@contract.Status.ToLowerInvariant()">
+
+                        @StatusText(contract.Status)
+
+                    </span>
+
+                </div>
+
+
+                <h2>
+                    @contract.RoomTitle
+                </h2>
+
+
+                <div class="contract-summary-meta">
+
+                    <span>
+                        @contract.PropertyName
+                    </span>
+
+
+                    <span>
+                        Sinh viên:
+                        <strong>
+                            @contract.StudentName
+                        </strong>
+                    </span>
+
+
+                    <span>
+                        Chủ trọ:
+                        <strong>
+                            @contract.LandlordName
+                        </strong>
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <div class="contract-detail-grid">
+
+            <!-- =================================================
+             LEFT
+             ================================================= -->
+
+            <main class="contract-detail-main">
+
+                <!-- CONTRACT -->
+
+                <section class="contract-detail-card">
+
+                    <div class="contract-card-heading">
+
+                        <div class="contract-card-icon blue">
+                            #
+                        </div>
+
+
+                        <div>
+
+                            <h2>
+                                Thông tin hợp đồng
+                            </h2>
+
+                            <p>
+                                Các thông tin chính của hợp đồng thuê
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="contract-info-grid">
+
+                        <div>
+
+                            <span>
+                                Contract ID
+                            </span>
+
+                            <strong>
+                                #@contract.ContractId
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Mã hợp đồng
+                            </span>
+
+                            <strong>
+                                @contract.ContractCode
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Rental Request
+                            </span>
+
+                            <strong>
+                                #@contract.RentalRequestId
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Trạng thái
+                            </span>
+
+                            <strong>
+                                @StatusText(contract.Status)
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Ngày bắt đầu
+                            </span>
+
+                            <strong>
+                                @contract.StartDate.ToString("dd/MM/yyyy")
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Ngày kết thúc
+                            </span>
+
+                            <strong>
+                                @(contract.EndDate.HasValue
+                                    ? contract.EndDate.Value.ToString("dd/MM/yyyy")
+                                    : "Không xác định")
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- FINANCIAL -->
+
+                <section class="contract-detail-card">
+
+                    <div class="contract-card-heading">
+
+                        <div class="contract-card-icon green">
+                            ₫
+                        </div>
+
+
+                        <div>
+
+                            <h2>
+                                Thông tin tài chính
+                            </h2>
+
+                            <p>
+                                Tiền thuê và tiền đặt cọc
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="contract-finance-grid">
+
+                        <div>
+
+                            <span>
+                                Tiền thuê hàng tháng
+                            </span>
+
+                            <strong>
+                                @contract.MonthlyRent.ToString("N0") đ
+                            </strong>
+
+                            <small>
+                                / tháng
+                            </small>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Tiền đặt cọc
+                            </span>
+
+                            <strong>
+                                @contract.DepositAmount.ToString("N0") đ
+                            </strong>
+
+                            <small>
+                                Deposit
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- ROOM -->
+
+                <section class="contract-detail-card">
+
+                    <div class="contract-card-heading">
+
+                        <div class="contract-card-icon purple">
+                            ▣
+                        </div>
+
+
+                        <div>
+
+                            <h2>
+                                Phòng thuê
+                            </h2>
+
+                            <p>
+                                Phòng và khu trọ thuộc hợp đồng
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="contract-room-box">
+
+                        <div class="contract-room-icon">
+                            ▣
+                        </div>
+
+
+                        <div class="contract-room-main">
+
+                            <span>
+                                Room #@contract.RoomId
+                            </span>
+
+
+                            <strong>
+                                @contract.RoomTitle
+                            </strong>
+
+
+                            <small>
+                                @contract.PropertyName
+                            </small>
+
+                        </div>
+
+
+                        <a asp-controller="Rooms"
+                           asp-action="Details"
+                           asp-route-id="@contract.RoomId"
+                           asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")"
+                           class="contract-room-link">
+
+                            Xem phòng
+
+                            <span>›</span>
+
+                        </a>
+
+                    </div>
+
+
+                    <div class="contract-property-info">
+
+                        <div>
+
+                            <span>
+                                Property ID
+                            </span>
+
+                            <strong>
+                                #@contract.PropertyId
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Tên khu trọ
+                            </span>
+
+                            <strong>
+                                @contract.PropertyName
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- TERMS -->
+
+                <section class="contract-detail-card">
+
+                    <div class="contract-card-heading">
+
+                        <div class="contract-card-icon orange">
+                            ≡
+                        </div>
+
+
+                        <div>
+
+                            <h2>
+                                Điều khoản hợp đồng
+                            </h2>
+
+                            <p>
+                                Nội dung thỏa thuận giữa hai bên
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="contract-terms">
+
+                        @if (string.IsNullOrWhiteSpace(
+                            contract.Terms))
+                        {
+                            <p class="empty">
+                                Hợp đồng không có điều khoản bổ sung.
+                            </p>
+                        }
+                        else
+                        {
+                            <p>
+                                @contract.Terms
+                            </p>
+                        }
+
+                    </div>
+
+
+                    @if (!string.IsNullOrWhiteSpace(
+                        contract.ContractFileUrl))
+                    {
+                        <a href="@contract.ContractFileUrl"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="contract-file-link">
+
+                            <span>
+                                ↗
+                            </span>
+
+                            Mở file hợp đồng
+
+                        </a>
+                    }
+
+                </section>
+
+
+                <!-- TIMELINE -->
+
+                <section class="contract-detail-card">
+
+                    <div class="contract-card-heading">
+
+                        <div class="contract-card-icon cyan">
+                            ◷
+                        </div>
+
+
+                        <div>
+
+                            <h2>
+                                Lịch sử trạng thái
+                            </h2>
+
+                            <p>
+                                Các mốc thời gian của hợp đồng
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="contract-timeline">
+
+                        <div class="contract-timeline-item done">
+
+                            <span class="timeline-dot">
+                            </span>
+
+
+                            <div>
+
+                                <strong>
+                                    Hợp đồng được tạo
+                                </strong>
+
+                                <span>
+                                    @(contract.CreatedAt
+                                        .ToLocalTime()
+                                        .ToString("dd/MM/yyyy HH:mm"))
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        @if (contract.ActivatedAt.HasValue)
+                        {
+                            <div class="contract-timeline-item done">
+
+                                <span class="timeline-dot">
+                                </span>
+
+
+                                <div>
+
+                                    <strong>
+                                        Hợp đồng có hiệu lực
+                                    </strong>
+
+                                    <span>
+                                        @(contract.ActivatedAt.Value
+                                            .ToLocalTime()
+                                            .ToString("dd/MM/yyyy HH:mm"))
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        }
+
+
+                        @if (contract.CompletedAt.HasValue)
+                        {
+                            <div class="contract-timeline-item done">
+
+                                <span class="timeline-dot">
+                                </span>
+
+
+                                <div>
+
+                                    <strong>
+                                        Hợp đồng hoàn thành
+                                    </strong>
+
+                                    <span>
+                                        @(contract.CompletedAt.Value
+                                            .ToLocalTime()
+                                            .ToString("dd/MM/yyyy HH:mm"))
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        }
+
+
+                        @if (contract.CancelledAt.HasValue)
+                        {
+                            <div class="contract-timeline-item cancelled">
+
+                                <span class="timeline-dot">
+                                </span>
+
+
+                                <div>
+
+                                    <strong>
+                                        Hợp đồng đã hủy
+                                    </strong>
+
+                                    <span>
+                                        @(contract.CancelledAt.Value
+                                            .ToLocalTime()
+                                            .ToString("dd/MM/yyyy HH:mm"))
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        }
+
+
+                        @if (Model.IsPending)
+                        {
+                            <div class="contract-timeline-item current">
+
+                                <span class="timeline-dot">
+                                </span>
+
+
+                                <div>
+
+                                    <strong>
+                                        Đang chờ sinh viên xác nhận
+                                    </strong>
+
+                                    <span>
+                                        Trạng thái hiện tại
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        }
+                        else if (Model.IsActive)
+                        {
+                            <div class="contract-timeline-item current">
+
+                                <span class="timeline-dot">
+                                </span>
+
+
+                                <div>
+
+                                    <strong>
+                                        Hợp đồng đang hiệu lực
+                                    </strong>
+
+                                    <span>
+                                        Trạng thái hiện tại
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        }
+
+                    </div>
+
+                </section>
+
+            </main>
+
+
+            <!-- =================================================
+             SIDEBAR
+             ================================================= -->
+
+            <aside class="contract-detail-sidebar">
+
+                <!-- STUDENT -->
+
+                <section class="contract-side-card">
+
+                    <div class="contract-side-heading">
+
+                        <h2>
+                            Sinh viên thuê phòng
+                        </h2>
+
+                    </div>
+
+
+                    <div class="contract-person-profile">
+
+                        <div class="contract-avatar student">
+
+                            @(
+                                string.IsNullOrWhiteSpace(contract.StudentName)
+                                    ? "?"
+                                    : contract.StudentName[0]
+                                        .ToString()
+                                        .ToUpper()
+                            )
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                @contract.StudentName
+                            </strong>
+
+                            <span>
+                                @contract.StudentEmail
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="contract-side-info">
+
+                        <div>
+
+                            <span>
+                                Student ID
+                            </span>
+
+                            <strong>
+                                #@contract.StudentId
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                User ID
+                            </span>
+
+                            <strong>
+                                #@contract.StudentUserId
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Số điện thoại
+                            </span>
+
+                            <strong>
+                                @(contract.StudentPhone ?? "—")
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- LANDLORD -->
+
+                <section class="contract-side-card">
+
+                    <div class="contract-side-heading">
+
+                        <h2>
+                            Chủ trọ
+                        </h2>
+
+                    </div>
+
+
+                    <div class="contract-person-profile">
+
+                        <div class="contract-avatar landlord">
+
+                            @(
+                                string.IsNullOrWhiteSpace(contract.LandlordName)
+                                    ? "?"
+                                    : contract.LandlordName[0]
+                                        .ToString()
+                                        .ToUpper()
+                            )
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                @contract.LandlordName
+                            </strong>
+
+                            <span>
+                                @contract.LandlordEmail
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="contract-side-info">
+
+                        <div>
+
+                            <span>
+                                Landlord ID
+                            </span>
+
+                            <strong>
+                                #@contract.LandlordId
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                User ID
+                            </span>
+
+                            <strong>
+                                #@contract.LandlordUserId
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Số điện thoại
+                            </span>
+
+                            <strong>
+                                @(contract.LandlordPhone ?? "—")
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- STATUS -->
+
+                <section class="contract-side-card">
+
+                    <div class="contract-side-heading">
+
+                        <h2>
+                            Trạng thái hợp đồng
+                        </h2>
+
+                    </div>
+
+
+                    <div class="contract-current-status">
+
+                        <span class="
+                            detail-contract-status
+                            detail-contract-status-@contract.Status.ToLowerInvariant()">
+
+                            @StatusText(contract.Status)
+
+                        </span>
+
+
+                        <p>
+                            Admin chỉ theo dõi trạng thái. Việc xác nhận,
+                            hoàn thành hoặc hủy hợp đồng được thực hiện
+                            bởi Sinh viên hoặc Chủ trọ.
+                        </p>
+
+                    </div>
+
+                </section>
+
+            </aside>
+
+        </div>
+    }
+
+</div>
